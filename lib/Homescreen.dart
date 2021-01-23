@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'following.dart';
 import 'package:adobe_xd/pinned.dart';
-import 'page_labels.dart';
-import 'friends_page.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+import 'following.dart';
+import 'friends_page.dart';
 import 'user_info.dart';
+import 'new_post.dart';
+import 'backend_connect.dart';
+
+final backendConnection = new BackendConnection();
+
+enum PageLabel {
+  discover,
+  friends,
+  following,
+}
 
 class PageProvider extends ChangeNotifier {
+  /* Responsible for keeping track of which page user is on. */
   Widget pageBody = FriendsPage();
   PageLabel pageLabel = PageLabel.friends;
 
@@ -28,6 +41,7 @@ class PageProvider extends ChangeNotifier {
 
 class Homescreen extends StatefulWidget {
   final PageLabel pageLabel;
+
   Homescreen({Key key, this.pageLabel}) : super(key: key);
 
   @override
@@ -68,14 +82,11 @@ class NavigationBar extends PreferredSize {
   Widget build(BuildContext context) {
     var pageProvider = Provider.of<PageProvider>(context);
     double navBarOffset = 0;
+    // UserInfo userInfo = UserInfo.of(context);
 
     if (pageProvider.pageLabel == PageLabel.discover) navBarOffset = -84.0;
     if (pageProvider.pageLabel == PageLabel.following) navBarOffset = 84.0;
 
-    return headerWidget(navBarOffset);
-  }
-
-  Widget headerWidget(double navBarOffset) {
     return Column(
       children: <Widget>[
         Container(
@@ -103,29 +114,40 @@ class NavigationBar extends PreferredSize {
                       Border.all(width: 1.0, color: const Color(0xff707070)),
                 ),
               ),
-              SizedBox(
-                width: 36.0,
-                height: 33.0,
-                child: Stack(
-                  children: <Widget>[
-                    Pinned.fromSize(
-                      bounds: Rect.fromLTWH(0.0, 0.0, 36.0, 33.0),
-                      size: Size(36.0, 33.0),
-                      pinLeft: true,
-                      pinRight: true,
-                      pinTop: true,
-                      pinBottom: true,
-                      child:
-                          // Adobe XD layer: 'AI_send' (shape)
-                          SvgPicture.string(
-                        _svg_n49k6t,
-                        allowDrawingOutsideViewBox: true,
-                        fit: BoxFit.fill,
-                      ),
+              Row(children: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NewPost()),
+                    );
+                  },
+                  child: SizedBox(
+                    width: 33.0,
+                    height: 30.0,
+                    child: Stack(
+                      children: <Widget>[
+                        Pinned.fromSize(
+                          bounds: Rect.fromLTWH(0.0, 0.0, 33.0, 30.0),
+                          size: Size(33.0, 30.0),
+                          pinLeft: true,
+                          pinRight: true,
+                          pinTop: true,
+                          pinBottom: true,
+                          child:
+                              // Adobe XD layer: 'AI_send' (shape)
+                              SvgPicture.string(
+                            _svg_n49k6t,
+                            allowDrawingOutsideViewBox: true,
+                            fit: BoxFit.fill,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                RaisedButton(onPressed: null, child: Text("Search")),
+              ]),
             ],
           ),
         ),
@@ -221,6 +243,94 @@ class PageBody extends StatelessWidget {
     return Consumer<PageProvider>(
       builder: (context, pageProvider, child) => pageProvider.pageBody,
     );
+  }
+}
+
+class CreatorsList extends ChangeNotifier {
+  List<User> _creatorsList = [];
+
+  List<User> get getCreatorsList {
+    return _creatorsList;
+  }
+
+  Future<void> searchForCreators(String creatorString) async {
+    // Sends an http request for all creators with userIDs that contain
+    // creatorString, creates a list of User objects
+    if (creatorString != '') {
+      String newUrl =
+          backendConnection.url + "users/search/" + creatorString + "/";
+      var response = await http.get(newUrl);
+
+      _creatorsList = [
+        for (var creator in json.decode(response.body)["creatorsList"])
+          User(userID: creator["userID"], username: creator["username"])
+      ];
+    } else {
+      _creatorsList = [];
+    }
+    notifyListeners();
+  }
+
+  Future<void> clearSearchList() async {
+    _creatorsList = [];
+    notifyListeners();
+  }
+}
+
+void startFollowing(String userID, String creatorID) async {
+  String newUrl = backendConnection.url + "users/" + userID + "/following/new/";
+  var response = await http.post(newUrl, body: {"creatorID": creatorID});
+
+  // if (response.statusCode == 201) print("Started Following!");
+  // if (response.statusCode == 204) print("Already following creator");
+}
+
+class Following extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+        providers: [ChangeNotifierProvider.value(value: CreatorsList())],
+        child: SearchResults());
+  }
+}
+
+class SearchResults extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var creatorsList = Provider.of<CreatorsList>(context).getCreatorsList;
+
+    return Container(
+        child: Column(
+      children: <Widget>[
+        TextField(onChanged: (text) {
+          Provider.of<CreatorsList>(context, listen: false)
+              .searchForCreators(text);
+        }),
+        Container(
+          height: 200.0,
+          width: 100.0,
+          child: ListView.builder(
+            scrollDirection: Axis.vertical,
+            itemCount: creatorsList.length,
+            itemBuilder: (BuildContext context, int index) {
+              return new Row(
+                children: <Widget>[
+                  Text('${creatorsList[index].username}'),
+                  RaisedButton(
+                    child: Text("Start Following"),
+                    onPressed: () {
+                      startFollowing(userID, creatorsList[index].userID);
+                      Provider.of<CreatorsList>(context, listen: false)
+                          .clearSearchList();
+                    },
+                  )
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    ));
   }
 }
 

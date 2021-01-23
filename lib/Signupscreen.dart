@@ -1,50 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:adobe_xd/pinned.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class Signupscreen extends StatelessWidget {
-  final nameController = TextEditingController();
-  final emailController = TextEditingController();
-  final usernameController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
-  Widget inputFieldWidget(String hintText,
-      TextEditingController inputController, bool obscureText) {
-    return Column(
-      children: [
-        Container(
-            width: 308.0,
-            height: 46.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(23.0),
-              color: const Color(0xffffffff),
-              border: Border.all(width: 1.0, color: const Color(0xff707070)),
-            ),
-            child: TextField(
-              controller: inputController,
-              textAlign: TextAlign.center,
-              obscureText: obscureText,
-              decoration: InputDecoration(
-                hintText: hintText,
-                border: InputBorder.none,
-              ),
-              style: TextStyle(
-                fontFamily: 'Devanagari Sangam MN',
-                fontSize: 20,
-                color: const Color(0xc1000000),
-              ),
-            )),
-        Container(
-          height: 10.0,
-        ),
-      ],
-    );
-  }
+  final _formKey = GlobalKey<FormState>();
 
   Signupscreen({
     Key key,
   }) : super(key: key);
+
+  void _registerNewUser() async {
+    final FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
+      email: _emailController.text,
+      password: _passwordController.text,
+    ))
+        .user;
+
+    _emailController.clear();
+    _passwordController.clear();
+    _confirmPasswordController.clear();
+  }
+
+  String _notEmptyValidator(String value) {
+    if (value.isEmpty) {
+      return 'Please enter some text';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,11 +87,40 @@ class Signupscreen extends StatelessWidget {
           Container(
             height: 50,
           ),
-          inputFieldWidget("Your Name", nameController, false),
-          inputFieldWidget("email", emailController, false),
-          inputFieldWidget("username", usernameController, false),
-          inputFieldWidget("password", passwordController, true),
-          inputFieldWidget("confirm password", confirmPasswordController, true),
+          Form(
+              key: _formKey,
+              child: Column(children: <Widget>[
+                InputField(
+                  hintText: "Your Name",
+                  inputController: _nameController,
+                  obscureText: false,
+                  validator: _notEmptyValidator,
+                ),
+                InputField(
+                  hintText: "email",
+                  inputController: _emailController,
+                  obscureText: false,
+                  validator: _notEmptyValidator,
+                ),
+                InputField(
+                  hintText: "username",
+                  inputController: _usernameController,
+                  obscureText: false,
+                  validator: _notEmptyValidator,
+                ),
+                InputField(
+                  hintText: "password",
+                  inputController: _passwordController,
+                  obscureText: false,
+                  validator: _notEmptyValidator,
+                ),
+                InputField(
+                  hintText: "confirm password",
+                  inputController: _confirmPasswordController,
+                  obscureText: false,
+                  validator: _notEmptyValidator,
+                ),
+              ])),
           Container(
             height: 50,
           ),
@@ -114,7 +133,10 @@ class Signupscreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     FlatButton(
-                      onPressed: () => null,
+                      onPressed: () {
+                        if (_formKey.currentState.validate())
+                          _registerNewUser();
+                      },
                       child: Text(
                         'Sign up',
                         style: TextStyle(
@@ -157,6 +179,49 @@ class Signupscreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class InputField extends StatelessWidget {
+  final String hintText;
+  final TextEditingController inputController;
+  final bool obscureText;
+  final FormFieldValidator<String> validator;
+
+  InputField(
+      {this.hintText, this.inputController, this.obscureText, this.validator});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+            width: 308.0,
+            height: 46.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(23.0),
+              color: const Color(0xffffffff),
+              border: Border.all(width: 1.0, color: const Color(0xff707070)),
+            ),
+            child: TextFormField(
+                controller: inputController,
+                textAlign: TextAlign.center,
+                obscureText: obscureText,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  border: InputBorder.none,
+                ),
+                style: TextStyle(
+                  fontFamily: 'Devanagari Sangam MN',
+                  fontSize: 20,
+                  color: const Color(0xc1000000),
+                ),
+                validator: validator)),
+        Container(
+          height: 10.0,
+        ),
+      ],
     );
   }
 }

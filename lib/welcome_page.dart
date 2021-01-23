@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:adobe_xd/pinned.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'LogInScreen.dart';
-import 'user_info.dart';
 
-class LogInScreen1 extends StatelessWidget {
-  LogInScreen1({
+class WelcomePage extends StatelessWidget {
+  WelcomePage({
     Key key,
   }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

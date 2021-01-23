@@ -1,33 +1,20 @@
 import 'package:flutter/material.dart';
-import 'LogInScreen1.dart';
+import 'welcome_page.dart';
 
-void main() {
+Future<void> main() async {
   runApp(MyApp());
 }
 
-class UserInfo extends InheritedWidget {
-  final String userID;
-  final Widget child;
-
-  UserInfo({this.userID, this.child});
-
-  static UserInfo of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<UserInfo>();
-  }
-
+class MyApp extends StatefulWidget {
   @override
-  bool updateShouldNotify(UserInfo old) => userID != old.userID;
+  _MyAppState createState() => _MyAppState();
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return UserInfo(
-      userID: "John1000",
-      child: MaterialApp(
-        home: LogInScreen1(),
-      ),
+    return MaterialApp(
+      home: WelcomePage(),
     );
   }
 }

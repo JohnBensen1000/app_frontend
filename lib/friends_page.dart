@@ -3,6 +3,9 @@ import 'package:test_flutter/user_info.dart';
 import 'backend_connect.dart';
 import 'package:provider/provider.dart';
 import 'user_info.dart';
+import 'main.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 final backendConnection = new BackendConnection();
 
@@ -14,302 +17,327 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPageState extends State<FriendsPage> {
   @override
   Widget build(BuildContext context) {
+    // UserInfo userInfo = UserInfo.of(context);
     return Consumer<FriendsList>(
-      builder: (context, friendsList, child) => Text(
-        '${friendsList.friendsList}',
-      ),
-    );
-    // return Container(
-    //     height: 700,
-    //     width: 400,
-    //     child: ListView.builder(
-    //         itemCount: 3,
-    //         itemBuilder: (BuildContext context, int index) {
-    //           // return friendWidget();
-    //           return Text("Hello");
-    //         }));
+        builder: (context, friendsList, child) => Container(
+            height: 700,
+            width: double.infinity,
+            child: ListView.builder(
+                itemCount: friendsList.friendsList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return FriendWidget(
+                      // userInfo: userInfo,
+                      friend: friendsList.friendsList[index]);
+                })));
   }
 }
-// Widget friendWidget() {
-//   return Container(
-//       child: Container(
-//           width: 359.0,
-//           height: 118.0,
-//           decoration: BoxDecoration(
-//             borderRadius: BorderRadius.circular(61.0),
-//             border: Border.all(width: 2.0, color: const Color(0xff22a2ff)),
-//           ),
-//           child: Container(
-//             padding: EdgeInsets.only(left: 20),
-//             child: Row(
-//               children: <Widget>[
-//                 Container(
-//                   width: 85.0,
-//                   height: 87.0,
-//                   decoration: BoxDecoration(
-//                     borderRadius:
-//                         BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-//                     // image: DecorationImage(
-//                     //   image: const AssetImage(''),
-//                     //   fit: BoxFit.cover,
-//                     // ),
-//                     border: Border.all(
-//                         width: 5.0, color: const Color(0xff22a2ff)),
-//                   ),
-//                 ),
-//                 Container(
-//                   padding: EdgeInsets.only(left: 10),
-//                   child: Column(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     children: [
-//                       Text(
-//                         'Margot Robbie ',
-//                         style: TextStyle(
-//                           fontFamily: 'SF Pro Text',
-//                           fontSize: 15,
-//                           color: const Color(0xff000000),
-//                           letterSpacing: -0.36,
-//                           height: 1.4666666666666666,
-//                         ),
-//                         textAlign: TextAlign.left,
-//                       ),
-//                       SizedBox(
-//                         width: 34.0,
-//                         child: Text(
-//                           'Tier 7 ',
-//                           style: TextStyle(
-//                             fontFamily: 'SF Pro Text',
-//                             fontSize: 10,
-//                             color: const Color(0xff000000),
-//                             letterSpacing: -0.004099999964237213,
-//                             height: 1.2,
-//                           ),
-//                           textAlign: TextAlign.center,
-//                         ),
-//                       ),
-//                       Column(
-//                         crossAxisAlignment: CrossAxisAlignment.start,
-//                         children: [
-//                           Transform.translate(
-//                             offset: Offset(0.0, 5.5),
-//                             child: Container(
-//                               width: 73.0,
-//                               height: 11.0,
-//                               decoration: BoxDecoration(
-//                                 borderRadius: BorderRadius.circular(6.0),
-//                                 color: const Color(0xffffffff),
-//                                 border: Border.all(
-//                                     width: 1.0,
-//                                     color: const Color(0xff22a2ff)),
-//                               ),
-//                             ),
-//                           ),
-//                           Transform.translate(
-//                             offset: Offset(0.0, -5.5),
-//                             child: SvgPicture.string(
-//                               _svg_qlaync,
-//                               allowDrawingOutsideViewBox: true,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           )));
-//   }
-// }
 
-// Transform.translate(
-//   offset: Offset(260.2, 478.0),
-//   child: SizedBox(
-//     width: 82.0,
-//     child: Text(
-//       'New Post!',
-//       style: TextStyle(
-//         fontFamily: 'SF Pro Text',
-//         fontSize: 15,
-//         color: const Color(0xff000000),
-//         letterSpacing: -0.006149999946355819,
-//         height: 0.8,
-//       ),
-//       textAlign: TextAlign.center,
-//     ),
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(260.2, 232.0),
-//   child: SizedBox(
-//     width: 82.0,
-//     child: Text(
-//       'New Post!',
-//       style: TextStyle(
-//         fontFamily: 'SF Pro Text',
-//         fontSize: 15,
-//         color: const Color(0xff000000),
-//         letterSpacing: -0.006149999946355819,
-//         height: 0.8,
-//       ),
-//       textAlign: TextAlign.center,
-//     ),
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(232.0, 97.0),
-//   child: Text(
-//     'Discover',
-//     style: TextStyle(
-//       fontFamily: '.AppleSystemUIFont',
-//       fontSize: 15,
-//       color: const Color(0x80000000),
-//     ),
-//     textAlign: TextAlign.left,
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(88.0, 97.0),
-//   child: BlendMask(
-//     blendMode: BlendMode.multiply,
-//     child: Text(
-//       'Friends',
-//       style: TextStyle(
-//         fontFamily: '.AppleSystemUIFont',
-//         fontSize: 15,
-//         color: const Color(0xff000000),
-//       ),
-//       textAlign: TextAlign.left,
-//     ),
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(154.0, 97.0),
-//   child: Text(
-//     'Following ',
-//     style: TextStyle(
-//       fontFamily: '.AppleSystemUIFont',
-//       fontSize: 15,
-//       color: const Color(0x80000000),
-//     ),
-//     textAlign: TextAlign.left,
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(84.0, 115.0),
-//   child: Container(
-//     width: 210.0,
-//     height: 7.0,
-//     decoration: BoxDecoration(
-//       borderRadius: BorderRadius.circular(4.0),
-//       color: const Color(0xffffffff),
-//       border: Border.all(width: 1.0, color: const Color(0xff707070)),
-//     ),
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(84.0, 115.0),
-//   child: SvgPicture.string(
-//     _svg_st435y,
-//     allowDrawingOutsideViewBox: true,
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(36.0, 664.0),
-//   child:
-//       // Adobe XD layer: 'Screen Shot 2020-10…' (shape)
-//       Container(
-//     width: 85.0,
-//     height: 87.0,
-//     decoration: BoxDecoration(
-//       borderRadius:
-//           BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-//       image: DecorationImage(
-//         image: const AssetImage(''),
-//         fit: BoxFit.cover,
-//       ),
-//       border: Border.all(width: 5.0, color: const Color(0xffffaa22)),
-//     ),
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(139.0, 700.0),
-//   child: Text(
-//     'Kishan Batra',
-//     style: TextStyle(
-//       fontFamily: 'SF Pro Text',
-//       fontSize: 15,
-//       color: const Color(0xff000000),
-//       letterSpacing: -0.36,
-//       height: 1.4666666666666666,
-//     ),
-//     textAlign: TextAlign.left,
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(129.0, 729.0),
-//   child: SvgPicture.string(
-//     _svg_j1y4ax,
-//     allowDrawingOutsideViewBox: true,
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(129.0, 729.0),
-//   child: Container(
-//     width: 45.0,
-//     height: 11.0,
-//     decoration: BoxDecoration(
-//       borderRadius: BorderRadius.circular(6.0),
-//       color: const Color(0xffffaa22),
-//       border: Border.all(width: 1.0, color: const Color(0xffeea124)),
-//     ),
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(134.2, 719.0),
-//   child: SizedBox(
-//     width: 34.0,
-//     child: Text(
-//       'Tier 7 ',
-//       style: TextStyle(
-//         fontFamily: 'SF Pro Text',
-//         fontSize: 10,
-//         color: const Color(0xff000000),
-//         letterSpacing: -0.004099999964237213,
-//         height: 1.2,
-//       ),
-//       textAlign: TextAlign.center,
-//     ),
-//   ),
-// ),
-// Transform.translate(
-//   offset: Offset(325.0, 55.0),
-//   child:
-//       // Adobe XD layer: 'AI_send' (group)
-//       SizedBox(
-//     width: 30.0,
-//     height: 30.0,
-//     child: Stack(
-//       children: <Widget>[
-//         Pinned.fromSize(
-//           bounds: Rect.fromLTWH(0.0, 0.0, 30.0, 30.0),
-//           size: Size(30.0, 30.0),
-//           pinLeft: true,
-//           pinRight: true,
-//           pinTop: true,
-//           pinBottom: true,
-//           child:
-//               // Adobe XD layer: 'AI_send' (shape)
-//               SvgPicture.string(
-//             _svg_ui83do,
-//             allowDrawingOutsideViewBox: true,
-//             fit: BoxFit.fill,
-//           ),
-//         ),
-//       ],
-//       ),
-//     ),
-//   ),
+class FriendWidget extends StatelessWidget {
+  // final UserInfo userInfo;
+  final User friend;
+
+  FriendWidget({this.friend});
+
+  @override
+  Widget build(BuildContext context) {
+    return FlatButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ChatPage(
+                    // userInfo: userInfo,
+                    friend: friend,
+                  )),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+        child: Container(
+            width: 359.0,
+            height: 118.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(61.0),
+              border: Border.all(width: 2.0, color: const Color(0xff22a2ff)),
+            ),
+            child: Container(
+              padding: EdgeInsets.only(left: 20),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 85.0,
+                    height: 87.0,
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+                      // image: DecorationImage(
+                      //   image: const AssetImage(''),
+                      //   fit: BoxFit.cover,
+                      // ),
+                      border: Border.all(
+                          width: 5.0, color: const Color(0xff22a2ff)),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(left: 10),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          this.friend.username,
+                          style: TextStyle(
+                            fontFamily: 'SF Pro Text',
+                            fontSize: 15,
+                            color: const Color(0xff000000),
+                            letterSpacing: -0.36,
+                            height: 1.4666666666666666,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                        SizedBox(
+                          width: 34.0,
+                          child: Text(
+                            'Tier 7 ',
+                            style: TextStyle(
+                              fontFamily: 'SF Pro Text',
+                              fontSize: 10,
+                              color: const Color(0xff000000),
+                              letterSpacing: -0.004099999964237213,
+                              height: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Transform.translate(
+                              offset: Offset(0.0, 5.5),
+                              child: Container(
+                                width: 73.0,
+                                height: 11.0,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6.0),
+                                  color: const Color(0xffffffff),
+                                  border: Border.all(
+                                      width: 1.0,
+                                      color: const Color(0xff22a2ff)),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: Offset(0.0, -5.5),
+                              child: SvgPicture.string(
+                                _svg_qlaync,
+                                allowDrawingOutsideViewBox: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )),
+      ),
+    );
+  }
+}
+
+class ChatPage extends StatelessWidget {
+  final _chatController = TextEditingController();
+  // final UserInfo userInfo;
+  final User friend;
+
+  ChatPage({this.friend});
+
+  String _getChatName() {
+    if (userID.hashCode < friend.userID.hashCode) {
+      return userID + "-" + friend.userID;
+    } else {
+      return friend.userID + "-" + userID;
+    }
+  }
+
+  Future<void> _createChatIfDoesntExist(
+      CollectionReference chatsCollection, String chatName) async {
+    await chatsCollection.document(chatName).get().then((doc) {
+      if (!doc.exists) {
+        chatsCollection.document(chatName).setData({
+          "Members": [userID, friend.userID]
+        });
+        chatsCollection
+            .document(chatName)
+            .collection('chats')
+            .document('1')
+            .setData({'conversation': []});
+      }
+    });
+  }
+
+  Future<void> _sendChat(
+      CollectionReference chatsCollection, String chatName) async {
+    await chatsCollection
+        .document(chatName)
+        .collection('chats')
+        .document('1')
+        .updateData({
+      'conversation': FieldValue.arrayUnion([
+        {'sender': userID, 'chat': _chatController.text}
+      ])
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String chatName = _getChatName();
+    CollectionReference chatsCollection =
+        Firestore.instance.collection("Chats");
+    _createChatIfDoesntExist(chatsCollection, chatName);
+
+    return Scaffold(
+        body: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: EdgeInsets.all(20.0),
+          height: 700.0,
+          child: StreamBuilder(
+              stream: Firestore.instance
+                  .collection('Chats')
+                  .document(chatName)
+                  .collection('chats')
+                  .document('1')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Text("No Data");
+                } else {
+                  List<dynamic> conversation = snapshot.data["conversation"];
+
+                  return ListView.builder(
+                      itemCount: conversation.length,
+                      itemBuilder: (context, index) {
+                        dynamic chat = conversation[index];
+                        if (chat['sender'] == userID) {
+                          return Chat(
+                            senderID: chat['sender'],
+                            chat: chat['chat'],
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            backgroundColor: Colors.orange[300],
+                          );
+                        } else {
+                          return Chat(
+                            senderID: chat['sender'],
+                            chat: chat['chat'],
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            backgroundColor: Colors.purple[300],
+                          );
+                        }
+                      });
+                }
+              }),
+        ),
+        Container(
+          width: 350.0,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(23.0),
+            color: const Color(0xffffffff),
+            border: Border.all(width: 1.0, color: const Color(0xff707070)),
+          ),
+          child: Container(
+            padding: EdgeInsets.only(left: 10.0, right: 10.0),
+            child: TextField(
+              controller: _chatController,
+              decoration: InputDecoration(
+                hintText: "Chat",
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            FlatButton(
+                child: Text("Exit Chat"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                }),
+            FlatButton(
+                child: Text("Send Chat"),
+                onPressed: () async {
+                  await _sendChat(chatsCollection, chatName);
+                  _chatController.clear();
+                }),
+          ],
+        ),
+      ],
+    ));
+  }
+}
+
+class Chat extends StatelessWidget {
+  final String senderID;
+  final String chat;
+  final MainAxisAlignment mainAxisAlignment;
+  final Color backgroundColor;
+
+  Chat(
+      {this.senderID, this.chat, this.mainAxisAlignment, this.backgroundColor});
+
+  String _breakIntoLines(int minCharPerLine, int maxCharPerLine) {
+    /* Breaks up a chat string into multiple lines. The number of characters per
+    line will be between minCharPerLine and maxCharPerLine. */
+
+    String newChat = chat;
+    int currentChar = 0;
+
+    while (newChat.length - currentChar > maxCharPerLine) {
+      int cutoff = currentChar;
+
+      // Counts up until current line has at least minCharPerLine characters.
+      // Continues counting until the end of a word is reached.
+      while (cutoff - currentChar < minCharPerLine) cutoff++;
+      while (cutoff < newChat.length && chat[cutoff] != ' ') cutoff++;
+      if (cutoff >= newChat.length) break;
+
+      // If the number of characters in the current line is greater than
+      // maxCharPerLine, counts backwards to remove word from current line.
+      if (cutoff - currentChar > maxCharPerLine)
+        do {
+          cutoff--;
+        } while (chat[cutoff] != ' ');
+
+      newChat =
+          newChat.substring(0, cutoff) + '\n' + newChat.substring(cutoff + 1);
+      currentChar = cutoff + 1;
+    }
+
+    return newChat;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String newChat = _breakIntoLines(28, 20);
+    return Container(
+      padding: EdgeInsets.only(top: 2.5, bottom: 2.5),
+      child: Row(
+        mainAxisAlignment: mainAxisAlignment,
+        children: [
+          Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(13)),
+                color: backgroundColor,
+              ),
+              padding: EdgeInsets.all(10),
+              child: Text(newChat)),
+        ],
+      ),
+    );
+  }
+}
 
 const String _svg_ffj51b =
     '<svg viewBox="23.0 3.7 1.3 4.0" ><path transform="translate(23.0, 3.67)" d="M 0 0 L 0 4 C 0.8047311305999756 3.661223411560059 1.328037977218628 2.873133182525635 1.328037977218628 2 C 1.328037977218628 1.126866698265076 0.8047311305999756 0.3387765288352966 0 0" fill="#000000" fill-opacity="0.4" stroke="none" stroke-width="1" stroke-opacity="0.4" stroke-miterlimit="10" stroke-linecap="butt" /></svg>';

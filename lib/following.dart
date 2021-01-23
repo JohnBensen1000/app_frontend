@@ -3,6 +3,7 @@ import 'backend_connect.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'main.dart';
+import 'user_info.dart';
 
 final backendConnection = new BackendConnection();
 
@@ -68,10 +69,6 @@ class _PostWidgetState extends State<PostWidget> {
   @override
   Widget build(BuildContext context) {
     commentsList = getAllComments(postID);
-    return postWidget();
-  }
-
-  Widget postWidget() {
     return Container(
         padding: EdgeInsets.only(left: 40, right: 40, bottom: 20),
         child: Column(
@@ -205,7 +202,7 @@ class _PostWidgetState extends State<PostWidget> {
                     // the comments section
                     List<Comment> commentsList = await this.commentsList;
                     Scaffold.of(context)
-                        .showSnackBar(commentSnackBar(commentsList));
+                        .showSnackBar(commentSection(commentsList));
                   },
                   child: Text(
                     'View Comments',
@@ -227,7 +224,7 @@ class _PostWidgetState extends State<PostWidget> {
     );
   }
 
-  SnackBar commentSnackBar(List<Comment> commentsList) {
+  SnackBar commentSection(List<Comment> commentsList) {
     return SnackBar(
       backgroundColor: Colors.white,
       duration: Duration(days: 365),
@@ -252,29 +249,30 @@ class _CommentSectionState extends State<CommentSection> {
   // UserInfo userInfo;
   _CommentSectionState({this.commentsList, this.postID});
 
-  // void postComment(String newCommentString, Comment comment) async {
-  //   // Posts the comment to the server. If the server successfully processes
-  //   // the post, then the new comment is inserted into the comments list
+  void postComment(String newCommentString, Comment comment) async {
+    // Posts the comment to the server. If the server successfully processes
+    // the post, then the new comment is inserted into the comments list
 
-  //   String newUrl = backendConnection.url +
-  //       "comments/${this.postID.toString()}/comments/${userInfo.userID}/";
-  //   var response = await http.post(newUrl,
-  //       body: {"path": comment.path, "comment": newCommentString});
+    String newUrl = backendConnection.url +
+        "comments/${this.postID.toString()}/comments/$userID/";
+    var response = await http.post(newUrl,
+        body: {"path": comment.path, "comment": newCommentString});
 
-  //   if (response.statusCode == 200) {
-  //     setState(() {
-  //       int commentIndex = this.commentsList.indexOf(comment);
-  //       Comment newComment = Comment(
-  //           comment: newCommentString,
-  //           userID: this.userInfo.userID,
-  //           datePosted: "Now",
-  //           level: comment.level + 1);
-  //       commentsList = commentsList.sublist(0, commentIndex + 1) +
-  //           [newComment] +
-  //           commentsList.sublist(commentIndex + 1, commentsList.length);
-  //     });
-  //   }
-  // }
+    if (response.statusCode == 200) {
+      setState(() {
+        int commentIndex = this.commentsList.indexOf(comment);
+        Comment newComment = Comment(
+            comment: newCommentString,
+            userID: userID,
+            // userID: this.userInfo.userID,
+            datePosted: "Now",
+            level: comment.level + 1);
+        commentsList = commentsList.sublist(0, commentIndex + 1) +
+            [newComment] +
+            commentsList.sublist(commentIndex + 1, commentsList.length);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -387,6 +385,7 @@ class _CommentSectionState extends State<CommentSection> {
   }
 
   Widget responseWidget(Comment comment) {
+    // Widget responsible for allowing user to respond to a comment
     final textController = TextEditingController();
 
     return Stack(
@@ -406,7 +405,7 @@ class _CommentSectionState extends State<CommentSection> {
             ),
             RaisedButton(
                 onPressed: () {
-                  // postComment(textController.text, comment);
+                  postComment(textController.text, comment);
                   textController.dispose();
                   Navigator.pop(context);
                 },

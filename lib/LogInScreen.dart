@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'Signupscreen.dart';
-import 'Homescreen.dart';
-import 'page_labels.dart';
 import 'user_info.dart';
 
 class LogInScreen extends StatelessWidget {
   LogInScreen({
     Key key,
   }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,10 +34,7 @@ class LogInScreen extends StatelessWidget {
           ),
 
           Container(
-            height: 30.0,
-          ),
-
-          Container(
+            padding: EdgeInsets.only(top: 30.0),
             width: 256.0,
             height: 256.0,
             decoration: BoxDecoration(
@@ -99,7 +95,7 @@ class LogInScreen extends StatelessWidget {
               child: FlatButton(
                 onPressed: () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => LoadUserInfo()));
+                      MaterialPageRoute(builder: (context) => UserInfo()));
                   // Navigator.push(
                   //   context,
                   //   MaterialPageRoute(

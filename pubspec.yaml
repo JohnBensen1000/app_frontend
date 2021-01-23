@@ -21,8 +21,13 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
+  camera: ^0.7.0
+  path_provider: ^1.6.27
+  path: ^1.7.0
+  firebase_auth: ^0.16.0
   adobe_xd: ^1.0.0+1
   flutter_launcher_icons: ^0.8.1
+  cloud_firestore: ^0.13.7
   http: ^0.12.2
   provider: ^4.3.2+3
   flutter:
