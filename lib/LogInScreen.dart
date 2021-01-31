@@ -96,13 +96,6 @@ class LogInScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => UserInfo()));
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //       builder: (context) => Homescreen(
-                  //             pageLabel: PageLabel.discover,
-                  //           )),
-                  // );
                 },
                 child: Text(
                   'Already have an account? ',

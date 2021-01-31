@@ -2,127 +2,110 @@ import 'package:flutter/material.dart';
 import 'package:adobe_xd/pinned.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'backend_connect.dart';
+import 'createAccount.dart';
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
+final backendConnection = new BackendConnection();
 
-class Signupscreen extends StatelessWidget {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+class TitleBar extends PreferredSize {
+  final double height = 300;
 
-  final _formKey = GlobalKey<FormState>();
+  @override
+  Size get preferredSize => Size.fromHeight(height);
 
-  Signupscreen({
-    Key key,
-  }) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
+      SizedBox(
+        width: 161.0,
+        child: Text(
+          'Entropy',
+          style: TextStyle(
+            fontFamily: 'Devanagari Sangam MN',
+            fontSize: 40,
+            color: const Color(0xff000000),
+            shadows: [
+              Shadow(
+                color: const Color(0x29000000),
+                offset: Offset(0, 3),
+                blurRadius: 6,
+              )
+            ],
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+      Container(
+        width: double.infinity,
+      ),
+      Container(
+        width: 112.0,
+        height: 105.0,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+          // image: DecorationImage(
+          //   image: const AssetImage(''),
+          //   fit: BoxFit.cover,
+          // ),
+          border: Border.all(width: 3.0, color: const Color(0xff1de0e0)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0x29000000),
+              offset: Offset(0, 5),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+      ),
+    ]);
+  }
+}
 
-  void _registerNewUser() async {
-    final FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
-      email: _emailController.text,
-      password: _passwordController.text,
-    ))
-        .user;
+class Signupscreen extends StatefulWidget {
+  @override
+  _SignupscreenState createState() => _SignupscreenState();
+}
 
-    _emailController.clear();
-    _passwordController.clear();
-    _confirmPasswordController.clear();
+class _SignupscreenState extends State<Signupscreen> {
+  NewAccount newAccount;
+
+  @override
+  void initState() {
+    super.initState();
+    _createInputFields();
   }
 
-  String _notEmptyValidator(String value) {
-    if (value.isEmpty) {
-      return 'Please enter some text';
-    }
+  void _createInputFields() {
+    newAccount = NewAccount(
+        name: InputField(hintText: "Your Name", obscureText: false),
+        email: InputField(hintText: "E-mail", obscureText: false),
+        username: InputField(hintText: "username", obscureText: false),
+        password: InputField(hintText: "password", obscureText: true),
+        confirmPassword:
+            InputField(hintText: "confirm password", obscureText: true),
+        phone: InputField(hintText: "phone number", obscureText: false));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
+      appBar: TitleBar(),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          SizedBox(
-            width: 161.0,
-            child: Text(
-              'Entropy',
-              style: TextStyle(
-                fontFamily: 'Devanagari Sangam MN',
-                fontSize: 40,
-                color: const Color(0xff000000),
-                shadows: [
-                  Shadow(
-                    color: const Color(0x29000000),
-                    offset: Offset(0, 3),
-                    blurRadius: 6,
-                  )
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
           Container(
-            width: double.infinity,
-          ),
-          Container(
-            width: 112.0,
-            height: 105.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-              // image: DecorationImage(
-              //   image: const AssetImage(''),
-              //   fit: BoxFit.cover,
-              // ),
-              border: Border.all(width: 3.0, color: const Color(0xff1de0e0)),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0x29000000),
-                  offset: Offset(0, 5),
-                  blurRadius: 8,
+            padding: EdgeInsets.only(top: 40, bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: double.infinity,
                 ),
+                Container(child: Column(children: newAccount.inputWidgets))
               ],
             ),
-          ),
-          Container(
-            height: 50,
-          ),
-          Form(
-              key: _formKey,
-              child: Column(children: <Widget>[
-                InputField(
-                  hintText: "Your Name",
-                  inputController: _nameController,
-                  obscureText: false,
-                  validator: _notEmptyValidator,
-                ),
-                InputField(
-                  hintText: "email",
-                  inputController: _emailController,
-                  obscureText: false,
-                  validator: _notEmptyValidator,
-                ),
-                InputField(
-                  hintText: "username",
-                  inputController: _usernameController,
-                  obscureText: false,
-                  validator: _notEmptyValidator,
-                ),
-                InputField(
-                  hintText: "password",
-                  inputController: _passwordController,
-                  obscureText: false,
-                  validator: _notEmptyValidator,
-                ),
-                InputField(
-                  hintText: "confirm password",
-                  inputController: _confirmPasswordController,
-                  obscureText: false,
-                  validator: _notEmptyValidator,
-                ),
-              ])),
-          Container(
-            height: 50,
           ),
           SizedBox(
             width: 174.0,
@@ -133,12 +116,18 @@ class Signupscreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     FlatButton(
-                      onPressed: () {
-                        if (_formKey.currentState.validate())
-                          _registerNewUser();
+                      onPressed: () async {
+                        if (await newAccount.createNewAccount()) {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => PreferencesPage()));
+                        } else {
+                          setState(() {});
+                        }
                       },
                       child: Text(
-                        'Sign up',
+                        'Continue',
                         style: TextStyle(
                           fontFamily: 'Devanagari Sangam MN',
                           fontSize: 35,
@@ -183,45 +172,26 @@ class Signupscreen extends StatelessWidget {
   }
 }
 
-class InputField extends StatelessWidget {
-  final String hintText;
-  final TextEditingController inputController;
-  final bool obscureText;
-  final FormFieldValidator<String> validator;
+class PreferencesPage extends StatefulWidget {
+  @override
+  _PreferencesPageState createState() => _PreferencesPageState();
+}
 
-  InputField(
-      {this.hintText, this.inputController, this.obscureText, this.validator});
-
+class _PreferencesPageState extends State<PreferencesPage> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-            width: 308.0,
-            height: 46.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(23.0),
-              color: const Color(0xffffffff),
-              border: Border.all(width: 1.0, color: const Color(0xff707070)),
-            ),
-            child: TextFormField(
-                controller: inputController,
-                textAlign: TextAlign.center,
-                obscureText: obscureText,
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  border: InputBorder.none,
-                ),
-                style: TextStyle(
-                  fontFamily: 'Devanagari Sangam MN',
-                  fontSize: 20,
-                  color: const Color(0xc1000000),
-                ),
-                validator: validator)),
-        Container(
-          height: 10.0,
-        ),
-      ],
+    return Scaffold(
+      appBar: TitleBar(),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: double.infinity,
+          ),
+          RaisedButton(onPressed: () => Navigator.pop(context))
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,5 @@
 class BackendConnection {
-  String _url = "http://127.0.0.1:8000/";
+  String _url = "http://10.192.38.26:8000/";
 
   String get url {
     return _url;

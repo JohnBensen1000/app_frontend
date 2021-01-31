@@ -283,52 +283,54 @@ class _CommentSectionState extends State<CommentSection> {
   Widget commentSectionWidget() {
     return Container(
         height: 600,
-        child: Column(children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              FlatButton(
-                  onPressed: () {
-                    Scaffold.of(context).hideCurrentSnackBar();
-                  },
-                  child: Text(
-                    "Close Comment Section",
-                    style: TextStyle(color: Colors.black),
-                  )),
-              FlatButton(
-                  onPressed: () {
-                    print(this.commentsList);
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                              backgroundColor: Colors.white,
-                              // Raw comment (not a response to another comment)
-                              // is treated as if it's responding to an empty
-                              // Comment
-                              content: responseWidget(Comment(
-                                  userID: ' ',
-                                  path: '',
-                                  comment: ' ',
-                                  datePosted: ' ',
-                                  level: 0)));
-                        });
-                  },
-                  child: Text(
-                    "Comment on this post",
-                    style: TextStyle(color: Colors.black),
-                  )),
-            ],
-          ),
-          Expanded(
-              child: ListView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: commentsList.length,
-            itemBuilder: (BuildContext context, int index) {
-              return commentWidget(commentsList[index]);
-            },
-          )),
-        ]));
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FlatButton(
+                      onPressed: () {
+                        Scaffold.of(context).hideCurrentSnackBar();
+                      },
+                      child: Text(
+                        "Close Comment Section",
+                        style: TextStyle(color: Colors.black),
+                      )),
+                  FlatButton(
+                      onPressed: () {
+                        print(this.commentsList);
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                  backgroundColor: Colors.white,
+                                  // Raw comment (not a response to another comment)
+                                  // is treated as if it's responding to an empty
+                                  // Comment
+                                  content: responseWidget(Comment(
+                                      userID: ' ',
+                                      path: '',
+                                      comment: ' ',
+                                      datePosted: ' ',
+                                      level: 0)));
+                            });
+                      },
+                      child: Text(
+                        "Comment on this post",
+                        style: TextStyle(color: Colors.black),
+                      )),
+                ],
+              ),
+              Expanded(
+                  child: ListView.builder(
+                scrollDirection: Axis.vertical,
+                itemCount: commentsList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return commentWidget(commentsList[index]);
+                },
+              )),
+            ]));
   }
 
   Widget commentWidget(Comment comment) {

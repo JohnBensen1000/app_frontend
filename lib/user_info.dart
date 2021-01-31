@@ -7,7 +7,7 @@ import 'Homescreen.dart';
 
 final backendConnection = new BackendConnection();
 
-String userID = "John1000";
+String userID = "Alex1000";
 
 class User {
   String userID;
