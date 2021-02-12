@@ -17,6 +17,8 @@ class NewAccount {
   final InputField password;
   final InputField confirmPassword;
 
+  bool accountCreated = false;
+
   NewAccount({
     this.name,
     this.email,
@@ -49,19 +51,22 @@ class NewAccount {
     // Clears all error messages. Validates if each input is formatted correct,
     // then checks if unique user account identifiers (userID, email, etc) are
     // already taken. If inputs are correct and identifiers are not taken, creates
-    // new account.
+    // new account. If an account has already been created, do nothing.
 
     _clearErrors();
 
     bool isNewAccountValid = true;
 
-    if (_checkIfEmpty()) isNewAccountValid = false;
-    if (!_doPasswordsMatch()) isNewAccountValid = false;
-    if (!_isEmailValid()) isNewAccountValid = false;
+    if (!accountCreated) {
+      if (_checkIfEmpty()) isNewAccountValid = false;
+      if (!_doPasswordsMatch()) isNewAccountValid = false;
+      if (!_isEmailValid()) isNewAccountValid = false;
 
-    if (isNewAccountValid && !(await _createNewAccount()))
-      isNewAccountValid = false;
+      if (isNewAccountValid && !(await _createNewAccount()))
+        isNewAccountValid = false;
 
+      if (isNewAccountValid) accountCreated = true;
+    }
     return isNewAccountValid;
   }
 

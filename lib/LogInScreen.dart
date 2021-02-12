@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'Signupscreen.dart';
+import 'sign_up_screen.dart';
 import 'user_info.dart';
 
 class LogInScreen extends StatelessWidget {

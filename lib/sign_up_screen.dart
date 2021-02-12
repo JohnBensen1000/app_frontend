@@ -3,12 +3,12 @@ import 'package:adobe_xd/pinned.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'backend_connect.dart';
-import 'createAccount.dart';
+import 'create_account.dart';
 
 final backendConnection = new BackendConnection();
 
 class TitleBar extends PreferredSize {
-  final double height = 300;
+  final double height = 200;
 
   @override
   Size get preferredSize => Size.fromHeight(height);
@@ -77,13 +77,14 @@ class _SignupscreenState extends State<Signupscreen> {
 
   void _createInputFields() {
     newAccount = NewAccount(
-        name: InputField(hintText: "Your Name", obscureText: false),
-        email: InputField(hintText: "E-mail", obscureText: false),
-        username: InputField(hintText: "username", obscureText: false),
-        password: InputField(hintText: "password", obscureText: true),
-        confirmPassword:
-            InputField(hintText: "confirm password", obscureText: true),
-        phone: InputField(hintText: "phone number", obscureText: false));
+      name: InputField(hintText: "Your Name", obscureText: false),
+      email: InputField(hintText: "E-mail", obscureText: false),
+      username: InputField(hintText: "username", obscureText: false),
+      phone: InputField(hintText: "phone number", obscureText: false),
+      password: InputField(hintText: "password", obscureText: true),
+      confirmPassword:
+          InputField(hintText: "confirm password", obscureText: true),
+    );
   }
 
   @override

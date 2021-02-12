@@ -1,9 +1,14 @@
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+
+import 'backend_connect.dart';
+import 'user_info.dart';
+
+final backendConnection = new BackendConnection();
 
 class NewPost extends StatefulWidget {
   final CameraDescription camera;
@@ -60,17 +65,27 @@ class _NewPostState extends State<NewPost> {
     });
   }
 
-  void _uploadPost(File imageFile) async {
-    String fileName = '1111';
-    StorageReference firebaseStorageRef =
-        FirebaseStorage.instance.ref().child('uploads/$fileName');
+  void _uploadPost(String imagePath) async {
+    var request = http.MultipartRequest(
+        'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
 
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    taskSnapshot.ref.getDownloadURL().then(
-          (value) => print("Done: $value"),
-        );
+    request.files.add(await http.MultipartFile.fromPath('media', imagePath));
+
+    var response = await request.send();
+    print(response.statusCode);
   }
+
+  // void _uploadPost(File imageFile) async {
+  //   String fileName = '1111';
+  //   StorageReference firebaseStorageRef =
+  //       FirebaseStorage.instance.ref().child('uploads/$fileName');
+
+  //   StorageUploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+  //   StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+  //   taskSnapshot.ref.getDownloadURL().then(
+  //         (value) => print("Done: $value"),
+  //       );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +161,7 @@ class _NewPostState extends State<NewPost> {
                                   ),
                                   RaisedButton(
                                     onPressed: () async {
-                                      await _uploadPost(imageFile);
+                                      await _uploadPost(imagePath);
                                       Navigator.of(context, rootNavigator: true)
                                           .pop('dialog');
                                     },

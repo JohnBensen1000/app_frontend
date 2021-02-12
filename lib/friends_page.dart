@@ -3,7 +3,6 @@ import 'package:test_flutter/user_info.dart';
 import 'backend_connect.dart';
 import 'package:provider/provider.dart';
 import 'user_info.dart';
-import 'main.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

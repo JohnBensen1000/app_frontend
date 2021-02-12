@@ -1,11 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'backend_connect.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'main.dart';
 import 'user_info.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 final backendConnection = new BackendConnection();
+FirebaseStorage storage = FirebaseStorage.instance;
 
 class Comment {
   final String userID;
@@ -44,39 +46,99 @@ class FollowingPage extends StatefulWidget {
 }
 
 class _FollowingPageState extends State<FollowingPage> {
+  Future<List<dynamic>> _postList;
+
+  Future<List<dynamic>> getPosts() async {
+    String newUrl = backendConnection.url + "posts/$userID/following/new/";
+    var response = await http.get(newUrl);
+    return json.decode(response.body)["postsList"];
+  }
+
+  @override
+  void initState() {
+    _postList = getPosts();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-        height: 700,
-        width: double.infinity,
-        child: new ListView.builder(
-            itemCount: 10,
-            itemBuilder: (BuildContext ctxt, int index) {
-              return PostWidget();
+    return Container(
+        child: FutureBuilder(
+            future: _postList,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
+                return SizedBox(
+                    height: 700,
+                    width: double.infinity,
+                    child: new ListView.builder(
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (BuildContext ctxt, int index) {
+                          Map<String, dynamic> postJson = snapshot.data[index];
+                          return PostWidget(
+                              userID: postJson["userID"],
+                              username: postJson["username"],
+                              postID: postJson["postID"]);
+                        }));
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
             }));
   }
 }
 
 class PostWidget extends StatefulWidget {
+  final String userID;
+  final String username;
+  final int postID;
+
+  PostWidget({this.userID, this.username, this.postID});
+
   @override
   _PostWidgetState createState() => _PostWidgetState();
 }
 
 class _PostWidgetState extends State<PostWidget> {
-  final postID = 1;
+  Future<Image> _postImage;
   Future<List<Comment>> commentsList;
+
+  Future<Image> _getPostImage() async {
+    String postDownloadURL = await FirebaseStorage.instance
+        .ref()
+        .child("${widget.userID}")
+        .child("${widget.postID.toString()}.png")
+        .getDownloadURL();
+
+    return Image.network(postDownloadURL);
+  }
+
+  @override
+  void initState() {
+    _postImage = _getPostImage();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    commentsList = getAllComments(postID);
+    commentsList = getAllComments(widget.postID);
     return Container(
-        padding: EdgeInsets.only(left: 40, right: 40, bottom: 20),
-        child: Column(
-          children: <Widget>[
-            postHeader(),
-            postBody(),
-          ],
-        ));
+        child: FutureBuilder(
+            future: _postImage,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
+                return Container(
+                    padding: EdgeInsets.only(left: 40, right: 40, bottom: 20),
+                    child: Column(
+                      children: <Widget>[
+                        postHeader(),
+                        postBody(snapshot.data),
+                      ],
+                    ));
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            }));
   }
 
   Widget postHeader() {
@@ -103,16 +165,19 @@ class _PostWidgetState extends State<PostWidget> {
               ),
               SizedBox(
                 width: 146.0,
-                child: Text(
-                  'John Smith  ',
-                  style: TextStyle(
-                    fontFamily: 'SF Pro Text',
-                    fontSize: 22,
-                    color: const Color(0xff000000),
-                    letterSpacing: -0.009019999921321869,
-                    height: 0.5454545454545454,
+                child: Container(
+                  padding: EdgeInsets.only(left: 10, top: 5),
+                  child: Text(
+                    widget.username,
+                    style: TextStyle(
+                      fontFamily: 'SF Pro Text',
+                      fontSize: 22,
+                      color: const Color(0xff000000),
+                      letterSpacing: -0.009019999921321869,
+                      height: 0.5454545454545454,
+                    ),
+                    textAlign: TextAlign.left,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
             ],
@@ -167,7 +232,7 @@ class _PostWidgetState extends State<PostWidget> {
     );
   }
 
-  Widget postBody() {
+  Widget postBody(Image postImage) {
     return SizedBox(
       height: 475.0,
       child: Column(
@@ -176,10 +241,10 @@ class _PostWidgetState extends State<PostWidget> {
             height: 435.0,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(25.0),
-              // image: DecorationImage(
-              //   image: const AssetImage(''),
-              //   fit: BoxFit.cover,
-              // ),
+              image: DecorationImage(
+                image: postImage.image,
+                fit: BoxFit.cover,
+              ),
               border: Border.all(width: 1.0, color: const Color(0xff707070)),
             ),
           ),
@@ -228,7 +293,8 @@ class _PostWidgetState extends State<PostWidget> {
     return SnackBar(
       backgroundColor: Colors.white,
       duration: Duration(days: 365),
-      content: CommentSection(commentsList: commentsList, postID: this.postID),
+      content:
+          CommentSection(commentsList: commentsList, postID: widget.postID),
     );
   }
 }
