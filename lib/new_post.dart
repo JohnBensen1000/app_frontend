@@ -11,8 +11,6 @@ import 'user_info.dart';
 final backendConnection = new BackendConnection();
 
 Future<int> uploadPost(String imagePath) async {
-  // Sends a POST request to the server containing a file and the userID.
-  // Returns the status code of the HTTP response.
   var request = http.MultipartRequest(
       'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
 

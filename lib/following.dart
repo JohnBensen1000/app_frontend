@@ -1,44 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'backend_connect.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'user_info.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'comments.dart';
 
 final backendConnection = new BackendConnection();
 FirebaseStorage storage = FirebaseStorage.instance;
-
-class Comment {
-  final String userID;
-  final String path;
-  final String comment;
-  final String datePosted;
-  final int level;
-
-  Comment({this.userID, this.path, this.comment, this.datePosted, this.level});
-}
-
-Future<List<Comment>> getAllComments(int postID) async {
-  String newUrl = backendConnection.url + "comments/$postID/comments/";
-  var response = await http.get(newUrl);
-
-  return flattenCommentLevel(jsonDecode(response.body)["comments"], 1);
-}
-
-List<Comment> flattenCommentLevel(var levelComments, int level) {
-  List<Comment> commentsList = [];
-  for (var comment in levelComments) {
-    commentsList.add(Comment(
-        userID: comment["userID"],
-        path: comment["path"],
-        comment: comment["comment"],
-        datePosted: comment["datePosted"].toString(),
-        level: level));
-    commentsList += flattenCommentLevel(comment["subComments"], level + 1);
-  }
-  return commentsList;
-}
 
 class FollowingPage extends StatefulWidget {
   @override
@@ -72,6 +41,7 @@ class _FollowingPageState extends State<FollowingPage> {
                     height: 700,
                     width: double.infinity,
                     child: new ListView.builder(
+                        controller: ScrollController(),
                         itemCount: snapshot.data.length,
                         itemBuilder: (BuildContext ctxt, int index) {
                           Map<String, dynamic> postJson = snapshot.data[index];
@@ -81,7 +51,7 @@ class _FollowingPageState extends State<FollowingPage> {
                               postID: postJson["postID"]);
                         }));
               } else {
-                return Center(child: CircularProgressIndicator());
+                return Center(child: Text("Loading..."));
               }
             }));
   }
@@ -100,16 +70,13 @@ class PostWidget extends StatefulWidget {
 
 class _PostWidgetState extends State<PostWidget> {
   Future<Image> _postImage;
-  Future<List<Comment>> commentsList;
 
   Future<Image> _getPostImage() async {
-    String postDownloadURL = await FirebaseStorage.instance
+    return Image.network(await FirebaseStorage.instance
         .ref()
         .child("${widget.userID}")
         .child("${widget.postID.toString()}.png")
-        .getDownloadURL();
-
-    return Image.network(postDownloadURL);
+        .getDownloadURL());
   }
 
   @override
@@ -120,7 +87,6 @@ class _PostWidgetState extends State<PostWidget> {
 
   @override
   Widget build(BuildContext context) {
-    commentsList = getAllComments(widget.postID);
     return Container(
         child: FutureBuilder(
             future: _postImage,
@@ -131,17 +97,17 @@ class _PostWidgetState extends State<PostWidget> {
                     padding: EdgeInsets.only(left: 40, right: 40, bottom: 20),
                     child: Column(
                       children: <Widget>[
-                        postHeader(),
-                        postBody(snapshot.data),
+                        _postHeader(),
+                        _postBody(snapshot.data),
                       ],
                     ));
               } else {
-                return Center(child: CircularProgressIndicator());
+                return Center(child: Text("Loading..."));
               }
             }));
   }
 
-  Widget postHeader() {
+  Widget _postHeader() {
     return Container(
       padding: EdgeInsets.only(bottom: 15.0),
       child: Row(
@@ -232,7 +198,7 @@ class _PostWidgetState extends State<PostWidget> {
     );
   }
 
-  Widget postBody(Image postImage) {
+  Widget _postBody(Image postImage) {
     return SizedBox(
       height: 475.0,
       child: Column(
@@ -263,11 +229,7 @@ class _PostWidgetState extends State<PostWidget> {
                 padding: EdgeInsets.only(bottom: 5),
                 child: FlatButton(
                   onPressed: () async {
-                    // waits for commentsList to be fully parsed before opening
-                    // the comments section
-                    List<Comment> commentsList = await this.commentsList;
-                    Scaffold.of(context)
-                        .showSnackBar(commentSection(commentsList));
+                    Scaffold.of(context).showSnackBar(commentSection());
                   },
                   child: Text(
                     'View Comments',
@@ -289,201 +251,11 @@ class _PostWidgetState extends State<PostWidget> {
     );
   }
 
-  SnackBar commentSection(List<Comment> commentsList) {
+  SnackBar commentSection() {
     return SnackBar(
       backgroundColor: Colors.white,
       duration: Duration(days: 365),
-      content:
-          CommentSection(commentsList: commentsList, postID: widget.postID),
-    );
-  }
-}
-
-class CommentSection extends StatefulWidget {
-  final List<Comment> commentsList;
-  final int postID;
-  CommentSection({this.commentsList, this.postID});
-
-  @override
-  _CommentSectionState createState() =>
-      _CommentSectionState(commentsList: this.commentsList, postID: postID);
-}
-
-class _CommentSectionState extends State<CommentSection> {
-  List<Comment> commentsList;
-  int postID;
-  // UserInfo userInfo;
-  _CommentSectionState({this.commentsList, this.postID});
-
-  void postComment(String newCommentString, Comment comment) async {
-    // Posts the comment to the server. If the server successfully processes
-    // the post, then the new comment is inserted into the comments list
-
-    String newUrl = backendConnection.url +
-        "comments/${this.postID.toString()}/comments/$userID/";
-    var response = await http.post(newUrl,
-        body: {"path": comment.path, "comment": newCommentString});
-
-    if (response.statusCode == 200) {
-      setState(() {
-        int commentIndex = this.commentsList.indexOf(comment);
-        Comment newComment = Comment(
-            comment: newCommentString,
-            userID: userID,
-            // userID: this.userInfo.userID,
-            datePosted: "Now",
-            level: comment.level + 1);
-        commentsList = commentsList.sublist(0, commentIndex + 1) +
-            [newComment] +
-            commentsList.sublist(commentIndex + 1, commentsList.length);
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // userInfo = UserInfo.of(context);
-    return commentSectionWidget();
-  }
-
-  Widget commentSectionWidget() {
-    return Container(
-        height: 600,
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  FlatButton(
-                      onPressed: () {
-                        Scaffold.of(context).hideCurrentSnackBar();
-                      },
-                      child: Text(
-                        "Close Comment Section",
-                        style: TextStyle(color: Colors.black),
-                      )),
-                  FlatButton(
-                      onPressed: () {
-                        print(this.commentsList);
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                  backgroundColor: Colors.white,
-                                  // Raw comment (not a response to another comment)
-                                  // is treated as if it's responding to an empty
-                                  // Comment
-                                  content: responseWidget(Comment(
-                                      userID: ' ',
-                                      path: '',
-                                      comment: ' ',
-                                      datePosted: ' ',
-                                      level: 0)));
-                            });
-                      },
-                      child: Text(
-                        "Comment on this post",
-                        style: TextStyle(color: Colors.black),
-                      )),
-                ],
-              ),
-              Expanded(
-                  child: ListView.builder(
-                scrollDirection: Axis.vertical,
-                itemCount: commentsList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return commentWidget(commentsList[index]);
-                },
-              )),
-            ]));
-  }
-
-  Widget commentWidget(Comment comment) {
-    return Container(
-      margin:
-          EdgeInsets.only(left: 20.0 + 40.0 * (comment.level - 1), top: 5.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          commentSubWidget(comment),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              IconButton(
-                  icon: Icon(Icons.reply, size: 16.0, color: Colors.black),
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: responseWidget(comment),
-                            backgroundColor: Colors.white,
-                          );
-                        });
-                  }),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget commentSubWidget(Comment comment) {
-    // This widget displays the user and the comment text, this is seperated from
-    // commentWidget bc this widget is also used for responseWidget
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Container(
-          child: Text(comment.userID,
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0)),
-        ),
-        Container(
-          child: Text(
-            comment.comment,
-            style: TextStyle(color: Colors.black, fontSize: 16.0),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget responseWidget(Comment comment) {
-    // Widget responsible for allowing user to respond to a comment
-    final textController = TextEditingController();
-
-    return Stack(
-      children: <Widget>[
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                commentSubWidget(comment),
-              ],
-            ),
-            TextField(
-              style: TextStyle(color: Colors.black),
-              controller: textController,
-            ),
-            RaisedButton(
-                onPressed: () {
-                  postComment(textController.text, comment);
-                  textController.dispose();
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  "Post Comment",
-                  style: TextStyle(color: Colors.black),
-                )),
-          ],
-        )
-      ],
+      content: CommentSection(postID: widget.postID),
     );
   }
 }
