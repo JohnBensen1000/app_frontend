@@ -136,6 +136,8 @@ class _NewPostState extends State<NewPost> {
           child: Container(
             alignment: Alignment.bottomCenter,
             child: FlatButton(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
               onPressed: () => _takePhoto(),
               // Button is made up of stack of sub circles
               child: Stack(
