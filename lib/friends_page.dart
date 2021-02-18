@@ -199,44 +199,45 @@ class ChatPage extends StatelessWidget {
         body: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          padding: EdgeInsets.all(20.0),
-          height: 700.0,
-          child: StreamBuilder(
-              stream: Firestore.instance
-                  .collection('Chats')
-                  .document(chatName)
-                  .collection('chats')
-                  .document('1')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Text("No Data");
-                } else {
-                  List<dynamic> conversation = snapshot.data["conversation"];
+        Expanded(
+          child: Container(
+            padding: EdgeInsets.all(20.0),
+            child: StreamBuilder(
+                stream: Firestore.instance
+                    .collection('Chats')
+                    .document(chatName)
+                    .collection('chats')
+                    .document('1')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Text("No Data");
+                  } else {
+                    List<dynamic> conversation = snapshot.data["conversation"];
 
-                  return ListView.builder(
-                      itemCount: conversation.length,
-                      itemBuilder: (context, index) {
-                        dynamic chat = conversation[index];
-                        if (chat['sender'] == userID) {
-                          return Chat(
-                            senderID: chat['sender'],
-                            chat: chat['chat'],
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            backgroundColor: Colors.orange[300],
-                          );
-                        } else {
-                          return Chat(
-                            senderID: chat['sender'],
-                            chat: chat['chat'],
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            backgroundColor: Colors.purple[300],
-                          );
-                        }
-                      });
-                }
-              }),
+                    return ListView.builder(
+                        itemCount: conversation.length,
+                        itemBuilder: (context, index) {
+                          dynamic chat = conversation[index];
+                          if (chat['sender'] == userID) {
+                            return Chat(
+                              senderID: chat['sender'],
+                              chat: chat['chat'],
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              backgroundColor: Colors.orange[300],
+                            );
+                          } else {
+                            return Chat(
+                              senderID: chat['sender'],
+                              chat: chat['chat'],
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              backgroundColor: Colors.purple[300],
+                            );
+                          }
+                        });
+                  }
+                }),
+          ),
         ),
         Container(
           width: 350.0,

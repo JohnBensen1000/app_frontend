@@ -10,6 +10,7 @@ import 'friends_page.dart';
 import 'user_info.dart';
 import 'new_post.dart';
 import 'backend_connect.dart';
+import 'search_page.dart';
 
 final backendConnection = new BackendConnection();
 
@@ -97,7 +98,7 @@ class NavigationBar extends PreferredSize {
           allowDrawingOutsideViewBox: true,
         ),
         Container(
-          padding: const EdgeInsets.only(left: 30, right: 30, top: 10),
+          padding: const EdgeInsets.only(left: 30, top: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -115,6 +116,24 @@ class NavigationBar extends PreferredSize {
                 ),
               ),
               Row(children: <Widget>[
+                FlatButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SearchPage()),
+                      );
+                    },
+                    child: Container(
+                        width: 100,
+                        height: 30,
+                        decoration: new BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          color: Colors.grey[300],
+                        ),
+                        child: Transform.translate(
+                          offset: Offset(0, 7),
+                          child: Text("Search", textAlign: TextAlign.center),
+                        ))),
                 FlatButton(
                   onPressed: () {
                     Navigator.push(
@@ -146,7 +165,6 @@ class NavigationBar extends PreferredSize {
                     ),
                   ),
                 ),
-                RaisedButton(onPressed: null, child: Text("Search")),
               ]),
             ],
           ),
