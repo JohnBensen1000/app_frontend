@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-final backendConnection = new BackendConnection();
+final backendConnection = new ServerAPI();
 
 class NewAccount {
   // Responsible for storing, validating, and creating a new account.

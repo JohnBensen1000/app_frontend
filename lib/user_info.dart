@@ -5,9 +5,10 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'home_screen.dart';
 
-final backendConnection = new BackendConnection();
+final backendConnection = new ServerAPI();
 
-String userID = "John1000";
+String userID = "Kishan1000";
+double goldenRatio = 1.6180;
 
 class User {
   String userID;

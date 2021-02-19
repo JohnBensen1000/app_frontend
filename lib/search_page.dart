@@ -7,7 +7,7 @@ import 'package:test_flutter/profile_page.dart';
 import 'user_info.dart';
 import 'backend_connect.dart';
 
-final backendConnection = new BackendConnection();
+final backendConnection = new ServerAPI();
 
 class CreatorsList extends ChangeNotifier {
   List<User> _creatorsList = [];
@@ -38,24 +38,19 @@ class CreatorsList extends ChangeNotifier {
   }
 }
 
-void startFollowing(String userID, String creatorID) async {
-  String newUrl = backendConnection.url + "users/" + userID + "/following/new/";
-  var response = await http.post(newUrl, body: {"creatorID": creatorID});
-
-  // if (response.statusCode == 201) print("Started Following!");
-  // if (response.statusCode == 204) print("Already following creator");
-}
-
 class SearchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-        providers: [ChangeNotifierProvider.value(value: CreatorsList())],
-        child: SearchResults());
+    return ChangeNotifierProvider(
+      create: (context) => CreatorsList(),
+      child: SearchResults(),
+    );
   }
 }
 
 class SearchResults extends StatelessWidget {
+  final _searchController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     var creatorsList = Provider.of<CreatorsList>(context).getCreatorsList;
@@ -70,20 +65,21 @@ class SearchResults extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Container(
-                height: 50,
-                width: 260,
-                child: TextField(
+                  height: 50,
+                  width: 260,
+                  child: TextField(
                     decoration: new InputDecoration(
                         border: new OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(
-                        const Radius.circular(40.0),
-                      ),
-                    )),
-                    onChanged: (text) {
-                      Provider.of<CreatorsList>(context, listen: false)
-                          .searchForCreators(text);
-                    }),
-              ),
+                          borderRadius: const BorderRadius.all(
+                            const Radius.circular(40.0),
+                          ),
+                        ),
+                        hintText: "Search"),
+                    onChanged: (text) =>
+                        Provider.of<CreatorsList>(context, listen: false)
+                            .searchForCreators(_searchController.text),
+                    controller: _searchController,
+                  )),
               Container(
                   width: 80,
                   height: 30,
@@ -108,36 +104,55 @@ class SearchResults extends StatelessWidget {
             scrollDirection: Axis.vertical,
             itemCount: creatorsList.length,
             itemBuilder: (BuildContext context, int index) {
-              return new FlatButton(
-                child: Container(
-                    width: 200,
-                    height: 40,
-                    decoration: new BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(20)),
-                      color: Colors.grey[200],
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${creatorsList[index].username}',
-                        textAlign: TextAlign.center,
-                      ),
-                    )),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          ProfilePage(user: creatorsList[index])),
-                ),
-                // onPressed: () {
-                //   startFollowing(userID, creatorsList[index].userID);
-                //   Provider.of<CreatorsList>(context, listen: false)
-                //       .clearSearchList();
-                // },
-              );
+              return SearchResult(
+                  creator: creatorsList[index],
+                  searchController: _searchController);
             },
           ),
         ),
       ],
     )));
+  }
+}
+
+class SearchResult extends StatelessWidget {
+  const SearchResult({
+    Key key,
+    @required this.creator,
+    @required TextEditingController searchController,
+  })  : _searchController = searchController,
+        super(key: key);
+
+  final User creator;
+  final TextEditingController _searchController;
+
+  Future<void> _goToProfilePage(BuildContext context) async {
+    await Provider.of<CreatorsList>(context, listen: false).clearSearchList();
+    _searchController.clear();
+    FocusScope.of(context).unfocus();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePage(user: creator)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new FlatButton(
+      child: Container(
+          width: 200,
+          height: 40,
+          decoration: new BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(20)),
+            color: Colors.grey[200],
+          ),
+          child: Center(
+            child: Text(
+              '${creator.username}',
+              textAlign: TextAlign.center,
+            ),
+          )),
+      onPressed: () => _goToProfilePage(context),
+    );
   }
 }

@@ -12,7 +12,7 @@ import 'new_post.dart';
 import 'backend_connect.dart';
 import 'search_page.dart';
 
-final backendConnection = new BackendConnection();
+final backendConnection = new ServerAPI();
 
 enum PageLabel {
   discover,
@@ -116,52 +116,37 @@ class NavigationBar extends PreferredSize {
                 ),
               ),
               Row(children: <Widget>[
-                FlatButton(
+                Container(
+                    width: 100,
+                    height: 30,
+                    decoration: new BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                      color: Colors.grey[300],
+                    ),
+                    child: FlatButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SearchPage()),
+                        );
+                      },
+                      child: Text("Search", textAlign: TextAlign.center),
+                    )),
+                ButtonTheme(
+                  minWidth: 40,
+                  child: FlatButton(
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => SearchPage()),
+                        MaterialPageRoute(builder: (context) => NewPost()),
                       );
                     },
-                    child: Container(
-                        width: 100,
-                        height: 30,
-                        decoration: new BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
-                          color: Colors.grey[300],
-                        ),
-                        child: Transform.translate(
-                          offset: Offset(0, 7),
-                          child: Text("Search", textAlign: TextAlign.center),
-                        ))),
-                FlatButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NewPost()),
-                    );
-                  },
-                  child: SizedBox(
-                    width: 33.0,
-                    height: 30.0,
-                    child: Stack(
-                      children: <Widget>[
-                        Pinned.fromSize(
-                          bounds: Rect.fromLTWH(0.0, 0.0, 33.0, 30.0),
-                          size: Size(33.0, 30.0),
-                          pinLeft: true,
-                          pinRight: true,
-                          pinTop: true,
-                          pinBottom: true,
-                          child:
-                              // Adobe XD layer: 'AI_send' (shape)
-                              SvgPicture.string(
-                            _svg_n49k6t,
-                            allowDrawingOutsideViewBox: true,
-                            fit: BoxFit.fill,
-                          ),
-                        ),
-                      ],
+                    child:
+                        // Adobe XD layer: 'AI_send' (shape)
+                        SvgPicture.string(
+                      _svg_n49k6t,
+                      allowDrawingOutsideViewBox: true,
+                      fit: BoxFit.fill,
                     ),
                   ),
                 ),

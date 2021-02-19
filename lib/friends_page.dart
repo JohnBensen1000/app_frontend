@@ -6,7 +6,7 @@ import 'user_info.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-final backendConnection = new BackendConnection();
+final backendConnection = new ServerAPI();
 
 class FriendsPage extends StatefulWidget {
   @override

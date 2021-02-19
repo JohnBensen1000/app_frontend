@@ -6,7 +6,7 @@ import 'user_info.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'comments.dart';
 
-final backendConnection = new BackendConnection();
+final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
 
 class FollowingPage extends StatefulWidget {

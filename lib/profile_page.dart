@@ -7,7 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'user_info.dart';
 import 'backend_connect.dart';
 
-final backendConnection = new BackendConnection();
+final serverAPI = new ServerAPI();
 
 class ProfilePage extends StatefulWidget {
   ProfilePage({this.user});
@@ -19,359 +19,303 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final double topPadding = 50;
+  final double sidePadding = 20;
+
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height - topPadding;
+
     return Scaffold(
-        body: Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Container(height: 80, width: double.infinity),
-        Container(
-          width: 148.0,
-          height: 148.0,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-            // image: DecorationImage(
-            //   image: const AssetImage(''),
-            //   fit: BoxFit.cover,
-            // ),
-            border: Border.all(width: 3.0, color: const Color(0xff22a2ff)),
+        body: Container(
+      padding: EdgeInsets.only(
+          top: topPadding, left: sidePadding, right: sidePadding),
+      child: Column(
+        children: <Widget>[
+          ChangeNotifierProvider(
+            create: (context) => ProfilePageHeaderProvider(
+                height: .4 * height, user: widget.user),
+            child: ProfilePageHeader(),
           ),
-        ),
-        Container(
-          child: Text(
-            '${widget.user.username}',
-            style: TextStyle(
-              fontFamily: 'Helvetica Neue',
-              fontSize: 25,
-              color: const Color(0xff000000),
+          ProfilePostScroll(height: .6 * height),
+        ],
+      ),
+    ));
+  }
+}
+
+class ProfilePageHeaderProvider extends ChangeNotifier {
+  final double height;
+  final User user;
+
+  Color followingColor;
+  String followingText;
+
+  ProfilePageHeaderProvider({this.height, this.user}) {
+    _updateToNotFollowing();
+    _isFollowing();
+  }
+
+  void _updateToFollowing() {
+    followingColor = Colors.grey[300];
+    followingText = "Following";
+    notifyListeners();
+  }
+
+  void _updateToNotFollowing() {
+    followingColor = Colors.white;
+    followingText = "Follow";
+    notifyListeners();
+  }
+
+  Future<void> _isFollowing() async {
+    String url = serverAPI.url + "users/$userID/following/${user.userID}/";
+    var response = await http.get(url);
+
+    if (json.decode(response.body)["following_bool"] == true) {
+      _updateToFollowing();
+    }
+  }
+
+  Future<void> _startFollowing() async {
+    String url = serverAPI.url + "users/" + userID + "/following/new/";
+    var response = await http.post(url, body: {"creatorID": user.userID});
+
+    if (response.statusCode == 201) {
+      _updateToFollowing();
+    }
+  }
+}
+
+class ProfilePageHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ProfilePageHeaderProvider>(
+        builder: (context, profileHeader, child) {
+      return Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Container(
+                      width: 24.0,
+                      height: 24.0,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        // image: DecorationImage(
+                        //   image: const AssetImage(''),
+                        //   fit: BoxFit.cover,
+                        // ),
+                        border: Border.all(
+                            width: 1.0, color: const Color(0xff707070)),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Container(
+                          width: 80,
+                          height: 25,
+                          decoration: new BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                            color: Colors.grey[300],
+                          ),
+                          child: FlatButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Center(
+                                child: Text(
+                                  'Exit',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ))),
+                    ),
+                  ],
+                ),
+                Stack(
+                  children: <Widget>[
+                    Container(
+                      width: 73.0,
+                      height: 11.0,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6.0),
+                        color: const Color(0xffffffff),
+                        border: Border.all(
+                            width: 1.0, color: const Color(0xff22a2ff)),
+                      ),
+                    ),
+                    SvgPicture.string(
+                      _svg_cdsk62,
+                      allowDrawingOutsideViewBox: true,
+                    ),
+                  ],
+                )
+              ],
             ),
-            textAlign: TextAlign.left,
-          ),
-        ),
-        Container(
-          child: Text(
-            '${widget.user.userID}',
-            style: TextStyle(
-              fontFamily: 'Helvetica Neue',
-              fontSize: 12,
-              color: Colors.grey[400],
+            Container(
+              height: 15,
             ),
-            textAlign: TextAlign.left,
-          ),
-        ),
-        Container(
-          height: 20,
-          child: SvgPicture.string(
-            _svg_jmyh3o,
-            allowDrawingOutsideViewBox: true,
-          ),
-        ),
-        Container(
-          width: 125.0,
-          height: 31.0,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16.0),
-            color: const Color(0xffffffff),
-            border: Border.all(width: 1.0, color: const Color(0xff707070)),
-          ),
-          child: Center(
-            child: Text(
-              'Follow',
-              style: TextStyle(
-                fontFamily: 'Helvetica Neue',
-                fontSize: 25,
-                color: const Color(0xff000000),
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ),
-        Container(
-          padding: EdgeInsets.all(20),
-          child: Container(
-            // width: 342.0,
-            height: 201.0,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15.0),
+            Container(
+              width: 148.0,
+              height: 148.0,
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
                 // image: DecorationImage(
                 //   image: const AssetImage(''),
                 //   fit: BoxFit.cover,
                 // ),
-                border: Border.all(width: 1.0, color: const Color(0xff707070))),
-          ),
-        ),
-        Row(
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.all(5),
-              child: Container(
-                  height: 300,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15.0),
-                    // image: DecorationImage(
-                    //   image: const AssetImage(''),
-                    //   fit: BoxFit.cover,
-                    // ),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  )),
+                border: Border.all(width: 3.0, color: const Color(0xff22a2ff)),
+              ),
             ),
             Container(
-              padding: EdgeInsets.all(5),
-              child: Container(
-                  height: 300,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15.0),
-                    // image: DecorationImage(
-                    //   image: const AssetImage(''),
-                    //   fit: BoxFit.cover,
-                    // ),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  )),
+              child: Text(
+                '${profileHeader.user.username}',
+                style: TextStyle(
+                  fontFamily: 'Helvetica Neue',
+                  fontSize: 25,
+                  color: const Color(0xff000000),
+                ),
+                textAlign: TextAlign.left,
+              ),
             ),
             Container(
-              padding: EdgeInsets.all(5),
-              child: Container(
-                  height: 300,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15.0),
-                    // image: DecorationImage(
-                    //   image: const AssetImage(''),
-                    //   fit: BoxFit.cover,
-                    // ),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  )),
+              child: Text(
+                '${profileHeader.user.userID}',
+                style: TextStyle(
+                  fontFamily: 'Helvetica Neue',
+                  fontSize: 12,
+                  color: Colors.grey[400],
+                ),
+                textAlign: TextAlign.left,
+              ),
             ),
-          ],
-        ),
+            Container(
+              height: 20,
+              child: SvgPicture.string(
+                _svg_jmyh3o,
+                allowDrawingOutsideViewBox: true,
+              ),
+            ),
+            FlatButton(
+              child: Container(
+                width: 125.0,
+                height: 31.0,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.0),
+                  // color: const Color(0xffffffff),
+                  color: profileHeader.followingColor,
+                  border:
+                      Border.all(width: 1.0, color: const Color(0xff707070)),
+                ),
+                child: Center(
+                  child: Text(
+                    profileHeader.followingText,
+                    style: TextStyle(
+                      fontFamily: 'Helvetica Neue',
+                      fontSize: 20,
+                      color: const Color(0xff000000),
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+              ),
+              onPressed: () {
+                Provider.of<ProfilePageHeaderProvider>(context, listen: false)
+                    ._startFollowing();
+              },
+            ),
+          ]);
+    });
+  }
+}
 
-        // Transform.translate(
-        //   offset: Offset(13.0, 602.0),
-        //   child: SizedBox(
-        //     width: 349.0,
-        //     height: 136.0,
-        //     child: Stack(
-        //       children: <Widget>[
-        //         Pinned.fromSize(
-        //           bounds: Rect.fromLTWH(0.0, 0.0, 107.0, 136.0),
-        //           size: Size(349.0, 136.0),
-        //           pinLeft: true,
-        //           pinTop: true,
-        //           pinBottom: true,
-        //           fixedWidth: true,
-        //           child: Stack(
-        //             children: <Widget>[
-        //               Pinned.fromSize(
-        //                 bounds: Rect.fromLTWH(0.0, 0.0, 107.0, 136.0),
-        //                 size: Size(107.0, 136.0),
-        //                 pinLeft: true,
-        //                 pinRight: true,
-        //                 pinTop: true,
-        //                 pinBottom: true,
-        //                 child:
-        //                     // Adobe XD layer: 'e36749e2bd53a0c8e5d…' (shape)
-        //                     Container(
-        //                   decoration: BoxDecoration(
-        //                     borderRadius: BorderRadius.circular(15.0),
-        //                     image: DecorationImage(
-        //                       image: const AssetImage(''),
-        //                       fit: BoxFit.cover,
-        //                     ),
-        //                     border: Border.all(
-        //                         width: 1.0, color: const Color(0xff707070)),
-        //                   ),
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //         Pinned.fromSize(
-        //           bounds: Rect.fromLTWH(121.0, 0.0, 107.0, 136.0),
-        //           size: Size(349.0, 136.0),
-        //           pinTop: true,
-        //           pinBottom: true,
-        //           fixedWidth: true,
-        //           child: Stack(
-        //             children: <Widget>[
-        //               Pinned.fromSize(
-        //                 bounds: Rect.fromLTWH(0.0, 0.0, 107.0, 136.0),
-        //                 size: Size(107.0, 136.0),
-        //                 pinLeft: true,
-        //                 pinRight: true,
-        //                 pinTop: true,
-        //                 pinBottom: true,
-        //                 child:
-        //                     // Adobe XD layer: '56683dd4d77767d0c0c…' (shape)
-        //                     Container(
-        //                   decoration: BoxDecoration(
-        //                     borderRadius: BorderRadius.circular(15.0),
-        //                     image: DecorationImage(
-        //                       image: const AssetImage(''),
-        //                       fit: BoxFit.cover,
-        //                     ),
-        //                     border: Border.all(
-        //                         width: 1.0, color: const Color(0xff707070)),
-        //                   ),
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //         Pinned.fromSize(
-        //           bounds: Rect.fromLTWH(242.0, 0.0, 107.0, 136.0),
-        //           size: Size(349.0, 136.0),
-        //           pinRight: true,
-        //           pinTop: true,
-        //           pinBottom: true,
-        //           fixedWidth: true,
-        //           child: Stack(
-        //             children: <Widget>[
-        //               Pinned.fromSize(
-        //                 bounds: Rect.fromLTWH(0.0, 0.0, 107.0, 136.0),
-        //                 size: Size(107.0, 136.0),
-        //                 pinLeft: true,
-        //                 pinRight: true,
-        //                 pinTop: true,
-        //                 pinBottom: true,
-        //                 child:
-        //                     // Adobe XD layer: '1a5e51394094cc0f1e4…' (shape)
-        //                     Container(
-        //                   decoration: BoxDecoration(
-        //                     borderRadius: BorderRadius.circular(7.0),
-        //                     image: DecorationImage(
-        //                       image: const AssetImage(''),
-        //                       fit: BoxFit.cover,
-        //                     ),
-        //                     border: Border.all(
-        //                         width: 1.0, color: const Color(0xff707070)),
-        //                   ),
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
+class ProfilePostScroll extends StatelessWidget {
+  ProfilePostScroll({this.height});
+
+  final double height;
+
+  Future<List<Widget>> _getProfilePosts() async {
+    List<Widget> profilePosts = [ProfileMainPost()];
+    for (int i = 0; i < 20; i++)
+      profilePosts.add(Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[ProfilePost(), ProfilePost(), ProfilePost()],
+      ));
+
+    return profilePosts;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: _getProfilePosts(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData) {
+            return SizedBox(
+              height: height,
+              child: new ListView.builder(
+                itemCount: snapshot.data.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return snapshot.data[index];
+                },
+              ),
+            );
+          } else {
+            return Center(child: Text("Loading..."));
+          }
+        });
+  }
+}
+
+class ProfileMainPost extends StatelessWidget {
+  const ProfileMainPost({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: 5, bottom: 5),
+      child: Container(
+        height: 201.0,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15.0),
+            // image: DecorationImage(
+            //   image: const AssetImage(''),
+            //   fit: BoxFit.cover,
+            // ),
+            border: Border.all(width: 1.0, color: const Color(0xff707070))),
+      ),
+    );
+  }
+}
+
+class ProfilePost extends StatelessWidget {
+  const ProfilePost({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double width = (MediaQuery.of(context).size.width - 60) / 3;
+
+    return Container(
+      width: width,
+      height: width * goldenRatio,
+      padding: EdgeInsets.only(top: 5, bottom: 5),
+      child: Container(
+          decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15.0),
+        // image: DecorationImage(
+        //   image: const AssetImage(''),
+        //   fit: BoxFit.cover,
         // ),
-        // Transform.translate(
-        //   offset: Offset(13.0, 758.0),
-        //   child: SizedBox(
-        //     width: 349.0,
-        //     height: 136.0,
-        //     child: Stack(
-        //       children: <Widget>[
-        //         Pinned.fromSize(
-        //           bounds: Rect.fromLTWH(0.0, 0.0, 107.0, 136.0),
-        //           size: Size(349.0, 136.0),
-        //           pinLeft: true,
-        //           pinTop: true,
-        //           pinBottom: true,
-        //           fixedWidth: true,
-        //           child: Stack(
-        //             children: <Widget>[
-        //               Pinned.fromSize(
-        //                 bounds: Rect.fromLTWH(0.0, 0.0, 107.0, 136.0),
-        //                 size: Size(107.0, 136.0),
-        //                 pinLeft: true,
-        //                 pinRight: true,
-        //                 pinTop: true,
-        //                 pinBottom: true,
-        //                 child:
-        //                     // Adobe XD layer: '6cbba7cea9f72ad8cdb…' (shape)
-        //                     Container(
-        //                   decoration: BoxDecoration(
-        //                     borderRadius: BorderRadius.circular(15.0),
-        //                     image: DecorationImage(
-        //                       image: const AssetImage(''),
-        //                       fit: BoxFit.cover,
-        //                     ),
-        //                     border: Border.all(
-        //                         width: 1.0, color: const Color(0xff707070)),
-        //                   ),
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //         Pinned.fromSize(
-        //           bounds: Rect.fromLTWH(121.0, 0.0, 107.0, 136.0),
-        //           size: Size(349.0, 136.0),
-        //           pinTop: true,
-        //           pinBottom: true,
-        //           fixedWidth: true,
-        //           child: Stack(
-        //             children: <Widget>[
-        //               Pinned.fromSize(
-        //                 bounds: Rect.fromLTWH(0.0, 0.0, 107.0, 136.0),
-        //                 size: Size(107.0, 136.0),
-        //                 pinLeft: true,
-        //                 pinRight: true,
-        //                 pinTop: true,
-        //                 pinBottom: true,
-        //                 child:
-        //                     // Adobe XD layer: '1a5e51394094cc0f1e4…' (shape)
-        //                     Container(
-        //                   decoration: BoxDecoration(
-        //                     borderRadius: BorderRadius.circular(15.0),
-        //                     image: DecorationImage(
-        //                       image: const AssetImage(''),
-        //                       fit: BoxFit.cover,
-        //                     ),
-        //                     border: Border.all(
-        //                         width: 1.0, color: const Color(0xff707070)),
-        //                   ),
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //         Pinned.fromSize(
-        //           bounds: Rect.fromLTWH(242.0, 0.0, 107.0, 136.0),
-        //           size: Size(349.0, 136.0),
-        //           pinRight: true,
-        //           pinTop: true,
-        //           pinBottom: true,
-        //           fixedWidth: true,
-        //           child: Stack(
-        //             children: <Widget>[
-        //               Pinned.fromSize(
-        //                 bounds: Rect.fromLTWH(0.0, 0.0, 107.0, 136.0),
-        //                 size: Size(107.0, 136.0),
-        //                 pinLeft: true,
-        //                 pinRight: true,
-        //                 pinTop: true,
-        //                 pinBottom: true,
-        //                 child:
-        //                     // Adobe XD layer: 'b201619b73bfd7087d2…' (shape)
-        //                     Container(
-        //                   decoration: BoxDecoration(
-        //                     borderRadius: BorderRadius.circular(7.0),
-        //                     image: DecorationImage(
-        //                       image: const AssetImage(''),
-        //                       fit: BoxFit.cover,
-        //                     ),
-        //                     border: Border.all(
-        //                         width: 1.0, color: const Color(0xff707070)),
-        //                   ),
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
-      ],
-    ));
+        border: Border.all(width: 1.0, color: const Color(0xff707070)),
+      )),
+    );
   }
 }
 

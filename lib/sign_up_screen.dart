@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'backend_connect.dart';
 import 'create_account.dart';
 
-final backendConnection = new BackendConnection();
+final backendConnection = new ServerAPI();
 
 class TitleBar extends PreferredSize {
   final double height = 200;

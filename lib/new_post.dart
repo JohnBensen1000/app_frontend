@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'backend_connect.dart';
 import 'user_info.dart';
 
-final backendConnection = new BackendConnection();
+final backendConnection = new ServerAPI();
 
 Future<int> uploadPost(String imagePath) async {
   var request = http.MultipartRequest(
