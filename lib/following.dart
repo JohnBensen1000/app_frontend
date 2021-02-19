@@ -68,7 +68,8 @@ class PostWidget extends StatefulWidget {
   _PostWidgetState createState() => _PostWidgetState();
 }
 
-class _PostWidgetState extends State<PostWidget> {
+class _PostWidgetState extends State<PostWidget>
+    with AutomaticKeepAliveClientMixin {
   Future<Image> _postImage;
 
   Future<Image> _getPostImage() async {
@@ -86,25 +87,27 @@ class _PostWidgetState extends State<PostWidget> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-        child: FutureBuilder(
-            future: _postImage,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                return Container(
-                    padding: EdgeInsets.only(left: 40, right: 40, bottom: 20),
-                    child: Column(
-                      children: <Widget>[
-                        _postHeader(),
-                        _postBody(snapshot.data),
-                      ],
-                    ));
-              } else {
-                return Center(child: Text("Loading..."));
-              }
-            }));
+    return FutureBuilder(
+        future: _postImage,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData) {
+            return Container(
+                padding: EdgeInsets.only(left: 40, right: 40, bottom: 20),
+                child: Column(
+                  children: <Widget>[
+                    _postHeader(),
+                    _postBody(snapshot.data),
+                  ],
+                ));
+          } else {
+            return Center(child: Text("Loading..."));
+          }
+        });
   }
 
   Widget _postHeader() {
@@ -228,7 +231,7 @@ class _PostWidgetState extends State<PostWidget> {
               child: Container(
                 padding: EdgeInsets.only(bottom: 5),
                 child: FlatButton(
-                  onPressed: () async {
+                  onPressed: () {
                     Scaffold.of(context).showSnackBar(commentSection());
                   },
                   child: Text(

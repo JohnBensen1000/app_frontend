@@ -5,9 +5,9 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'home_screen.dart';
 
-final backendConnection = new ServerAPI();
+final serverAPI = new ServerAPI();
 
-String userID = "Kishan1000";
+String userID = "John1000";
 double goldenRatio = 1.6180;
 
 class User {
@@ -21,7 +21,7 @@ class FriendsList extends ChangeNotifier {
   List<User> friendsList = [];
 
   Future<void> getFriendsList() async {
-    String newUrl = backendConnection.url + "users/$userID/friends/";
+    String newUrl = serverAPI.url + "users/$userID/friends/";
     var response = await http.get(newUrl);
     for (var friendJson in json.decode(response.body)["friends"]) {
       friendsList.add(

@@ -2,42 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:adobe_xd/pinned.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'user_info.dart';
 import 'backend_connect.dart';
 
+import 'package:firebase_storage/firebase_storage.dart';
+
+FirebaseStorage storage = FirebaseStorage.instance;
 final serverAPI = new ServerAPI();
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends StatelessWidget {
   ProfilePage({this.user});
 
   final User user;
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
-}
-
-class _ProfilePageState extends State<ProfilePage> {
-  final double topPadding = 50;
-  final double sidePadding = 20;
-
-  @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height - topPadding;
+    double height = MediaQuery.of(context).size.height - 50;
 
     return Scaffold(
         body: Container(
-      padding: EdgeInsets.only(
-          top: topPadding, left: sidePadding, right: sidePadding),
+      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
       child: Column(
         children: <Widget>[
           ChangeNotifierProvider(
-            create: (context) => ProfilePageHeaderProvider(
-                height: .4 * height, user: widget.user),
+            create: (context) =>
+                ProfilePageHeaderProvider(height: .4 * height, user: user),
             child: ProfilePageHeader(),
           ),
-          ProfilePostScroll(height: .6 * height),
+          ProfilePostBody(height: .6 * height, user: user),
         ],
       ),
     ));
@@ -53,7 +46,25 @@ class ProfilePageHeaderProvider extends ChangeNotifier {
 
   ProfilePageHeaderProvider({this.height, this.user}) {
     _updateToNotFollowing();
-    _isFollowing();
+    isFollowing();
+  }
+
+  Future<void> isFollowing() async {
+    String url = serverAPI.url + "users/$userID/following/${user.userID}/";
+    var response = await http.get(url);
+
+    if (json.decode(response.body)["following_bool"] == true) {
+      _updateToFollowing();
+    }
+  }
+
+  Future<void> startFollowing() async {
+    String url = serverAPI.url + "users/" + userID + "/following/new/";
+    var response = await http.post(url, body: {"creatorID": user.userID});
+
+    if (response.statusCode == 201) {
+      _updateToFollowing();
+    }
   }
 
   void _updateToFollowing() {
@@ -66,24 +77,6 @@ class ProfilePageHeaderProvider extends ChangeNotifier {
     followingColor = Colors.white;
     followingText = "Follow";
     notifyListeners();
-  }
-
-  Future<void> _isFollowing() async {
-    String url = serverAPI.url + "users/$userID/following/${user.userID}/";
-    var response = await http.get(url);
-
-    if (json.decode(response.body)["following_bool"] == true) {
-      _updateToFollowing();
-    }
-  }
-
-  Future<void> _startFollowing() async {
-    String url = serverAPI.url + "users/" + userID + "/following/new/";
-    var response = await http.post(url, body: {"creatorID": user.userID});
-
-    if (response.statusCode == 201) {
-      _updateToFollowing();
-    }
   }
 }
 
@@ -199,6 +192,8 @@ class ProfilePageHeader extends StatelessWidget {
               ),
             ),
             FlatButton(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
               child: Container(
                 width: 125.0,
                 height: 31.0,
@@ -223,7 +218,7 @@ class ProfilePageHeader extends StatelessWidget {
               ),
               onPressed: () {
                 Provider.of<ProfilePageHeaderProvider>(context, listen: false)
-                    ._startFollowing();
+                    .startFollowing();
               },
             ),
           ]);
@@ -231,21 +226,11 @@ class ProfilePageHeader extends StatelessWidget {
   }
 }
 
-class ProfilePostScroll extends StatelessWidget {
-  ProfilePostScroll({this.height});
+class ProfilePostBody extends StatelessWidget {
+  ProfilePostBody({this.height, this.user});
 
   final double height;
-
-  Future<List<Widget>> _getProfilePosts() async {
-    List<Widget> profilePosts = [ProfileMainPost()];
-    for (int i = 0; i < 20; i++)
-      profilePosts.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[ProfilePost(), ProfilePost(), ProfilePost()],
-      ));
-
-    return profilePosts;
-  }
+  final User user;
 
   @override
   Widget build(BuildContext context) {
@@ -268,12 +253,97 @@ class ProfilePostScroll extends StatelessWidget {
           }
         });
   }
+
+  Future<List<Widget>> _getProfilePosts() async {
+    var response =
+        await http.get(serverAPI.url + "posts/${user.userID}/posts/");
+    List<dynamic> postList = json.decode(response.body)["userPosts"];
+
+    if (postList.length == 0) {
+      return null;
+    }
+    List<Widget> profilePosts = [
+      ProfilePost(
+        user: user,
+        postID: postList[0],
+        mainPost: true,
+      )
+    ];
+    List<Widget> postsRow = [];
+    int i = 1;
+
+    while ((i < postList.length) || ((i - 1) % 3 != 0)) {
+      if (i < postList.length) {
+        postsRow.add(
+          ProfilePost(
+            user: user,
+            postID: postList[i],
+            mainPost: false,
+          ),
+        );
+      } else {
+        postsRow.add(
+          EmptyProfilePost(),
+        );
+      }
+      i++;
+    }
+    for (int i = 0; i < postsRow.length; i += 3) {
+      profilePosts.add(Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: postsRow.sublist(i, i + 3),
+      ));
+    }
+    return profilePosts;
+  }
 }
 
-class ProfileMainPost extends StatelessWidget {
-  const ProfileMainPost({
+class ProfilePost extends StatelessWidget {
+  const ProfilePost({
+    this.user,
+    this.postID,
+    this.mainPost,
     Key key,
   }) : super(key: key);
+
+  final User user;
+  final int postID;
+  final bool mainPost;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: _getPostImage(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData) {
+            if (this.mainPost) {
+              return MainProfilePost(image: snapshot.data);
+            } else {
+              return SubProfilePost(image: snapshot.data);
+            }
+          } else {
+            return Center(child: Text("Loading..."));
+          }
+        });
+  }
+
+  Future<Image> _getPostImage() async {
+    return Image.network(await FirebaseStorage.instance
+        .ref()
+        .child("${user.userID}")
+        .child("${postID.toString()}.png")
+        .getDownloadURL());
+  }
+}
+
+class MainProfilePost extends StatelessWidget {
+  const MainProfilePost({
+    this.image,
+    Key key,
+  }) : super(key: key);
+
+  final Image image;
 
   @override
   Widget build(BuildContext context) {
@@ -283,18 +353,49 @@ class ProfileMainPost extends StatelessWidget {
         height: 201.0,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15.0),
-            // image: DecorationImage(
-            //   image: const AssetImage(''),
-            //   fit: BoxFit.cover,
-            // ),
-            border: Border.all(width: 1.0, color: const Color(0xff707070))),
+            border: Border.all(width: 1.0, color: const Color(0xff707070)),
+            image: new DecorationImage(
+              fit: BoxFit.fitWidth,
+              alignment: FractionalOffset.topCenter,
+              image: image.image,
+            )),
       ),
     );
   }
 }
 
-class ProfilePost extends StatelessWidget {
-  const ProfilePost({
+class SubProfilePost extends StatelessWidget {
+  const SubProfilePost({
+    this.image,
+    Key key,
+  }) : super(key: key);
+
+  final Image image;
+
+  @override
+  Widget build(BuildContext context) {
+    double width = (MediaQuery.of(context).size.width - 60) / 3;
+
+    return Container(
+      padding: EdgeInsets.only(top: 5, bottom: 5),
+      child: Container(
+        width: width,
+        height: width * goldenRatio,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15.0),
+            border: Border.all(width: 1.0, color: const Color(0xff707070)),
+            image: new DecorationImage(
+              fit: BoxFit.fitWidth,
+              alignment: FractionalOffset.topCenter,
+              image: image.image,
+            )),
+      ),
+    );
+  }
+}
+
+class EmptyProfilePost extends StatelessWidget {
+  const EmptyProfilePost({
     Key key,
   }) : super(key: key);
 
@@ -303,19 +404,11 @@ class ProfilePost extends StatelessWidget {
     double width = (MediaQuery.of(context).size.width - 60) / 3;
 
     return Container(
-      width: width,
-      height: width * goldenRatio,
-      padding: EdgeInsets.only(top: 5, bottom: 5),
-      child: Container(
-          decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15.0),
-        // image: DecorationImage(
-        //   image: const AssetImage(''),
-        //   fit: BoxFit.cover,
-        // ),
-        border: Border.all(width: 1.0, color: const Color(0xff707070)),
-      )),
-    );
+        padding: EdgeInsets.only(top: 5, bottom: 5),
+        child: Container(
+          width: width,
+          height: width * goldenRatio,
+        ));
   }
 }
 
