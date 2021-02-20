@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'backend_connect.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'user_info.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
+
+import 'user_info.dart';
+import 'backend_connect.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
@@ -33,17 +34,31 @@ class CommentSection extends StatelessWidget {
 }
 
 class CommentsProvider extends ChangeNotifier {
+  /* Manages state of entire comments section. Initially gets list of comments
+     from the server. _flattenCommentLevel() uses recursion to put all the 
+     comments into a single list. Provides functionality for updating the 
+     comments list when the user posts a new comment. 
+  */
   CommentsProvider({this.postID}) {
     _getAllComments();
   }
-  List<Comment> commentsList = [];
+  List<Comment> _commentsList = [];
   final int postID;
+
+  List<Comment> get commentsList {
+    return _commentsList;
+  }
+
+  set commentsList(List<Comment> newCommentsList) {
+    _commentsList = newCommentsList;
+    notifyListeners();
+  }
 
   void _getAllComments() async {
     String newUrl = backendConnection.url + "comments/$postID/comments/";
     var response = await http.get(newUrl);
 
-    commentsList =
+    _commentsList =
         _flattenCommentLevel(jsonDecode(response.body)["comments"], 1);
     notifyListeners();
   }
@@ -61,11 +76,6 @@ class CommentsProvider extends ChangeNotifier {
     }
     return commentsList;
   }
-
-  void updateCommentsList(List<Comment> newCommentsList) {
-    commentsList = newCommentsList;
-    notifyListeners();
-  }
 }
 
 class CommentsPage extends StatelessWidget {
@@ -80,6 +90,7 @@ class CommentsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
+            // Comment Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
@@ -95,6 +106,7 @@ class CommentsPage extends StatelessWidget {
                 ),
               ],
             ),
+            // Comment List
             Expanded(
                 child: ListView.builder(
               scrollDirection: Axis.vertical,
@@ -259,7 +271,7 @@ class ResponseWidget extends StatelessWidget {
         [newComment] +
         commentsList.sublist(commentIndex + 1, commentsList.length);
 
-    commentsProvider.updateCommentsList(newCommentsList);
+    commentsProvider.commentsList = newCommentsList;
   }
 }
 

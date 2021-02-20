@@ -9,7 +9,7 @@ import 'new_post.dart';
 import 'backend_connect.dart';
 import 'search_page.dart';
 
-final backendConnection = new ServerAPI();
+final serverAPI = new ServerAPI();
 
 enum PageLabel {
   discover,
@@ -27,6 +27,11 @@ class Homescreen extends StatefulWidget {
 }
 
 class _HomescreenState extends State<Homescreen> {
+  /* The homescreen is composed of two main parts: NavigationBar and PageBody
+     The NavigationBar displays which page the user is on. PageBody contains a 
+     child widget that could be one of the following: DiscoverPage(), 
+     FriendsPage(), or FollowingPage(). 
+  */
   final PageLabel pageLabel;
 
   _HomescreenState({this.pageLabel});
@@ -49,7 +54,9 @@ class _HomescreenState extends State<Homescreen> {
 }
 
 class PageProvider extends ChangeNotifier {
-  /* Responsible for keeping track of which page user is on. */
+  /* Responsible for keeping track of which page user is on. Notifies listeners
+     when a new page has been selected by the user.
+  */
   Widget pageBody = FriendsPage();
   PageLabel pageLabel = PageLabel.friends;
 
@@ -69,6 +76,11 @@ class PageProvider extends ChangeNotifier {
 }
 
 class NavigationBar extends PreferredSize {
+  /* Contains a navigation bar composed of 3 buttons that allow the user to 
+     switch to a new page. FollowingPage(), DiscoverPage(), and FreindsPage(). 
+     Additionally, contains buttons that allow the user to navigate to the
+     settings page, search page, and camera page. 
+  */
   final double height;
 
   NavigationBar({this.height});
@@ -80,7 +92,6 @@ class NavigationBar extends PreferredSize {
   Widget build(BuildContext context) {
     var pageProvider = Provider.of<PageProvider>(context);
     double navBarOffset = 0;
-    // UserInfo userInfo = UserInfo.of(context);
 
     if (pageProvider.pageLabel == PageLabel.discover) navBarOffset = -84.0;
     if (pageProvider.pageLabel == PageLabel.following) navBarOffset = 84.0;
@@ -202,6 +213,7 @@ class NavigationBar extends PreferredSize {
 }
 
 class NavButton extends StatelessWidget {
+  /* Widget used for the navigation buttons in NavigationBar. */
   final String pageName;
   final PageLabel pageLabel;
 
@@ -232,6 +244,10 @@ class NavButton extends StatelessWidget {
 }
 
 class PageBody extends StatelessWidget {
+  /* Wraps one of the following pages: FollowingPage(), DiscoverPage(), and 
+     FriendsPage(). Rebuilds itself every time the user changes from one of 
+     these pages to another.
+  */
   @override
   Widget build(BuildContext context) {
     return Consumer<PageProvider>(

@@ -10,17 +10,13 @@ import 'user_info.dart';
 
 final backendConnection = new ServerAPI();
 
-Future<int> uploadPost(String imagePath) async {
-  var request = http.MultipartRequest(
-      'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
-
-  request.files.add(await http.MultipartFile.fromPath('media', imagePath));
-
-  var response = await request.send();
-  return response.statusCode;
-}
-
 class NewPost extends StatefulWidget {
+  /* Allows users to use the camera to make a new post. This widget is divided
+     into 3 main parts: connecting to the camera _initializeCamera(), seeing a 
+     the input from the camera , _cameraView(), and after capturing an image, 
+     seeing a preview of the image, _postPreview(). 
+  */
+
   final CameraDescription camera;
 
   NewPost({this.camera});
@@ -108,13 +104,14 @@ class _NewPostState extends State<NewPost> {
                   alignment: Alignment.topLeft,
                   padding: EdgeInsets.only(top: 50, left: 5),
                   child: FlatButton(
-                      onPressed: () {
-                        _deletePhoto();
-                        Navigator.pop(context);
-                      },
-                      child: NewPostFlatButton(
-                          buttonName: "Exit Camera",
-                          backgroundColor: Colors.white))),
+                    child: NewPostFlatButton(
+                        buttonName: "Exit Camera",
+                        backgroundColor: Colors.white),
+                    onPressed: () {
+                      _deletePhoto();
+                      Navigator.pop(context);
+                    },
+                  )),
             ])),
       ],
     ));
@@ -172,6 +169,10 @@ class _NewPostState extends State<NewPost> {
               Container(
                   padding: EdgeInsets.all(20),
                   child: FlatButton(
+                    child: NewPostFlatButton(
+                      buttonName: "Post",
+                      backgroundColor: Colors.white,
+                    ),
                     onPressed: () {
                       showDialog(
                           context: context,
@@ -179,17 +180,14 @@ class _NewPostState extends State<NewPost> {
                             return PostOptions(imagePath: _imagePath);
                           });
                     },
-                    child: NewPostFlatButton(
-                      buttonName: "Post",
-                      backgroundColor: Colors.white,
-                    ),
                   )),
               Container(
                   padding: EdgeInsets.all(20),
                   child: FlatButton(
-                      onPressed: () => _deletePhoto(),
-                      child: NewPostFlatButton(
-                          buttonName: "Redo", backgroundColor: Colors.white))),
+                    child: NewPostFlatButton(
+                        buttonName: "Redo", backgroundColor: Colors.white),
+                    onPressed: () => _deletePhoto(),
+                  )),
             ],
           ))
     ]);
@@ -197,6 +195,9 @@ class _NewPostState extends State<NewPost> {
 }
 
 class PostButtonSubCircle extends StatelessWidget {
+  /* A stack of PostButtonSubCircle of alternating colors is used to compose
+     the "capture image" button.
+  */
   const PostButtonSubCircle({
     Key key,
     @required this.diameter,
@@ -219,6 +220,9 @@ class PostButtonSubCircle extends StatelessWidget {
 }
 
 class PostOptions extends StatelessWidget {
+  /* When the user decides to post an image, a widget pops up that gives the
+     user several options for what to do with the image. 
+  */
   const PostOptions({
     Key key,
     @required String imagePath,
@@ -253,7 +257,7 @@ class PostOptions extends StatelessWidget {
                 ),
                 FlatButton(
                   onPressed: () async {
-                    await uploadPost(_imagePath);
+                    await _uploadPost(_imagePath);
                     Navigator.of(context, rootNavigator: true).pop('dialog');
                   },
                   child: NewPostFlatButton(
@@ -271,11 +275,20 @@ class PostOptions extends StatelessWidget {
       ],
     );
   }
+
+  Future<int> _uploadPost(String imagePath) async {
+    var request = http.MultipartRequest(
+        'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
+
+    request.files.add(await http.MultipartFile.fromPath('media', imagePath));
+
+    var response = await request.send();
+    return response.statusCode;
+  }
 }
 
 class NewPostFlatButton extends StatelessWidget {
-  // Every button on the new_post.dart page is shaped/formatted the same way.
-  // This widget is responsible for that.
+  /* Every button on the new_post.dart page is shaped/formatted the same way. */
   const NewPostFlatButton({
     Key key,
     @required String buttonName,

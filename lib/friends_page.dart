@@ -16,7 +16,6 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPageState extends State<FriendsPage> {
   @override
   Widget build(BuildContext context) {
-    // UserInfo userInfo = UserInfo.of(context);
     return Consumer<FriendsList>(
         builder: (context, friendsList, child) => Container(
             height: 700,
@@ -24,15 +23,12 @@ class _FriendsPageState extends State<FriendsPage> {
             child: ListView.builder(
                 itemCount: friendsList.friendsList.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return FriendWidget(
-                      // userInfo: userInfo,
-                      friend: friendsList.friendsList[index]);
+                  return FriendWidget(friend: friendsList.friendsList[index]);
                 })));
   }
 }
 
 class FriendWidget extends StatelessWidget {
-  // final UserInfo userInfo;
   final User friend;
 
   FriendWidget({this.friend});
@@ -45,7 +41,6 @@ class FriendWidget extends StatelessWidget {
           context,
           MaterialPageRoute(
               builder: (context) => ChatPage(
-                    // userInfo: userInfo,
                     friend: friend,
                   )),
         );
@@ -151,43 +146,6 @@ class ChatPage extends StatelessWidget {
 
   ChatPage({this.friend});
 
-  String _getChatName() {
-    if (userID.hashCode < friend.userID.hashCode) {
-      return userID + "-" + friend.userID;
-    } else {
-      return friend.userID + "-" + userID;
-    }
-  }
-
-  Future<void> _createChatIfDoesntExist(
-      CollectionReference chatsCollection, String chatName) async {
-    await chatsCollection.document(chatName).get().then((doc) {
-      if (!doc.exists) {
-        chatsCollection.document(chatName).setData({
-          "Members": [userID, friend.userID]
-        });
-        chatsCollection
-            .document(chatName)
-            .collection('chats')
-            .document('1')
-            .setData({'conversation': []});
-      }
-    });
-  }
-
-  Future<void> _sendChat(
-      CollectionReference chatsCollection, String chatName) async {
-    await chatsCollection
-        .document(chatName)
-        .collection('chats')
-        .document('1')
-        .updateData({
-      'conversation': FieldValue.arrayUnion([
-        {'sender': userID, 'chat': _chatController.text}
-      ])
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     String chatName = _getChatName();
@@ -276,6 +234,43 @@ class ChatPage extends StatelessWidget {
       ],
     ));
   }
+
+  String _getChatName() {
+    if (userID.hashCode < friend.userID.hashCode) {
+      return userID + "-" + friend.userID;
+    } else {
+      return friend.userID + "-" + userID;
+    }
+  }
+
+  Future<void> _createChatIfDoesntExist(
+      CollectionReference chatsCollection, String chatName) async {
+    await chatsCollection.document(chatName).get().then((doc) {
+      if (!doc.exists) {
+        chatsCollection.document(chatName).setData({
+          "Members": [userID, friend.userID]
+        });
+        chatsCollection
+            .document(chatName)
+            .collection('chats')
+            .document('1')
+            .setData({'conversation': []});
+      }
+    });
+  }
+
+  Future<void> _sendChat(
+      CollectionReference chatsCollection, String chatName) async {
+    await chatsCollection
+        .document(chatName)
+        .collection('chats')
+        .document('1')
+        .updateData({
+      'conversation': FieldValue.arrayUnion([
+        {'sender': userID, 'chat': _chatController.text}
+      ])
+    });
+  }
 }
 
 class Chat extends StatelessWidget {
@@ -286,6 +281,26 @@ class Chat extends StatelessWidget {
 
   Chat(
       {this.senderID, this.chat, this.mainAxisAlignment, this.backgroundColor});
+
+  @override
+  Widget build(BuildContext context) {
+    String newChat = _breakIntoLines(28, 20);
+    return Container(
+      padding: EdgeInsets.only(top: 2.5, bottom: 2.5),
+      child: Row(
+        mainAxisAlignment: mainAxisAlignment,
+        children: [
+          Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(13)),
+                color: backgroundColor,
+              ),
+              padding: EdgeInsets.all(10),
+              child: Text(newChat)),
+        ],
+      ),
+    );
+  }
 
   String _breakIntoLines(int minCharPerLine, int maxCharPerLine) {
     /* Breaks up a chat string into multiple lines. The number of characters per
@@ -316,26 +331,6 @@ class Chat extends StatelessWidget {
     }
 
     return newChat;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    String newChat = _breakIntoLines(28, 20);
-    return Container(
-      padding: EdgeInsets.only(top: 2.5, bottom: 2.5),
-      child: Row(
-        mainAxisAlignment: mainAxisAlignment,
-        children: [
-          Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(13)),
-                color: backgroundColor,
-              ),
-              padding: EdgeInsets.all(10),
-              child: Text(newChat)),
-        ],
-      ),
-    );
   }
 }
 
