@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:adobe_xd/pinned.dart';
 import 'package:provider/provider.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 import 'following.dart';
 import 'friends_page.dart';
@@ -18,26 +15,6 @@ enum PageLabel {
   discover,
   friends,
   following,
-}
-
-class PageProvider extends ChangeNotifier {
-  /* Responsible for keeping track of which page user is on. */
-  Widget pageBody = FriendsPage();
-  PageLabel pageLabel = PageLabel.friends;
-
-  void changePageLabel(PageLabel newPageLabel) {
-    this.pageLabel = newPageLabel;
-    if (newPageLabel == PageLabel.discover) {
-      this.pageBody = Text("Discover");
-    }
-    if (newPageLabel == PageLabel.friends) {
-      this.pageBody = FriendsPage();
-    }
-    if (newPageLabel == PageLabel.following) {
-      this.pageBody = FollowingPage();
-    }
-    notifyListeners();
-  }
 }
 
 class Homescreen extends StatefulWidget {
@@ -59,8 +36,8 @@ class _HomescreenState extends State<Homescreen> {
     final friendsList = Provider.of<FriendsList>(context, listen: false);
     friendsList.getFriendsList();
 
-    return MultiProvider(
-        providers: [ChangeNotifierProvider.value(value: PageProvider())],
+    return ChangeNotifierProvider(
+        create: (context) => PageProvider(),
         child: Scaffold(
           backgroundColor: const Color(0xffffffff),
           appBar: NavigationBar(
@@ -68,6 +45,26 @@ class _HomescreenState extends State<Homescreen> {
           ),
           body: PageBody(),
         ));
+  }
+}
+
+class PageProvider extends ChangeNotifier {
+  /* Responsible for keeping track of which page user is on. */
+  Widget pageBody = FriendsPage();
+  PageLabel pageLabel = PageLabel.friends;
+
+  void changePageLabel(PageLabel newPageLabel) {
+    this.pageLabel = newPageLabel;
+    if (newPageLabel == PageLabel.discover) {
+      this.pageBody = Text("Discover");
+    }
+    if (newPageLabel == PageLabel.friends) {
+      this.pageBody = FriendsPage();
+    }
+    if (newPageLabel == PageLabel.following) {
+      this.pageBody = FollowingPage();
+    }
+    notifyListeners();
   }
 }
 
@@ -124,30 +121,28 @@ class NavigationBar extends PreferredSize {
                       color: Colors.grey[300],
                     ),
                     child: FlatButton(
+                      child: Text("Search", textAlign: TextAlign.center),
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => SearchPage()),
                         );
                       },
-                      child: Text("Search", textAlign: TextAlign.center),
                     )),
                 ButtonTheme(
                   minWidth: 40,
                   child: FlatButton(
+                    child: SvgPicture.string(
+                      _svg_n49k6t,
+                      allowDrawingOutsideViewBox: true,
+                      fit: BoxFit.fill,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => NewPost()),
                       );
                     },
-                    child:
-                        // Adobe XD layer: 'AI_send' (shape)
-                        SvgPicture.string(
-                      _svg_n49k6t,
-                      allowDrawingOutsideViewBox: true,
-                      fit: BoxFit.fill,
-                    ),
                   ),
                 ),
               ]),
@@ -219,14 +214,7 @@ class NavButton extends StatelessWidget {
 
     if (pageLabel == pageProvider.pageLabel) color = Color(0xFF000000);
 
-    return navButton(pageProvider, color);
-  }
-
-  Widget navButton(PageProvider pageProvider, Color color) {
     return TextButton(
-      onPressed: () {
-        pageProvider.changePageLabel(pageLabel);
-      },
       child: Text(
         pageName,
         style: TextStyle(
@@ -236,6 +224,9 @@ class NavButton extends StatelessWidget {
         ),
         textAlign: TextAlign.left,
       ),
+      onPressed: () {
+        pageProvider.changePageLabel(pageLabel);
+      },
     );
   }
 }
@@ -246,94 +237,6 @@ class PageBody extends StatelessWidget {
     return Consumer<PageProvider>(
       builder: (context, pageProvider, child) => pageProvider.pageBody,
     );
-  }
-}
-
-class CreatorsList extends ChangeNotifier {
-  List<User> _creatorsList = [];
-
-  List<User> get getCreatorsList {
-    return _creatorsList;
-  }
-
-  Future<void> searchForCreators(String creatorString) async {
-    // Sends an http request for all creators with userIDs that contain
-    // creatorString, creates a list of User objects
-    if (creatorString != '') {
-      String newUrl =
-          backendConnection.url + "users/search/" + creatorString + "/";
-      var response = await http.get(newUrl);
-
-      _creatorsList = [
-        for (var creator in json.decode(response.body)["creatorsList"])
-          User(userID: creator["userID"], username: creator["username"])
-      ];
-    } else {
-      _creatorsList = [];
-    }
-    notifyListeners();
-  }
-
-  Future<void> clearSearchList() async {
-    _creatorsList = [];
-    notifyListeners();
-  }
-}
-
-void startFollowing(String userID, String creatorID) async {
-  String newUrl = backendConnection.url + "users/" + userID + "/following/new/";
-  var response = await http.post(newUrl, body: {"creatorID": creatorID});
-
-  // if (response.statusCode == 201) print("Started Following!");
-  // if (response.statusCode == 204) print("Already following creator");
-}
-
-class Following extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-        providers: [ChangeNotifierProvider.value(value: CreatorsList())],
-        child: SearchResults());
-  }
-}
-
-class SearchResults extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var creatorsList = Provider.of<CreatorsList>(context).getCreatorsList;
-
-    return Container(
-        child: Column(
-      children: <Widget>[
-        TextField(onChanged: (text) {
-          Provider.of<CreatorsList>(context, listen: false)
-              .searchForCreators(text);
-        }),
-        Container(
-          height: 200.0,
-          width: 100.0,
-          child: ListView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: creatorsList.length,
-            itemBuilder: (BuildContext context, int index) {
-              return new Row(
-                children: <Widget>[
-                  Text('${creatorsList[index].username}'),
-                  RaisedButton(
-                    child: Text("Start Following"),
-                    onPressed: () {
-                      startFollowing(userID, creatorsList[index].userID);
-                      Provider.of<CreatorsList>(context, listen: false)
-                          .clearSearchList();
-                    },
-                  )
-                ],
-              );
-            },
-          ),
-        ),
-      ],
-    ));
   }
 }
 

@@ -39,8 +39,8 @@ class UserInfo extends StatefulWidget {
 class _UserInfoState extends State<UserInfo> {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-        providers: [ChangeNotifierProvider.value(value: FriendsList())],
+    return ChangeNotifierProvider(
+        create: (context) => FriendsList(),
         child: Homescreen(
           pageLabel: PageLabel.friends,
         ));
