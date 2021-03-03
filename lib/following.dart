@@ -176,51 +176,6 @@ class PostHeader extends StatelessWidget {
               ),
             ],
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 73.0,
-                child: Text(
-                  'Tier 5 ',
-                  style: TextStyle(
-                    fontFamily: 'SF Pro Text',
-                    fontSize: 12,
-                    color: const Color(0xff000000),
-                    letterSpacing: -0.004099999964237213,
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Transform.translate(
-                offset: const Offset(0, 5.5),
-                child: Container(
-                  width: 73.0,
-                  height: 11.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6.0),
-                    color: const Color(0xffffffff),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  ),
-                ),
-              ),
-              Transform.translate(
-                offset: const Offset(0, -5.5),
-                child: Container(
-                  width: 49.0,
-                  height: 11.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6.0),
-                    color: const Color(0xff707070),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -361,7 +316,6 @@ class _VideoContainerState extends State<VideoContainer> {
 
   @override
   void initState() {
-    print(widget.videoDownloadUrl);
     _controller = VideoPlayerController.network(widget.videoDownloadUrl);
     _controller.setLooping(true);
     _initializeVideoPlayerFuture = _controller.initialize();
