@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'backend_connect.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'user_info.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:video_player/video_player.dart';
+
+import 'user_info.dart';
 import 'comments_section.dart';
+import 'backend_connect.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
@@ -25,9 +27,12 @@ class FollowingPage extends StatelessWidget {
                     itemBuilder: (BuildContext ctxt, int index) {
                       Map<String, dynamic> postJson = snapshot.data[index];
                       return Post(
-                          userID: postJson["userID"],
-                          username: postJson["username"],
-                          postID: postJson["postID"]);
+                        userID: postJson["userID"],
+                        username: postJson["username"],
+                        postID: postJson["postID"],
+                        isImage: postJson["isImage"],
+                        isVideo: postJson["isVideo"],
+                      );
                     }));
           } else {
             return Center(child: Text("Loading..."));
@@ -43,11 +48,18 @@ class FollowingPage extends StatelessWidget {
 }
 
 class Post extends StatefulWidget {
+  Post(
+      {@required this.userID,
+      @required this.username,
+      @required this.postID,
+      @required this.isImage,
+      @required this.isVideo});
+
   final String userID;
   final String username;
   final int postID;
-
-  Post({this.userID, this.username, this.postID});
+  final bool isImage;
+  final bool isVideo;
 
   @override
   _PostState createState() => _PostState();
@@ -59,8 +71,12 @@ class _PostState extends State<Post> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
+    var getPostFunction;
+    if (widget.isImage) getPostFunction = _getImage();
+    if (widget.isVideo) getPostFunction = _getVideo();
+
     return FutureBuilder(
-        future: _getPostImage(),
+        future: getPostFunction,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
@@ -70,9 +86,10 @@ class _PostState extends State<Post> with AutomaticKeepAliveClientMixin {
                   children: <Widget>[
                     PostHeader(widget: widget),
                     PostBody(
-                        context: context,
-                        widget: widget,
-                        postImage: snapshot.data),
+                      context: context,
+                      widget: widget,
+                      post: snapshot.data,
+                    ),
                   ],
                 ));
           } else {
@@ -81,12 +98,31 @@ class _PostState extends State<Post> with AutomaticKeepAliveClientMixin {
         });
   }
 
-  Future<Image> _getPostImage() async {
-    return Image.network(await FirebaseStorage.instance
-        .ref()
-        .child("${widget.userID}")
-        .child("${widget.postID.toString()}.png")
-        .getDownloadURL());
+  Future<ImageProvider> _getImage() async {
+    try {
+      return Image.network(await FirebaseStorage.instance
+              .ref()
+              .child("${widget.userID}")
+              .child("${widget.postID.toString()}.png")
+              .getDownloadURL())
+          .image;
+    } catch (e) {
+      print(" [ERROR] $e");
+      return null;
+    }
+  }
+
+  Future<String> _getVideo() async {
+    try {
+      return await FirebaseStorage.instance
+          .ref()
+          .child("${widget.userID}")
+          .child("${widget.postID.toString()}.mp4")
+          .getDownloadURL();
+    } catch (e) {
+      print(" [ERROR] $e");
+      return null;
+    }
   }
 }
 
@@ -196,12 +232,12 @@ class PostBody extends StatelessWidget {
     Key key,
     @required this.context,
     @required this.widget,
-    @required this.postImage,
+    @required this.post,
   }) : super(key: key);
 
   final BuildContext context;
   final Post widget;
-  final Image postImage;
+  final post;
 
   @override
   Widget build(BuildContext context) {
@@ -209,17 +245,7 @@ class PostBody extends StatelessWidget {
       height: 475.0,
       child: Column(
         children: <Widget>[
-          Container(
-            height: 435.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25.0),
-              image: DecorationImage(
-                image: postImage.image,
-                fit: BoxFit.cover,
-              ),
-              border: Border.all(width: 1.0, color: const Color(0xff707070)),
-            ),
-          ),
+          _postContainer(),
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: Container(
@@ -234,11 +260,6 @@ class PostBody extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.only(bottom: 5),
                 child: FlatButton(
-                  onPressed: () => Scaffold.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Colors.white,
-                    duration: Duration(days: 365),
-                    content: CommentSection(postID: widget.postID),
-                  )),
                   child: Text(
                     'View Comments',
                     style: TextStyle(
@@ -250,6 +271,11 @@ class PostBody extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  onPressed: () => Scaffold.of(context).showSnackBar(SnackBar(
+                    backgroundColor: Colors.white,
+                    duration: Duration(days: 365),
+                    content: CommentSection(postID: widget.postID),
+                  )),
                 ),
               ),
             ),
@@ -257,5 +283,98 @@ class PostBody extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _postContainer() {
+    if (widget.isImage) {
+      return (ImageContainer(postImage: post));
+    } else {
+      return VideoContainer();
+    }
+  }
+}
+
+class ImageContainer extends StatelessWidget {
+  const ImageContainer({
+    Key key,
+    @required this.postImage,
+  }) : super(key: key);
+
+  final ImageProvider<Object> postImage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 435.0,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25.0),
+        image: DecorationImage(
+          image: postImage,
+          fit: BoxFit.cover,
+        ),
+        border: Border.all(width: 1.0, color: const Color(0xff707070)),
+      ),
+    );
+  }
+}
+
+class VideoContainer extends StatefulWidget {
+  VideoContainer({Key key, this.videoDownloadUrl}) : super(key: key);
+
+  final String videoDownloadUrl;
+
+  @override
+  _VideoContainerState createState() => _VideoContainerState();
+}
+
+class _VideoContainerState extends State<VideoContainer> {
+  VideoPlayerController _controller;
+  Future<void> _initializeVideoPlayerFuture;
+
+  // @override
+  // void initState() {
+  //   _controller = VideoPlayerController.network(widget.videoDownloadUrl);
+  //   _controller.setLooping(true);
+  //   _initializeVideoPlayerFuture = _controller.initialize();
+
+  //   super.initState();
+  // }
+
+  // @override
+  // void dispose() {
+  //   _controller.dispose();
+
+  //   super.dispose();
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 435.0,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25.0),
+        border: Border.all(width: 1.0, color: const Color(0xff707070)),
+      ),
+      child: Center(child: Text("Video")),
+    );
+    // return FutureBuilder(
+    //   future: _initializeVideoPlayerFuture,
+    //   builder: (context, snapshot) {
+    //     if (snapshot.connectionState == ConnectionState.done) {
+    //       print(" [x] Returning future builder of video player.");
+    //       return FutureBuilder(
+    //           future: _controller.play(),
+    //           builder: (context, snapshot) {
+    //             if (snapshot.connectionState == ConnectionState.done) {
+    //               return VideoPlayer(_controller);
+    //             } else {
+    //               return Center(child: Text("Loading..."));
+    //             }
+    //           });
+    //     } else {
+    //       return Center(child: Text("Loading..."));
+    //     }
+    //   },
+    // );
   }
 }

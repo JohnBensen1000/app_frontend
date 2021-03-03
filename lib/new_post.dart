@@ -103,9 +103,9 @@ class _NewPostState extends State<NewPost> {
     _deviceRatio = _size.width / _size.height;
 
     return ChangeNotifierProvider(
-        create: (context) => PostPageProvider(),
+        create: (_) => PostPageProvider(),
         child: Consumer<PostPageProvider>(
-            builder: (context, postPageState, child) => Scaffold(
+            builder: (consumerContext, postPageState, child) => Scaffold(
                     body: Stack(children: <Widget>[
                   FutureBuilder<void>(
                       future: _initializeControllerFuture,
@@ -131,7 +131,7 @@ class _NewPostState extends State<NewPost> {
                         child: NewPostFlatButton(
                             buttonName: "Exit Camera",
                             backgroundColor: Colors.white),
-                        onPressed: () => _exitPage(context),
+                        onPressed: () => _exitPage(consumerContext),
                       )),
                 ]))));
   }
@@ -148,7 +148,7 @@ class _NewPostState extends State<NewPost> {
   }
 
   void _exitPage(BuildContext context) {
-    Provider.of<PostPageProvider>(context).deleteFile();
+    Provider.of<PostPageProvider>(context, listen: false).deleteFile();
     Navigator.pop(context);
   }
 }
