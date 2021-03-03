@@ -11,7 +11,12 @@ import 'backend_connect.dart';
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
 
-class FollowingPage extends StatelessWidget {
+class FollowingPage extends StatefulWidget {
+  @override
+  _FollowingPageState createState() => _FollowingPageState();
+}
+
+class _FollowingPageState extends State<FollowingPage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -19,21 +24,7 @@ class FollowingPage extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
-            return SizedBox(
-                height: 700,
-                width: double.infinity,
-                child: new ListView.builder(
-                    itemCount: snapshot.data.length,
-                    itemBuilder: (BuildContext ctxt, int index) {
-                      Map<String, dynamic> postJson = snapshot.data[index];
-                      return Post(
-                        userID: postJson["userID"],
-                        username: postJson["username"],
-                        postID: postJson["postID"],
-                        isImage: postJson["isImage"],
-                        isVideo: postJson["isVideo"],
-                      );
-                    }));
+            return PostScrollList(postList: snapshot.data);
           } else {
             return Center(child: Text("Loading..."));
           }
@@ -44,6 +35,44 @@ class FollowingPage extends StatelessWidget {
     String newUrl = backendConnection.url + "posts/$userID/following/new/";
     var response = await http.get(newUrl);
     return json.decode(response.body)["postsList"];
+  }
+}
+
+class PostScrollList extends StatefulWidget {
+  PostScrollList({@required this.postList});
+
+  final List<dynamic> postList;
+  @override
+  _PostScrollListState createState() => _PostScrollListState();
+}
+
+class _PostScrollListState extends State<PostScrollList> {
+  int postListIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    Map<String, dynamic> postJson = widget.postList[postListIndex];
+
+    return GestureDetector(
+      child: Post(
+        userID: postJson["userID"],
+        username: postJson["username"],
+        postID: postJson["postID"],
+        isImage: postJson["isImage"],
+        isVideo: postJson["isVideo"],
+      ),
+      onVerticalDragEnd: (details) {
+        if (details.primaryVelocity < 0) {
+          setState(() {
+            if (postListIndex < widget.postList.length - 1) postListIndex += 1;
+          });
+        } else if (details.primaryVelocity > 0) {
+          setState(() {
+            if (postListIndex > 0) postListIndex -= 1;
+          });
+        }
+      },
+    );
   }
 }
 
@@ -176,51 +205,6 @@ class PostHeader extends StatelessWidget {
               ),
             ],
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 73.0,
-                child: Text(
-                  'Tier 5 ',
-                  style: TextStyle(
-                    fontFamily: 'SF Pro Text',
-                    fontSize: 12,
-                    color: const Color(0xff000000),
-                    letterSpacing: -0.004099999964237213,
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Transform.translate(
-                offset: const Offset(0, 5.5),
-                child: Container(
-                  width: 73.0,
-                  height: 11.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6.0),
-                    color: const Color(0xffffffff),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  ),
-                ),
-              ),
-              Transform.translate(
-                offset: const Offset(0, -5.5),
-                child: Container(
-                  width: 49.0,
-                  height: 11.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6.0),
-                    color: const Color(0xff707070),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -243,6 +227,7 @@ class PostBody extends StatelessWidget {
   Widget build(BuildContext context) {
     double height = 475.0;
     double width = height / goldenRatio;
+
     return Column(
       children: <Widget>[
         Stack(
@@ -382,6 +367,7 @@ class _VideoContainerState extends State<VideoContainer> {
       future: _initializeVideoPlayerFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          print(" [x] Returning future builder of video player.");
           return FutureBuilder(
               future: _controller.play(),
               builder: (context, snapshot) {

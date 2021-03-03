@@ -7,7 +7,7 @@ import 'home_screen.dart';
 
 final serverAPI = new ServerAPI();
 
-String userID = "John1000";
+String userID = "Nick1000";
 double goldenRatio = 1.6180;
 
 class User {
