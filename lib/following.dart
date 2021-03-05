@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 import 'user_info.dart';
@@ -12,6 +13,9 @@ final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
 
 class FollowingPage extends StatelessWidget {
+  // Main widget for the following page. Returns a FutureBuilder() that waits
+  // for a list of posts from the server. Once this widget recieves this list,
+  // it builds PostListScroller().
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -19,21 +23,7 @@ class FollowingPage extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
-            return SizedBox(
-                height: 700,
-                width: double.infinity,
-                child: new ListView.builder(
-                    itemCount: snapshot.data.length,
-                    itemBuilder: (BuildContext ctxt, int index) {
-                      Map<String, dynamic> postJson = snapshot.data[index];
-                      return Post(
-                        userID: postJson["userID"],
-                        username: postJson["username"],
-                        postID: postJson["postID"],
-                        isImage: postJson["isImage"],
-                        isVideo: postJson["isVideo"],
-                      );
-                    }));
+            return PostListScroller(postList: snapshot.data);
           } else {
             return Center(child: Text("Loading..."));
           }
@@ -47,19 +37,124 @@ class FollowingPage extends StatelessWidget {
   }
 }
 
+class PostListProvider extends ChangeNotifier {
+  PostListProvider(
+      {@required this.numPosts,
+      @required this.postHeight,
+      @required this.scrollController});
+
+  final int numPosts;
+  final double postHeight;
+  final ScrollController scrollController;
+  int index = 0;
+
+  void makeScroll(double primaryVelocity) {
+    if (primaryVelocity < 0 && index < numPosts - 1)
+      index += 1;
+    else if (primaryVelocity > 0 && index > 0) index -= 1;
+    _animateScroll();
+  }
+
+  void _animateScroll() {
+    scrollController.animateTo(
+      index.toDouble() * this.postHeight,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+    notifyListeners();
+  }
+}
+
+class PostListScroller extends StatelessWidget {
+  const PostListScroller({
+    Key key,
+    @required this.postList,
+  }) : super(key: key);
+
+  final List<dynamic> postList;
+
+  @override
+  Widget build(BuildContext context) {
+    ScrollController _scrollController = new ScrollController();
+    double postHeight = 600;
+
+    return ChangeNotifierProvider(
+      create: (context) => PostListProvider(
+          numPosts: postList.length,
+          postHeight: postHeight,
+          scrollController: _scrollController),
+      child: PostListGestureDetector(
+          scrollController: _scrollController,
+          postList: postList,
+          height: postHeight),
+    );
+  }
+}
+
+class PostListGestureDetector extends StatelessWidget {
+  const PostListGestureDetector({
+    Key key,
+    @required ScrollController scrollController,
+    @required this.postList,
+    @required this.height,
+  })  : _scrollController = scrollController,
+        super(key: key);
+
+  final ScrollController _scrollController;
+  final List postList;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      child: new ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _scrollController,
+          itemCount: postList.length,
+          itemBuilder: (BuildContext ctxt, int index) {
+            Map<String, dynamic> postJson = postList[index];
+            return Post(
+              userID: postJson["userID"],
+              username: postJson["username"],
+              postID: postJson["postID"],
+              isImage: postJson["isImage"],
+              isVideo: postJson["isVideo"],
+              height: height,
+              index: index,
+            );
+          }),
+      // Decides whether to scroll up or down at the end of a vertical drag.
+      onVerticalDragEnd: (details) {
+        Provider.of<PostListProvider>(context, listen: false)
+            .makeScroll(details.primaryVelocity);
+      },
+    );
+  }
+}
+
 class Post extends StatefulWidget {
-  Post(
-      {@required this.userID,
-      @required this.username,
-      @required this.postID,
-      @required this.isImage,
-      @required this.isVideo});
+  // Each Post() widget corresponds to one post. Waits until it recieves either
+  // an image provider or video download url (depending on the post type) before
+  // returning full widget. Returns a column of two widgets: PostHeader() and
+  // PostBody().
+
+  Post({
+    @required this.userID,
+    @required this.username,
+    @required this.postID,
+    @required this.isImage,
+    @required this.isVideo,
+    @required this.height,
+    @required this.index,
+  });
 
   final String userID;
   final String username;
   final int postID;
   final bool isImage;
   final bool isVideo;
+  final double height;
+  final int index;
 
   @override
   _PostState createState() => _PostState();
@@ -82,13 +177,15 @@ class _PostState extends State<Post> with AutomaticKeepAliveClientMixin {
               snapshot.hasData) {
             return Container(
                 padding: EdgeInsets.only(left: 40, right: 40, bottom: 20),
+                height: widget.height,
                 child: Column(
                   children: <Widget>[
                     PostHeader(widget: widget),
                     PostBody(
                       context: context,
                       widget: widget,
-                      post: snapshot.data,
+                      postContent: snapshot.data,
+                      index: widget.index,
                     ),
                   ],
                 ));
@@ -127,6 +224,7 @@ class _PostState extends State<Post> with AutomaticKeepAliveClientMixin {
 }
 
 class PostHeader extends StatelessWidget {
+  // Contains username and profile picture of the creator who made this post.
   const PostHeader({
     Key key,
     @required this.widget,
@@ -183,16 +281,21 @@ class PostHeader extends StatelessWidget {
 }
 
 class PostBody extends StatelessWidget {
+  // The PostBody() widget contains a Container() that has either a video or
+  // image inside of it, and a FlatButton() that allows the user to open the
+  // comments section.
   const PostBody({
     Key key,
     @required this.context,
     @required this.widget,
-    @required this.post,
+    @required this.postContent,
+    @required this.index,
   }) : super(key: key);
 
   final BuildContext context;
   final Post widget;
-  final post;
+  final postContent;
+  final int index;
 
   @override
   Widget build(BuildContext context) {
@@ -255,13 +358,16 @@ class PostBody extends StatelessWidget {
   Widget _postContainer(double width, double height) {
     if (widget.isImage) {
       return (ImageContainer(
-        postImage: post,
+        postImage: postContent,
         width: width,
         height: height,
       ));
     } else {
       return VideoContainer(
-          videoDownloadUrl: post, width: width, height: height);
+          videoDownloadUrl: postContent,
+          width: width,
+          height: height,
+          index: index);
     }
   }
 }
@@ -295,16 +401,18 @@ class ImageContainer extends StatelessWidget {
 }
 
 class VideoContainer extends StatefulWidget {
-  VideoContainer(
-      {Key key,
-      @required this.videoDownloadUrl,
-      @required this.width,
-      @required this.height})
-      : super(key: key);
+  VideoContainer({
+    Key key,
+    @required this.videoDownloadUrl,
+    @required this.width,
+    @required this.height,
+    @required this.index,
+  }) : super(key: key);
 
   final String videoDownloadUrl;
   final double width;
   final double height;
+  final int index;
 
   @override
   _VideoContainerState createState() => _VideoContainerState();
@@ -336,23 +444,19 @@ class _VideoContainerState extends State<VideoContainer> {
       future: _initializeVideoPlayerFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          return FutureBuilder(
-              future: _controller.play(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return Container(
-                    width: widget.width - 2,
-                    height: widget.height - 2,
-                    child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: VideoPlayer(_controller)),
-                  );
-                } else {
-                  return Center(
-                    child: Text("Loading..."),
-                  );
-                }
-              });
+          if (Provider.of<PostListProvider>(context).index == widget.index) {
+            _controller.play();
+          } else {
+            _controller.seekTo(Duration(milliseconds: 0));
+            _controller.pause();
+          }
+          return Container(
+            width: widget.width - 2,
+            height: widget.height - 2,
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: VideoPlayer(_controller)),
+          );
         } else {
           return Center(child: Text("Loading..."));
         }
