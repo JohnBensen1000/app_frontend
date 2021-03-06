@@ -328,13 +328,11 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   VideoPlayerController _controller;
-  Future<void> _initializeVideoPlayerFuture;
 
   @override
   void initState() {
     _controller = VideoPlayerController.file(widget.videoFile);
     _controller.setLooping(true);
-    _initializeVideoPlayerFuture = _controller.initialize();
 
     super.initState();
   }
@@ -349,7 +347,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _initializeVideoPlayerFuture,
+      future: _controller.initialize(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return FutureBuilder(

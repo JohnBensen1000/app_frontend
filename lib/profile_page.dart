@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'user_info.dart';
 import 'backend_connect.dart';
+import 'view_post.dart';
 
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -235,7 +236,7 @@ class ProfilePostBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: _getProfilePosts(),
+        future: _getProfilePosts(context),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
@@ -254,7 +255,7 @@ class ProfilePostBody extends StatelessWidget {
         });
   }
 
-  Future<List<Widget>> _getProfilePosts() async {
+  Future<List<Widget>> _getProfilePosts(BuildContext context) async {
     var response =
         await http.get(serverAPI.url + "posts/${user.userID}/posts/");
     List<dynamic> postList = json.decode(response.body)["userPosts"];
@@ -263,152 +264,42 @@ class ProfilePostBody extends StatelessWidget {
       return null;
     }
     List<Widget> profilePosts = [
-      ProfilePost(
-        user: user,
-        postID: postList[0],
-        mainPost: true,
+      PostWidget(
+        post: Post.fromJson(postList[0]),
+        height: 201.0,
+        containerHeight: 201.0,
+        aspectRatio: 1 / goldenRatio,
       )
     ];
+
     List<Widget> postsRow = [];
     int i = 1;
+    double width = MediaQuery.of(context).size.width;
+    double postHeight = ((width - 60) / 3) * goldenRatio;
 
     while ((i < postList.length) || ((i - 1) % 3 != 0)) {
       if (i < postList.length) {
-        postsRow.add(
-          ProfilePost(
-            user: user,
-            postID: postList[i],
-            mainPost: false,
-          ),
-        );
+        postsRow.add(PostWidget(
+          post: Post.fromJson(postList[i]),
+          height: postHeight,
+          containerHeight: postHeight,
+          aspectRatio: goldenRatio,
+        ));
       } else {
-        postsRow.add(
-          EmptyProfilePost(),
-        );
+        // postsRow.add(
+        //   EmptyProfilePost(),
+        // );
       }
       i++;
     }
+
     for (int i = 0; i < postsRow.length; i += 3) {
       profilePosts.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: postsRow.sublist(i, i + 3),
       ));
     }
     return profilePosts;
-  }
-}
-
-class ProfilePost extends StatelessWidget {
-  const ProfilePost({
-    this.user,
-    this.postID,
-    this.mainPost,
-    Key key,
-  }) : super(key: key);
-
-  final User user;
-  final int postID;
-  final bool mainPost;
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: _getPostImage(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            if (this.mainPost) {
-              return MainProfilePost(image: snapshot.data);
-            } else {
-              return SubProfilePost(image: snapshot.data);
-            }
-          } else {
-            return Center(child: Text("Loading..."));
-          }
-        });
-  }
-
-  Future<Image> _getPostImage() async {
-    return Image.network(await FirebaseStorage.instance
-        .ref()
-        .child("${user.userID}")
-        .child("${postID.toString()}.png")
-        .getDownloadURL());
-  }
-}
-
-class MainProfilePost extends StatelessWidget {
-  const MainProfilePost({
-    this.image,
-    Key key,
-  }) : super(key: key);
-
-  final Image image;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(top: 5, bottom: 5),
-      child: Container(
-        height: 201.0,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.0),
-            border: Border.all(width: 1.0, color: const Color(0xff707070)),
-            image: new DecorationImage(
-              fit: BoxFit.fitWidth,
-              alignment: FractionalOffset.topCenter,
-              image: image.image,
-            )),
-      ),
-    );
-  }
-}
-
-class SubProfilePost extends StatelessWidget {
-  const SubProfilePost({
-    this.image,
-    Key key,
-  }) : super(key: key);
-
-  final Image image;
-
-  @override
-  Widget build(BuildContext context) {
-    double width = (MediaQuery.of(context).size.width - 60) / 3;
-
-    return Container(
-      padding: EdgeInsets.only(top: 5, bottom: 5),
-      child: Container(
-        width: width,
-        height: width * goldenRatio,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.0),
-            border: Border.all(width: 1.0, color: const Color(0xff707070)),
-            image: new DecorationImage(
-              fit: BoxFit.fitWidth,
-              alignment: FractionalOffset.topCenter,
-              image: image.image,
-            )),
-      ),
-    );
-  }
-}
-
-class EmptyProfilePost extends StatelessWidget {
-  const EmptyProfilePost({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    double width = (MediaQuery.of(context).size.width - 60) / 3;
-
-    return Container(
-        padding: EdgeInsets.only(top: 5, bottom: 5),
-        child: Container(
-          width: width,
-          height: width * goldenRatio,
-        ));
   }
 }
 

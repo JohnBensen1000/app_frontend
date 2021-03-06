@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
-import 'following.dart';
+import 'following_page.dart';
 import 'friends_page.dart';
 import 'user_info.dart';
 import 'new_post.dart';

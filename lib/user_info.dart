@@ -17,6 +17,23 @@ class User {
   User({this.userID, this.username});
 }
 
+class Post {
+  //Constructor
+  String userID;
+  String username;
+  int postID;
+  bool isImage;
+  bool isVideo;
+
+  Post.fromJson(Map postJson) {
+    this.userID = postJson["userID"];
+    this.username = postJson["username"];
+    this.postID = postJson["postID"];
+    this.isImage = postJson["isImage"];
+    this.isVideo = postJson["isVideo"];
+  }
+}
+
 class FriendsList extends ChangeNotifier {
   List<User> friendsList = [];
 
