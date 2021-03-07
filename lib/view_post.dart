@@ -201,6 +201,8 @@ class PostBody extends StatelessWidget {
     width = height / PostWidgetState.of(context).aspectRatio;
     post = PostWidgetState.of(context).post;
 
+    double cornerRadius = height / 19;
+
     var getPostFunction;
     if (post.isImage) getPostFunction = _getImage();
     if (post.isVideo) {
@@ -215,7 +217,7 @@ class PostBody extends StatelessWidget {
         height: height,
         width: width,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25.0),
+          borderRadius: BorderRadius.circular(cornerRadius),
           border: Border.all(width: 1.0, color: const Color(0xff707070)),
         ),
       ),
@@ -227,13 +229,16 @@ class PostBody extends StatelessWidget {
               if (post.isImage)
                 return ImageContainer(
                   postImage: snapshot.data,
+                  cornerRadius: cornerRadius,
                 );
               else if (PostWidgetState.of(context).playOnInit)
                 return VideoContainer(
                   videoDownloadUrl: snapshot.data,
+                  cornerRadius: cornerRadius,
                 );
               else
-                return ImageContainer(postImage: snapshot.data);
+                return ImageContainer(
+                    postImage: snapshot.data, cornerRadius: cornerRadius);
             } else {
               return Center(
                 child: Text("Loading..."),
@@ -288,9 +293,11 @@ class ImageContainer extends StatelessWidget {
   const ImageContainer({
     Key key,
     @required this.postImage,
+    @required this.cornerRadius,
   }) : super(key: key);
 
   final ImageProvider<Object> postImage;
+  final double cornerRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -303,7 +310,7 @@ class ImageContainer extends StatelessWidget {
         height: height - 2,
         width: width - 2,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24.0),
+          borderRadius: BorderRadius.circular(cornerRadius - 1),
           image: DecorationImage(
             image: postImage,
             fit: BoxFit.cover,
@@ -327,9 +334,11 @@ class VideoContainer extends StatefulWidget {
   VideoContainer({
     Key key,
     @required this.videoDownloadUrl,
+    @required this.cornerRadius,
   }) : super(key: key);
 
   final String videoDownloadUrl;
+  final double cornerRadius;
 
   @override
   _VideoContainerState createState() => _VideoContainerState();
@@ -372,7 +381,8 @@ class _VideoContainerState extends State<VideoContainer> {
                       width: width - 2,
                       height: height - 2,
                       child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius:
+                              BorderRadius.circular(widget.cornerRadius - 1),
                           child: VideoPlayer(_controller)),
                     ),
                     onTap: () {

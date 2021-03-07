@@ -13,6 +13,9 @@ FirebaseStorage storage = FirebaseStorage.instance;
 final serverAPI = new ServerAPI();
 
 class ProfilePage extends StatelessWidget {
+  // Main widget for a user's profile page. This page shows all of a user's
+  // public posts, and allows visitors to start following the user.
+
   ProfilePage({this.user});
 
   final User user;
@@ -23,7 +26,7 @@ class ProfilePage extends StatelessWidget {
 
     return Scaffold(
         body: Container(
-      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
+      padding: EdgeInsets.only(top: 50),
       child: Column(
         children: <Widget>[
           ChangeNotifierProvider(
@@ -31,7 +34,11 @@ class ProfilePage extends StatelessWidget {
                 ProfilePageHeaderProvider(height: .4 * height, user: user),
             child: ProfilePageHeader(),
           ),
-          ProfilePostBody(height: .6 * height, user: user),
+          ProfilePostBody(
+              height: .6 * height,
+              user: user,
+              sidePadding: 20,
+              betweenPadding: 5),
         ],
       ),
     ));
@@ -228,10 +235,22 @@ class ProfilePageHeader extends StatelessWidget {
 }
 
 class ProfilePostBody extends StatelessWidget {
-  ProfilePostBody({this.height, this.user});
+  // Gets and returns a all of the creator's publics posts. The posts are
+  // organized into a list of widgets. This list runs vertically and starts off
+  // with a big ProfilePostWidget() that takes up the entire width of the page.
+  // The rest of the list is a series of Rows(), each row is made of up 3
+  // ProfilePostWidget().
+
+  ProfilePostBody(
+      {@required this.height,
+      @required this.user,
+      @required this.sidePadding,
+      @required this.betweenPadding});
 
   final double height;
   final User user;
+  final double sidePadding;
+  final double betweenPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -240,13 +259,16 @@ class ProfilePostBody extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
-            return SizedBox(
-              height: height,
-              child: new ListView.builder(
-                itemCount: snapshot.data.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return snapshot.data[index];
-                },
+            return Padding(
+              padding: EdgeInsets.only(left: sidePadding, right: sidePadding),
+              child: SizedBox(
+                height: height,
+                child: new ListView.builder(
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return snapshot.data[index];
+                  },
+                ),
               ),
             );
           } else {
@@ -256,6 +278,9 @@ class ProfilePostBody extends StatelessWidget {
   }
 
   Future<List<Widget>> _getProfilePosts(BuildContext context) async {
+    // Sends a request to the server to get a list of the creator's posts. When
+    // this list is recieved, _getProfilePostsList() is called to build a list
+    // of ProfilePostWidget().
     var response =
         await http.get(serverAPI.url + "posts/${user.userID}/posts/");
     List<dynamic> postList = json.decode(response.body)["userPosts"];
@@ -263,43 +288,109 @@ class ProfilePostBody extends StatelessWidget {
     if (postList.length == 0) {
       return null;
     }
+    return _getProfilePostsList(context, postList);
+  }
+
+  List<Widget> _getProfilePostsList(
+      BuildContext context, List<dynamic> postList) {
+    // Determines width and height for every post on the profile page. The first
+    // widget in the return list is a large ProfilePostWidget(). The remaining
+    // posts are broken up into rows of 3 ProfilePostWidget().
+
+    double width = MediaQuery.of(context).size.width;
+    double mainPostHeight = (width - 2 * sidePadding) / goldenRatio;
+    double bodyPostHeight =
+        (((width - 2 * sidePadding) / 3) - betweenPadding) * goldenRatio;
+
     List<Widget> profilePosts = [
-      PostWidget(
-        post: Post.fromJson(postList[0]),
-        height: 201.0,
-        containerHeight: 201.0,
-        aspectRatio: 1 / goldenRatio,
+      Padding(
+        padding: EdgeInsets.only(bottom: betweenPadding),
+        child: ProfilePostWidget(
+            postJson: postList[0],
+            postHeight: mainPostHeight,
+            aspectRatio: 1 / goldenRatio),
       )
     ];
 
-    List<Widget> postsRow = [];
-    int i = 1;
-    double width = MediaQuery.of(context).size.width;
-    double postHeight = ((width - 60) / 3) * goldenRatio;
+    List<Widget> subPostsList = _getSubPostsList(postList, bodyPostHeight);
 
-    while ((i < postList.length) || ((i - 1) % 3 != 0)) {
-      if (i < postList.length) {
-        postsRow.add(PostWidget(
-          post: Post.fromJson(postList[i]),
-          height: postHeight,
-          containerHeight: postHeight,
-          aspectRatio: goldenRatio,
-        ));
-      } else {
-        // postsRow.add(
-        //   EmptyProfilePost(),
-        // );
-      }
-      i++;
-    }
-
-    for (int i = 0; i < postsRow.length; i += 3) {
-      profilePosts.add(Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: postsRow.sublist(i, i + 3),
+    for (int i = 0; i < subPostsList.length; i += 3) {
+      profilePosts.add(Padding(
+        padding: EdgeInsets.only(bottom: betweenPadding),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: subPostsList.sublist(i, i + 3),
+        ),
       ));
     }
     return profilePosts;
+  }
+
+  List<Widget> _getSubPostsList(List<dynamic> postList, double postHeight) {
+    // Creates a list of the remaining posts (not the main post). Adds empty
+    // containers so that the return list is evenly divisible by 3.
+
+    List<Widget> subPostsList = [];
+    int i = 1;
+
+    while ((i < postList.length) || ((i - 1) % 3 != 0)) {
+      if (i < postList.length) {
+        subPostsList.add(
+          ProfilePostWidget(
+              postJson: postList[i],
+              postHeight: postHeight,
+              aspectRatio: goldenRatio),
+        );
+      } else {
+        subPostsList.add(
+          Container(
+            height: postHeight,
+            width: postHeight / goldenRatio,
+          ),
+        );
+      }
+      i++;
+    }
+    return subPostsList;
+  }
+}
+
+class ProfilePostWidget extends StatelessWidget {
+  // Returns a stack. This stack has a PostWidget() on the bottom, and adds a
+  // Text widget that says "Video" if the post is indeed a video.
+
+  ProfilePostWidget(
+      {@required this.postJson,
+      @required this.postHeight,
+      @required this.aspectRatio});
+
+  final postJson;
+  final double postHeight;
+  final double aspectRatio;
+
+  @override
+  Widget build(BuildContext context) {
+    Post post = Post.fromJson(postJson);
+
+    return SizedBox(
+      height: postHeight,
+      width: postHeight / aspectRatio,
+      child: Stack(
+        children: <Widget>[
+          PostWidget(
+            post: post,
+            height: postHeight,
+            containerHeight: postHeight,
+            aspectRatio: aspectRatio,
+          ),
+          if (post.isVideo)
+            Container(
+                padding: EdgeInsets.all(5),
+                alignment: Alignment.topRight,
+                child: Text("Video")),
+        ],
+      ),
+    );
   }
 }
 
