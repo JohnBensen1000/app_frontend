@@ -25,23 +25,80 @@ class ProfilePage extends StatelessWidget {
     double height = MediaQuery.of(context).size.height - 50;
 
     return Scaffold(
+        appBar: ProfilePageAppBar(height: .02 * height),
         body: Container(
-      padding: EdgeInsets.only(top: 50),
-      child: Column(
-        children: <Widget>[
-          ChangeNotifierProvider(
-            create: (context) =>
-                ProfilePageHeaderProvider(height: .4 * height, user: user),
-            child: ProfilePageHeader(),
+          padding: EdgeInsets.only(top: 50),
+          child: Column(
+            children: <Widget>[
+              ChangeNotifierProvider(
+                create: (context) =>
+                    ProfilePageHeaderProvider(height: .4 * height, user: user),
+                child: ProfilePageHeader(),
+              ),
+              ProfilePostBody(
+                  height: .57 * height,
+                  user: user,
+                  sidePadding: 20,
+                  betweenPadding: 5),
+            ],
           ),
-          ProfilePostBody(
-              height: .6 * height,
-              user: user,
-              sidePadding: 20,
-              betweenPadding: 5),
-        ],
-      ),
-    ));
+        ));
+  }
+}
+
+class ProfilePageAppBar extends PreferredSize {
+  ProfilePageAppBar({this.height});
+  final double height;
+
+  @override
+  Size get preferredSize => Size.fromHeight(height);
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Container(
+                  width: 24.0,
+                  height: 24.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    // image: DecorationImage(
+                    //   image: const AssetImage(''),
+                    //   fit: BoxFit.cover,
+                    // ),
+                    border:
+                        Border.all(width: 1.0, color: const Color(0xff707070)),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Container(
+                      width: 80,
+                      height: 25,
+                      decoration: new BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        color: Colors.grey[300],
+                      ),
+                      child: FlatButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Center(
+                            child: Text(
+                              'Exit',
+                              textAlign: TextAlign.center,
+                            ),
+                          ))),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
 
@@ -96,64 +153,6 @@ class ProfilePageHeader extends StatelessWidget {
       return Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Container(
-                      width: 24.0,
-                      height: 24.0,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        // image: DecorationImage(
-                        //   image: const AssetImage(''),
-                        //   fit: BoxFit.cover,
-                        // ),
-                        border: Border.all(
-                            width: 1.0, color: const Color(0xff707070)),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Container(
-                          width: 80,
-                          height: 25,
-                          decoration: new BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(20)),
-                            color: Colors.grey[300],
-                          ),
-                          child: FlatButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Center(
-                                child: Text(
-                                  'Exit',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ))),
-                    ),
-                  ],
-                ),
-                Stack(
-                  children: <Widget>[
-                    Container(
-                      width: 73.0,
-                      height: 11.0,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6.0),
-                        color: const Color(0xffffffff),
-                        border: Border.all(
-                            width: 1.0, color: const Color(0xff22a2ff)),
-                      ),
-                    ),
-                    SvgPicture.string(
-                      _svg_cdsk62,
-                      allowDrawingOutsideViewBox: true,
-                    ),
-                  ],
-                )
-              ],
-            ),
             Container(
               height: 15,
             ),

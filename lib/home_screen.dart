@@ -38,9 +38,6 @@ class _HomescreenState extends State<Homescreen> {
 
   @override
   Widget build(BuildContext context) {
-    final friendsList = Provider.of<FriendsList>(context, listen: false);
-    friendsList.getFriendsList();
-
     return ChangeNotifierProvider(
         create: (context) => PageProvider(),
         child: Scaffold(

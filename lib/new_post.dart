@@ -1,15 +1,19 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:test_flutter/friends_page.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'backend_connect.dart';
 import 'user_info.dart';
+import 'chat_page.dart';
 
 final backendConnection = new ServerAPI();
 
@@ -254,6 +258,10 @@ class CameraView extends StatelessWidget {
 }
 
 class PostPreview extends StatelessWidget {
+  /* Container that shows a preview of the video/image that the user took. Also
+     Gives the user several options for what to do with the post. The user could
+     share the post with a friend (through a chat), post it publicly, or delete
+     it and redo. */
   PostPreview({
     Key key,
     @required CameraController controller,
@@ -265,10 +273,13 @@ class PostPreview extends StatelessWidget {
   final CameraController _controller;
   final double _deviceRatio;
 
+  var provider;
+  File postFile;
+
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<PostPageProvider>(context);
-    File postFile = File(provider.filePath);
+    provider = Provider.of<PostPageProvider>(context);
+    postFile = File(provider.filePath);
 
     Widget previewWidget;
     provider.isImage
@@ -283,37 +294,111 @@ class PostPreview extends StatelessWidget {
                   aspectRatio: _controller.value.aspectRatio,
                   child: previewWidget))),
       Container(
+          padding: EdgeInsets.only(bottom: 20),
           alignment: Alignment.bottomCenter,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               Container(
-                  padding: EdgeInsets.all(20),
-                  child: FlatButton(
-                    child: NewPostFlatButton(
-                      buttonName: "Post",
-                      backgroundColor: Colors.white,
+                height: 100,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    FlatButton(
+                      child: NewPostFlatButton(
+                        buttonName: "Post",
+                        backgroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        await _uploadPost();
+                        provider.deleteFile();
+                      },
                     ),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return PostOptions(
-                              provider: provider,
-                            );
-                          });
-                    },
-                  )),
-              Container(
-                padding: EdgeInsets.all(20),
-                child: FlatButton(
-                    child: NewPostFlatButton(
-                        buttonName: "Redo", backgroundColor: Colors.white),
-                    onPressed: () => provider.deleteFile()),
+                    FlatButton(
+                      child: NewPostFlatButton(
+                        buttonName: "Share",
+                        backgroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        await _shareWithFriends(context);
+                      },
+                    ),
+                  ],
+                ),
               ),
+              FlatButton(
+                  child: NewPostFlatButton(
+                      buttonName: "Redo", backgroundColor: Colors.white),
+                  onPressed: () => provider.deleteFile()),
             ],
           ))
     ]);
+  }
+
+  Future<int> _uploadPost() async {
+    // Sends the an HTTP request containing the post file to the server for
+    // further processing. Returns with the response status code.
+    var request = http.MultipartRequest(
+        'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
+
+    if (provider.isImage)
+      request.fields["contentType"] = 'image';
+    else
+      request.fields["contentType"] = 'video';
+
+    request.files
+        .add(await http.MultipartFile.fromPath('media', provider.filePath));
+
+    var response = await request.send();
+    return response.statusCode;
+  }
+
+  Future<void> _shareWithFriends(BuildContext context) async {
+    // Displays an alertDialog that lets the user choose which friends to send
+    // the post to. Once the user selects a friend, calls _sendPost()
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return NewPostSendTo();
+        }).then((friend) => _sendPost(friend));
+  }
+
+  Future<void> _sendPost(User friend) async {
+    String chatName = getChatName(friend);
+    CollectionReference chatsCollection =
+        Firestore.instance.collection("Chats");
+
+    await createChatIfDoesntExist(chatsCollection, chatName, friend);
+
+    String postURL = await uploadFile(chatName);
+
+    await chatsCollection
+        .document(chatName)
+        .collection('chats')
+        .document('1')
+        .updateData({
+      'conversation': FieldValue.arrayUnion([
+        {
+          'sender': userID,
+          'isPost': true,
+          'post': {
+            'postURL': postURL,
+            'isImage': provider.isImage,
+          }
+        }
+      ])
+    });
+  }
+
+  Future<String> uploadFile(String chatName) async {
+    StorageReference storageReference = FirebaseStorage.instance
+        .ref()
+        .child("$chatName/${DateTime.now().toString()}");
+
+    StorageUploadTask uploadTask = storageReference.putFile(postFile);
+    await uploadTask.onComplete;
+    provider.deleteFile();
+    return await storageReference.getDownloadURL();
   }
 }
 
@@ -364,79 +449,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         }
       },
     );
-  }
-}
-
-class PostOptions extends StatelessWidget {
-  /* When the user decides to post an image, a widget pops up that gives the
-     user several options for what to do with the image. 
-  */
-  PostOptions({
-    Key key,
-    @required var provider,
-  })  : _provider = provider,
-        super(key: key);
-
-  final _provider;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          height: 100,
-        ),
-        Container(
-            padding: EdgeInsets.all(10),
-            width: 150,
-            height: 200,
-            alignment: Alignment.center,
-            decoration: new BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(20)),
-              color: Colors.white,
-            ),
-            child: Column(
-              children: <Widget>[
-                FlatButton(
-                  child: NewPostFlatButton(
-                      buttonName: "To Friend",
-                      backgroundColor: Colors.purple[300]),
-                  onPressed: null,
-                ),
-                FlatButton(
-                  child: NewPostFlatButton(
-                      buttonName: "Post", backgroundColor: Colors.purple[300]),
-                  onPressed: () async {
-                    await _uploadPost();
-                    Navigator.of(context, rootNavigator: true).pop('dialog');
-                  },
-                ),
-                FlatButton(
-                  child: NewPostFlatButton(
-                      buttonName: "Exit", backgroundColor: Colors.purple[300]),
-                  onPressed: () =>
-                      Navigator.of(context, rootNavigator: true).pop('dialog'),
-                ),
-              ],
-            )),
-      ],
-    );
-  }
-
-  Future<int> _uploadPost() async {
-    var request = http.MultipartRequest(
-        'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
-
-    if (_provider.isImage)
-      request.fields["contentType"] = 'image';
-    else
-      request.fields["contentType"] = 'video';
-
-    request.files
-        .add(await http.MultipartFile.fromPath('media', _provider.filePath));
-
-    var response = await request.send();
-    return response.statusCode;
   }
 }
 
@@ -492,5 +504,66 @@ class NewPostFlatButton extends StatelessWidget {
           offset: Offset(0, 7),
           child: Text(_buttonName, textAlign: TextAlign.center),
         ));
+  }
+}
+
+class NewPostSendTo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Container(
+        width: 200,
+        height: 400,
+        alignment: Alignment.center,
+        decoration: new BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(40)),
+          color: Colors.white,
+        ),
+        child: FutureBuilder(
+            future: getFriendsList(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
+                return NewPostFriendsList(friendsList: snapshot.data);
+              } else {
+                return Center(
+                  child: Text("Loading"),
+                );
+              }
+            }),
+      ),
+    ]);
+  }
+}
+
+class NewPostFriendsList extends StatelessWidget {
+  const NewPostFriendsList({
+    @required this.friendsList,
+    Key key,
+  }) : super(key: key);
+
+  final List<User> friendsList;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      child: ListView.builder(
+          itemCount: friendsList.length,
+          itemBuilder: (BuildContext context, int index) {
+            return FlatButton(
+              child: Text(
+                friendsList[index].username,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+              onPressed: () => Navigator.pop(context, friendsList[index]),
+            );
+          }),
+      // Navigator.pop(context, )
+    );
   }
 }

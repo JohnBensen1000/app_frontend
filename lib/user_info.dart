@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'backend_connect.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:provider/provider.dart';
 import 'home_screen.dart';
 
 final serverAPI = new ServerAPI();
@@ -21,17 +20,23 @@ class Post {
   //Constructor
   String userID;
   String username;
-  int postID;
+  String postID;
   bool isImage;
   bool isVideo;
 
   Post.fromJson(Map postJson) {
     this.userID = postJson["userID"];
     this.username = postJson["username"];
-    this.postID = postJson["postID"];
+    this.postID = postJson["postID"].toString();
     this.isImage = postJson["isImage"];
     this.isVideo = postJson["isVideo"];
   }
+
+  // Post.fromFirebase(Map postData) {
+  //   this.userID = postData["userID"];
+  //   this.username = null;
+  //   this.postID = postData["postURL"];
+  // }
 }
 
 class FriendsList extends ChangeNotifier {
@@ -56,10 +61,11 @@ class UserInfo extends StatefulWidget {
 class _UserInfoState extends State<UserInfo> {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) => FriendsList(),
-        child: Homescreen(
-          pageLabel: PageLabel.friends,
-        ));
+    // return ChangeNotifierProvider(
+    //     create: (context) => FriendsList(),
+    //     child: Homescreen(
+    //       pageLabel: PageLabel.friends,
+    //     ));
+    return Homescreen(pageLabel: PageLabel.friends);
   }
 }

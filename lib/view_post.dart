@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 import 'backend_connect.dart';
 import 'comments_section.dart';
@@ -71,6 +72,19 @@ class ViewPostAppBar extends PreferredSize {
   }
 }
 
+class PostWidgetProvider extends ChangeNotifier {
+  bool _showCommentButton = true;
+
+  bool get showCommentButton {
+    return _showCommentButton;
+  }
+
+  set showCommentButton(bool newShowCommentButton) {
+    _showCommentButton = newShowCommentButton;
+    notifyListeners();
+  }
+}
+
 class PostWidget extends StatelessWidget {
   PostWidget({
     @required this.post,
@@ -92,27 +106,29 @@ class PostWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PostWidgetState(
-        post: post,
-        playOnInit: playOnInit,
-        height: height,
-        aspectRatio: aspectRatio,
-        isViewPost: isViewPost,
-        child: Container(
-          height: containerHeight,
-          width: height / aspectRatio,
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: double.infinity,
-                ),
-                if (!onlyShowBody) PostHeader(),
-                PostBody(),
-                if (!onlyShowBody) CommentsButton(),
-              ]),
-        ));
+    return ChangeNotifierProvider(
+        create: (context) => PostWidgetProvider(),
+        child: PostWidgetState(
+            post: post,
+            playOnInit: playOnInit,
+            height: height,
+            aspectRatio: aspectRatio,
+            isViewPost: isViewPost,
+            child: Container(
+              height: containerHeight,
+              width: height / aspectRatio,
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                    ),
+                    if (!onlyShowBody) PostHeader(),
+                    PostBody(),
+                    if (!onlyShowBody) CommentsButton(),
+                  ]),
+            )));
   }
 }
 
@@ -253,7 +269,7 @@ class PostBody extends StatelessWidget {
       return Image.network(await FirebaseStorage.instance
               .ref()
               .child("${post.userID}")
-              .child("${post.postID.toString()}.png")
+              .child("${post.postID}.png")
               .getDownloadURL())
           .image;
     } catch (e) {
@@ -419,40 +435,58 @@ class _VideoContainerState extends State<VideoContainer> {
 class CommentsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: Container(
-          padding: EdgeInsets.only(top: 3),
-          width: 146.0,
-          height: 25.0,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(13.0),
-            color: const Color(0xffffffff),
-            border: Border.all(width: 3.0, color: const Color(0xff707070)),
-          ),
+    print(Provider.of<PostWidgetProvider>(context).showCommentButton);
+    if (Provider.of<PostWidgetProvider>(context).showCommentButton) {
+      return Padding(
+          padding: const EdgeInsets.only(top: 10),
           child: Container(
-            padding: EdgeInsets.only(bottom: 5),
-            child: FlatButton(
-              child: Text(
-                'View Comments',
-                style: TextStyle(
-                  fontFamily: 'SF Pro Text',
-                  fontSize: 10,
-                  color: const Color(0x67000000),
-                  letterSpacing: -0.004099999964237213,
-                  height: 1.2,
-                ),
-                textAlign: TextAlign.center,
+              padding: EdgeInsets.only(top: 3),
+              width: 146.0,
+              height: 25.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(13.0),
+                color: const Color(0xffffffff),
+                border: Border.all(width: 3.0, color: const Color(0xff707070)),
               ),
-              onPressed: () => Scaffold.of(context).showSnackBar(SnackBar(
-                backgroundColor: Colors.white,
-                duration: Duration(days: 365),
-                content: CommentSection(
-                    postID: PostWidgetState.of(context).post.postID),
-              )),
-            ),
-          ),
-        ));
+              child: Container(
+                padding: EdgeInsets.only(bottom: 5),
+                child: FlatButton(
+                  child: Text(
+                    'View Comments',
+                    style: TextStyle(
+                      fontFamily: 'SF Pro Text',
+                      fontSize: 10,
+                      color: const Color(0x67000000),
+                      letterSpacing: -0.004099999964237213,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  onPressed: null,
+                  // onPressed: () {
+                  //   Provider.of<PostWidgetProvider>(context, listen: false)
+                  //       .showCommentButton = false;
+                  //   Scaffold.of(context)
+                  //       .showSnackBar(SnackBar(
+                  //         backgroundColor: Colors.white.withOpacity(.7),
+                  //         duration: Duration(days: 365),
+                  //         shape: RoundedRectangleBorder(
+                  //             borderRadius:
+                  //                 BorderRadius.all(Radius.circular(30))),
+                  //         padding: EdgeInsets.only(left: 5, right: 5),
+                  //         content: CommentSection(
+                  //             postID: PostWidgetState.of(context).post.postID),
+                  //       ))
+                  //       .closed
+                  //       .then((_) => Provider.of<PostWidgetProvider>(context,
+                  //               listen: false)
+                  //           .showCommentButton = true);
+                  // }),
+                ),
+              )));
+    } else {
+      return Container();
+    }
   }
 }
 
