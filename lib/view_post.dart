@@ -17,9 +17,11 @@ class ViewPost extends StatelessWidget {
   ViewPost({
     Key key,
     @required this.post,
+    this.onlyShowBody = false,
   }) : super(key: key);
 
   final Post post;
+  final bool onlyShowBody;
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +31,8 @@ class ViewPost extends StatelessWidget {
         child: PostWidget(
           post: post,
           playOnInit: true,
-          onlyShowBody: false,
+          onlyShowBody: onlyShowBody,
           height: 525,
-          containerHeight: 675,
           aspectRatio: goldenRatio,
           isViewPost: true,
         ),
@@ -89,23 +90,25 @@ class PostWidget extends StatelessWidget {
   PostWidget({
     @required this.post,
     @required this.height,
-    @required this.containerHeight,
     @required this.aspectRatio,
     this.playOnInit = false,
     this.onlyShowBody = true,
     this.isViewPost = false,
+    this.onlyShowBodyAfterPressed = false,
   });
 
   final Post post;
   final double height;
-  final double containerHeight;
   final double aspectRatio;
   final bool playOnInit;
   final bool onlyShowBody;
   final bool isViewPost;
+  final bool onlyShowBodyAfterPressed;
 
   @override
   Widget build(BuildContext context) {
+    print(onlyShowBodyAfterPressed);
+    double containerHeight = (onlyShowBody) ? height : height * 1.3333333;
     return ChangeNotifierProvider(
         create: (context) => PostWidgetProvider(),
         child: PostWidgetState(
@@ -114,6 +117,7 @@ class PostWidget extends StatelessWidget {
             height: height,
             aspectRatio: aspectRatio,
             isViewPost: isViewPost,
+            onlyShowBodyAfterPressed: onlyShowBodyAfterPressed,
             child: Container(
               height: containerHeight,
               width: height / aspectRatio,
@@ -140,6 +144,7 @@ class PostWidgetState extends InheritedWidget {
     @required this.aspectRatio,
     @required this.isViewPost,
     @required this.child,
+    @required this.onlyShowBodyAfterPressed,
   });
 
   final Post post;
@@ -148,6 +153,7 @@ class PostWidgetState extends InheritedWidget {
   final double aspectRatio;
   final Widget child;
   final bool isViewPost;
+  final bool onlyShowBodyAfterPressed;
 
   static PostWidgetState of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<PostWidgetState>();
@@ -203,6 +209,7 @@ class PostBody extends StatelessWidget {
   // image inside of it, and a FlatButton() that allows the user to open the
   // comments section. If playOnInit is set to false, then the Container()
   // shows a thumbnail (image) of the video rather than the actual video.
+
   PostBody({
     Key key,
   }) : super(key: key);
@@ -210,23 +217,15 @@ class PostBody extends StatelessWidget {
   Post post;
   double height;
   double width;
+  double cornerRadius;
 
   @override
   Widget build(BuildContext context) {
     height = PostWidgetState.of(context).height;
     width = height / PostWidgetState.of(context).aspectRatio;
+    cornerRadius = height / 19;
+
     post = PostWidgetState.of(context).post;
-
-    double cornerRadius = height / 19;
-
-    var getPostFunction;
-    if (post.isImage) getPostFunction = _getImage();
-    if (post.isVideo) {
-      if (PostWidgetState.of(context).playOnInit)
-        getPostFunction = _getVideo();
-      else
-        getPostFunction = _getThumbnail();
-    }
 
     return Stack(alignment: Alignment.center, children: <Widget>[
       Container(
@@ -238,7 +237,7 @@ class PostBody extends StatelessWidget {
         ),
       ),
       FutureBuilder(
-          future: getPostFunction,
+          future: _getPostFuture(context),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done &&
                 snapshot.hasData) {
@@ -254,7 +253,10 @@ class PostBody extends StatelessWidget {
                 );
               else
                 return ImageContainer(
-                    postImage: snapshot.data, cornerRadius: cornerRadius);
+                  postImage: snapshot.data,
+                  cornerRadius: cornerRadius,
+                  isThumbnail: true,
+                );
             } else {
               return Center(
                 child: Text("Loading..."),
@@ -264,23 +266,19 @@ class PostBody extends StatelessWidget {
     ]);
   }
 
-  Future<ImageProvider> _getImage() async {
-    try {
-      return Image.network(await FirebaseStorage.instance
-              .ref()
-              .child("${post.userID}")
-              .child("${post.postID}.png")
-              .getDownloadURL())
-          .image;
-    } catch (e) {
-      print(" [ERROR] $e");
-      return null;
-    }
+  Future<dynamic> _getPostFuture(BuildContext context) async {
+    if (post.isImage)
+      return Image.network(await post.postURL).image;
+    else if (post.isImage == false &&
+        PostWidgetState.of(context).playOnInit == false)
+      return _getThumbnail();
+    else
+      return (await post.postURL).toString();
   }
 
   Future<ImageProvider> _getThumbnail() async {
     String thumbnailFile = await VideoThumbnail.thumbnailFile(
-      video: await _getVideo(),
+      video: (await post.postURL).toString(),
       imageFormat: ImageFormat.PNG,
       thumbnailPath: (await getTemporaryDirectory()).path,
       maxHeight: height.toInt(),
@@ -290,36 +288,29 @@ class PostBody extends StatelessWidget {
 
     return Image.asset(thumbnailFile).image;
   }
-
-  Future<String> _getVideo() async {
-    try {
-      return await FirebaseStorage.instance
-          .ref()
-          .child("${post.userID}")
-          .child("${post.postID.toString()}.mp4")
-          .getDownloadURL();
-    } catch (e) {
-      print(" [ERROR] $e");
-      return null;
-    }
-  }
 }
 
 class ImageContainer extends StatelessWidget {
-  const ImageContainer({
+  ImageContainer({
     Key key,
     @required this.postImage,
     @required this.cornerRadius,
+    this.isThumbnail = false,
   }) : super(key: key);
 
   final ImageProvider<Object> postImage;
   final double cornerRadius;
+  final bool isThumbnail;
+
+  double height, width;
 
   @override
   Widget build(BuildContext context) {
-    double height = PostWidgetState.of(context).height;
-    double width = height / PostWidgetState.of(context).aspectRatio;
+    height = PostWidgetState.of(context).height;
+    width = height / PostWidgetState.of(context).aspectRatio;
     Post post = PostWidgetState.of(context).post;
+    bool onlyShowBodyAfterPressed =
+        PostWidgetState.of(context).onlyShowBodyAfterPressed;
 
     return GestureDetector(
       child: Container(
@@ -332,6 +323,7 @@ class ImageContainer extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
+        child: _displayIfThumbnail(),
       ),
       onLongPress: () {
         Navigator.push(
@@ -339,10 +331,24 @@ class ImageContainer extends StatelessWidget {
           MaterialPageRoute(
               builder: (context) => ViewPost(
                     post: post,
+                    onlyShowBody: onlyShowBodyAfterPressed,
                   )),
         );
       },
     );
+  }
+
+  Widget _displayIfThumbnail() {
+    if (isThumbnail)
+      return Container(
+          padding: EdgeInsets.all(height * .03),
+          alignment: Alignment.topRight,
+          child: Text(
+            "Video",
+            style: TextStyle(color: Colors.grey),
+          ));
+    else
+      return Container();
   }
 }
 

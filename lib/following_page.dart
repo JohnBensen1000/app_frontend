@@ -55,7 +55,6 @@ class _PostListScrollerState extends State<PostListScroller> {
         child: PostWidget(
           post: Post.fromJson(widget.postList[postListIndex]),
           height: 475,
-          containerHeight: 600,
           aspectRatio: goldenRatio,
           playOnInit: true,
           onlyShowBody: false,

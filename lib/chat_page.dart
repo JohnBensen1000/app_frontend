@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter/main.dart';
 import 'package:test_flutter/user_info.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'view_post.dart';
 import 'user_info.dart';
 
 String getChatName(User friend) {
+  // Uses comparison between hashCodes of two userIDs to determin chat name.
+  // This way, the chat name for two friends will always be the same.
   if (userID.hashCode < friend.userID.hashCode) {
     return userID + "-" + friend.userID;
   } else {
@@ -14,6 +18,9 @@ String getChatName(User friend) {
 
 Future<void> createChatIfDoesntExist(
     CollectionReference chatsCollection, String chatName, User friend) async {
+  // If a document doesn't exist in google firestore to hold the chat, than
+  // a new document is created along with the 'conversation' list that will
+  // hold the actual conversation.
   await chatsCollection.document(chatName).get().then((doc) {
     if (!doc.exists) {
       chatsCollection.document(chatName).setData({
@@ -29,7 +36,12 @@ Future<void> createChatIfDoesntExist(
 }
 
 class ChatPage extends StatelessWidget {
-  final _chatController = TextEditingController();
+  // Main Widget for a chat. First makes sure that there is a document in google
+  // firestore to hold the chat. Then uses a StreamBuilder() to connect to the
+  // document that holds the conversation. Returns a ListView.builder() that
+  // contains a list of every individual chat that was sent. This list updates
+  // in real time whenever a new chat is saved in the google firestore document.
+
   final User friend;
 
   ChatPage({this.friend});
@@ -37,117 +49,208 @@ class ChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String chatName = getChatName(friend);
-    CollectionReference chatsCollection =
-        Firestore.instance.collection("Chats");
-    createChatIfDoesntExist(chatsCollection, chatName, friend);
+    CollectionReference chatCollection = Firestore.instance.collection("Chats");
+    createChatIfDoesntExist(chatCollection, chatName, friend);
 
     return Scaffold(
-        body: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Container(
-            padding: EdgeInsets.all(20.0),
-            child: StreamBuilder(
-                stream: Firestore.instance
-                    .collection('Chats')
-                    .document(chatName)
-                    .collection('chats')
-                    .document('1')
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Text("No Data");
-                  } else {
-                    List<dynamic> conversation = snapshot.data["conversation"];
-                    print(conversation);
-                    return ListView.builder(
-                        itemCount: conversation.length,
-                        itemBuilder: (context, index) {
-                          dynamic chat = conversation[index];
-                          print(chat);
-                          if (chat['isPost'] == false) {
-                            if (chat['sender'] == userID) {
-                              return Chat(
-                                senderID: chat['sender'],
-                                chat: chat['chat'],
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                backgroundColor: Colors.orange[300],
-                              );
-                            } else {
-                              return Chat(
-                                senderID: chat['sender'],
-                                chat: chat['chat'],
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                backgroundColor: Colors.purple[300],
-                              );
-                            }
-                          } else
-                            return Container(child: Text("Hello"));
-                        });
-                  }
-                }),
-          ),
+        appBar: ChatPageHeader(
+          friend: friend,
+          height: 50,
         ),
-        Container(
-          width: 350.0,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(23.0),
-            color: const Color(0xffffffff),
-            border: Border.all(width: 1.0, color: const Color(0xff707070)),
-          ),
-          child: Container(
-            padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: TextField(
-              controller: _chatController,
-              decoration: InputDecoration(
-                hintText: "Chat",
-                border: InputBorder.none,
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.all(20.0),
+                child: StreamBuilder(
+                    stream: Firestore.instance
+                        .collection('Chats')
+                        .document(chatName)
+                        .collection('chats')
+                        .document('1')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Text("No Data");
+                      } else {
+                        List<dynamic> conversation =
+                            snapshot.data["conversation"];
+                        return ListView.builder(
+                            itemCount: conversation.length,
+                            itemBuilder: (context, index) {
+                              if (conversation.length > 0)
+                                return ChatWidget(
+                                    chat: Chat.fromFirebase(
+                                        snapshot.data["conversation"][index]));
+                              else
+                                return Container();
+                            });
+                      }
+                    }),
               ),
             ),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            FlatButton(
-                child: Text("Exit Chat"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                }),
-            FlatButton(
-                child: Text("Send Chat"),
-                onPressed: () async {
-                  await _sendChat(chatsCollection, chatName);
-                  _chatController.clear();
-                }),
+            ChatPageFooter(chatName: chatName, chatCollection: chatCollection),
           ],
+        ));
+  }
+}
+
+class ChatPageHeader extends PreferredSize {
+  // Header widget that displays the name of the chat and a button that, when
+  // pressed, returns the user to the FriendsPage().
+
+  ChatPageHeader({this.height, this.friend});
+
+  final double height;
+  final User friend;
+
+  @override
+  Size get preferredSize => Size.fromHeight(height);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: Stack(
+      children: <Widget>[
+        Container(
+          alignment: Alignment.bottomCenter,
+          child: Text(friend.username, style: TextStyle(fontSize: 20)),
         ),
+        Container(
+            alignment: Alignment.bottomLeft,
+            child: FlatButton(
+                child: Text("Back"),
+                onPressed: () => Navigator.of(context).pop())),
       ],
     ));
   }
+}
 
-  Future<void> _sendChat(
-      CollectionReference chatsCollection, String chatName) async {
-    await chatsCollection
+class ChatPageFooter extends StatelessWidget {
+  // Widget that allows the user to send a new chat.
+  // TODO: allow user to send post as a chat from ChatPageFooter()
+
+  ChatPageFooter({@required this.chatName, @required this.chatCollection});
+  final String chatName;
+  final CollectionReference chatCollection;
+  final _chatController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: <Widget>[
+      Container(
+        width: 350.0,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(23.0),
+          color: const Color(0xffffffff),
+          border: Border.all(width: 1.0, color: const Color(0xff707070)),
+        ),
+        child: Container(
+          padding: EdgeInsets.only(left: 10.0, right: 10.0),
+          child: TextField(
+            controller: _chatController,
+            decoration: InputDecoration(
+              hintText: "Chat",
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          FlatButton(
+            child: Text("Past Posts"),
+            onPressed: null,
+          ),
+          FlatButton(
+              child: Text("Send Chat"),
+              onPressed: () async {
+                await _sendChat();
+                _chatController.clear();
+              }),
+        ],
+      )
+    ]);
+  }
+
+  Future<void> _sendChat() async {
+    await chatCollection
         .document(chatName)
         .collection('chats')
         .document('1')
         .updateData({
       'conversation': FieldValue.arrayUnion([
-        {'sender': userID, 'chat': _chatController.text, 'isPost': false}
+        {'sender': userID, 'text': _chatController.text, 'isPost': false}
       ])
     });
   }
 }
 
-class Chat extends StatelessWidget {
+class Chat {
+  // Class that holds relevant data about an individual chat. Also has a
+  // constructor that creates a Chat() object from a Map.
+  bool isPost;
+  String sender;
+  String text;
+  Map postData;
+
+  Chat.fromFirebase(Map chatData) {
+    this.isPost = chatData['isPost'];
+    this.sender = chatData['sender'];
+    if (this.isPost)
+      this.postData = chatData['post'];
+    else
+      this.text = chatData["text"];
+  }
+}
+
+class ChatWidget extends StatelessWidget {
+  // This widget takes a Chat() object as an input and determines who sent the
+  // cjat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
+
+  ChatWidget({@required this.chat});
+
+  final Chat chat;
+  @override
+  Widget build(BuildContext context) {
+    MainAxisAlignment chatAxisAlignment;
+    Color backgroundColor;
+
+    if (chat.sender == userID) {
+      chatAxisAlignment = MainAxisAlignment.end;
+      backgroundColor = Colors.orange[300];
+    } else {
+      chatAxisAlignment = MainAxisAlignment.start;
+      backgroundColor = Colors.purple[300];
+    }
+
+    if (chat.isPost == false) {
+      return ChatWidgetText(
+        senderID: chat.sender,
+        chat: chat.text,
+        mainAxisAlignment: chatAxisAlignment,
+        backgroundColor: backgroundColor,
+      );
+    } else {
+      return ChatWidgetPost(
+        post: Post.fromChat(chat),
+        height: 200,
+        mainAxisAlignment: chatAxisAlignment,
+      );
+    }
+  }
+}
+
+class ChatWidgetText extends StatelessWidget {
+  //
   final String senderID;
   final String chat;
   final MainAxisAlignment mainAxisAlignment;
   final Color backgroundColor;
 
-  Chat(
+  ChatWidgetText(
       {this.senderID, this.chat, this.mainAxisAlignment, this.backgroundColor});
 
   @override
@@ -199,5 +302,28 @@ class Chat extends StatelessWidget {
     }
 
     return newChat;
+  }
+}
+
+class ChatWidgetPost extends StatelessWidget {
+  ChatWidgetPost(
+      {@required this.post,
+      @required this.height,
+      @required this.mainAxisAlignment});
+
+  final Post post;
+  final double height;
+  final MainAxisAlignment mainAxisAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(mainAxisAlignment: mainAxisAlignment, children: <Widget>[
+      PostWidget(
+        post: post,
+        height: height,
+        aspectRatio: goldenRatio,
+        onlyShowBodyAfterPressed: true,
+      )
+    ]);
   }
 }

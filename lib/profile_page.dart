@@ -379,10 +379,9 @@ class ProfilePostWidget extends StatelessWidget {
           PostWidget(
             post: post,
             height: postHeight,
-            containerHeight: postHeight,
             aspectRatio: aspectRatio,
           ),
-          if (post.isVideo)
+          if (!post.isImage)
             Container(
                 padding: EdgeInsets.all(5),
                 alignment: Alignment.topRight,

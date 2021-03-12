@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'backend_connect.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:convert';
+
+import 'backend_connect.dart';
 import 'home_screen.dart';
+import 'chat_page.dart';
 
 final serverAPI = new ServerAPI();
 
@@ -20,23 +23,29 @@ class Post {
   //Constructor
   String userID;
   String username;
-  String postID;
   bool isImage;
-  bool isVideo;
+  var postURL;
 
   Post.fromJson(Map postJson) {
     this.userID = postJson["userID"];
     this.username = postJson["username"];
-    this.postID = postJson["postID"].toString();
     this.isImage = postJson["isImage"];
-    this.isVideo = postJson["isVideo"];
+
+    String fileExtension = (this.isImage) ? 'png' : 'mp4';
+
+    this.postURL = FirebaseStorage.instance
+        .ref()
+        .child("${postJson["userID"]}")
+        .child("${postJson["postID"].toString()}.$fileExtension")
+        .getDownloadURL();
   }
 
-  // Post.fromFirebase(Map postData) {
-  //   this.userID = postData["userID"];
-  //   this.username = null;
-  //   this.postID = postData["postURL"];
-  // }
+  Post.fromChat(Chat chat) {
+    this.userID = chat.sender;
+    this.username = null;
+    this.postURL = chat.postData["postURL"];
+    this.isImage = chat.postData['isImage'];
+  }
 }
 
 class FriendsList extends ChangeNotifier {

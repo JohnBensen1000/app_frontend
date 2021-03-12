@@ -370,7 +370,7 @@ class PostPreview extends StatelessWidget {
 
     await createChatIfDoesntExist(chatsCollection, chatName, friend);
 
-    String postURL = await uploadFile(chatName);
+    String postURL = await uploadFile(chatName, provider.isImage);
 
     await chatsCollection
         .document(chatName)
@@ -390,10 +390,13 @@ class PostPreview extends StatelessWidget {
     });
   }
 
-  Future<String> uploadFile(String chatName) async {
-    StorageReference storageReference = FirebaseStorage.instance
-        .ref()
-        .child("$chatName/${DateTime.now().toString()}");
+  Future<String> uploadFile(String chatName, bool isImage) async {
+    String fileExtension = (isImage) ? 'png' : 'mp4';
+    String fileName =
+        "$chatName/${DateTime.now().hashCode.toString()}.$fileExtension";
+
+    StorageReference storageReference =
+        FirebaseStorage.instance.ref().child(fileName);
 
     StorageUploadTask uploadTask = storageReference.putFile(postFile);
     await uploadTask.onComplete;
