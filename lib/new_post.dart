@@ -17,6 +17,54 @@ import 'chat_page.dart';
 
 final backendConnection = new ServerAPI();
 
+Future<void> sendPost(User friend, bool isImage, String filePath) async {
+  // Sends a post as a direct message to a chat. Stores data about the post
+  // in the chat document in google firestore (including download url to access
+  // the file), and then  calls uploadFile() to store the actual post in google
+  // storage.
+
+  String chatName = getChatName(friend);
+  CollectionReference chatsCollection = Firestore.instance.collection("Chats");
+
+  await createChatIfDoesntExist(chatsCollection, chatName, friend);
+
+  String postURL = await uploadFile(chatName, isImage, filePath);
+
+  await chatsCollection
+      .document(chatName)
+      .collection('chats')
+      .document('1')
+      .updateData({
+    'conversation': FieldValue.arrayUnion([
+      {
+        'sender': userID,
+        'isPost': true,
+        'post': {
+          'postURL': postURL,
+          'isImage': isImage,
+        }
+      }
+    ])
+  });
+}
+
+Future<String> uploadFile(
+    String chatName, bool isImage, String filePath) async {
+  // Uploads the post file to google storage. Determines the file name and
+  // extension, and returns the download url that of the file.
+
+  String fileExtension = (isImage) ? 'png' : 'mp4';
+  String fileName =
+      "$chatName/${DateTime.now().hashCode.toString()}.$fileExtension";
+
+  StorageReference storageReference =
+      FirebaseStorage.instance.ref().child(fileName);
+
+  StorageUploadTask uploadTask = storageReference.putFile(File(filePath));
+  await uploadTask.onComplete;
+  return await storageReference.getDownloadURL();
+}
+
 class VideoTimer {
   /* Stream that keeps track of how much time has elapsed since the beginning
      of the recording. This stream is used for the circular progress indicator.
@@ -83,6 +131,10 @@ class NewPost extends StatefulWidget {
      the input from the camera , _cameraView(), and after capturing an image, 
      seeing a preview of the image, _postPreview(). 
   */
+  NewPost({this.fromChatPage = false, this.friend});
+
+  final bool fromChatPage;
+  final User friend;
 
   @override
   _NewPostState createState() => _NewPostState();
@@ -121,8 +173,11 @@ class _NewPostState extends State<NewPost> {
                                 deviceRatio: _deviceRatio);
                           } else {
                             return PostPreview(
-                                controller: _controller,
-                                deviceRatio: _deviceRatio);
+                              controller: _controller,
+                              deviceRatio: _deviceRatio,
+                              fromChatPage: widget.fromChatPage,
+                              friend: widget.friend,
+                            );
                           }
                         } else {
                           return Center(child: Text("Loading camera view."));
@@ -158,6 +213,11 @@ class _NewPostState extends State<NewPost> {
 }
 
 class CameraView extends StatelessWidget {
+  // Shows what the camera is seeing. Using a gesture detector, allows the user
+  // to either capture an image or a video with the same button. If a video is
+  // being recorded, displays a red circular progress bar around the post button
+  // to show that a video is being recorded.
+
   CameraView({
     Key key,
     @required CameraController controller,
@@ -258,28 +318,31 @@ class CameraView extends StatelessWidget {
 }
 
 class PostPreview extends StatelessWidget {
-  /* Container that shows a preview of the video/image that the user took. Also
-     Gives the user several options for what to do with the post. The user could
-     share the post with a friend (through a chat), post it publicly, or delete
-     it and redo. */
+  // Container that shows a preview of the video/image that the user took. Gives
+  // the user an option to take another video/image. Returns either
+  // ChatPostOptions() (fromChatPost = true) or NewPostOptions() (fromChatPost
+  // = false). Both of these widgets gives the user more options for what to
+  // do with the post.
+
   PostPreview({
     Key key,
     @required CameraController controller,
     @required double deviceRatio,
+    this.fromChatPage = false,
+    this.friend,
   })  : _controller = controller,
         _deviceRatio = deviceRatio,
         super(key: key);
 
   final CameraController _controller;
   final double _deviceRatio;
-
-  var provider;
-  File postFile;
+  final bool fromChatPage;
+  final User friend;
 
   @override
   Widget build(BuildContext context) {
-    provider = Provider.of<PostPageProvider>(context);
-    postFile = File(provider.filePath);
+    var provider = Provider.of<PostPageProvider>(context);
+    File postFile = File(provider.filePath);
 
     Widget previewWidget;
     provider.isImage
@@ -304,25 +367,10 @@ class PostPreview extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    FlatButton(
-                      child: NewPostFlatButton(
-                        buttonName: "Post",
-                        backgroundColor: Colors.white,
-                      ),
-                      onPressed: () async {
-                        await _uploadPost();
-                        provider.deleteFile();
-                      },
-                    ),
-                    FlatButton(
-                      child: NewPostFlatButton(
-                        buttonName: "Share",
-                        backgroundColor: Colors.white,
-                      ),
-                      onPressed: () async {
-                        await _shareWithFriends(context);
-                      },
-                    ),
+                    if (fromChatPage)
+                      ChatPostOptions(provider: provider, friend: friend)
+                    else
+                      NewPostOptions(provider: provider),
                   ],
                 ),
               ),
@@ -333,75 +381,6 @@ class PostPreview extends StatelessWidget {
             ],
           ))
     ]);
-  }
-
-  Future<int> _uploadPost() async {
-    // Sends the an HTTP request containing the post file to the server for
-    // further processing. Returns with the response status code.
-    var request = http.MultipartRequest(
-        'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
-
-    if (provider.isImage)
-      request.fields["contentType"] = 'image';
-    else
-      request.fields["contentType"] = 'video';
-
-    request.files
-        .add(await http.MultipartFile.fromPath('media', provider.filePath));
-
-    var response = await request.send();
-    return response.statusCode;
-  }
-
-  Future<void> _shareWithFriends(BuildContext context) async {
-    // Displays an alertDialog that lets the user choose which friends to send
-    // the post to. Once the user selects a friend, calls _sendPost()
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return NewPostSendTo();
-        }).then((friend) => _sendPost(friend));
-  }
-
-  Future<void> _sendPost(User friend) async {
-    String chatName = getChatName(friend);
-    CollectionReference chatsCollection =
-        Firestore.instance.collection("Chats");
-
-    await createChatIfDoesntExist(chatsCollection, chatName, friend);
-
-    String postURL = await uploadFile(chatName, provider.isImage);
-
-    await chatsCollection
-        .document(chatName)
-        .collection('chats')
-        .document('1')
-        .updateData({
-      'conversation': FieldValue.arrayUnion([
-        {
-          'sender': userID,
-          'isPost': true,
-          'post': {
-            'postURL': postURL,
-            'isImage': provider.isImage,
-          }
-        }
-      ])
-    });
-  }
-
-  Future<String> uploadFile(String chatName, bool isImage) async {
-    String fileExtension = (isImage) ? 'png' : 'mp4';
-    String fileName =
-        "$chatName/${DateTime.now().hashCode.toString()}.$fileExtension";
-
-    StorageReference storageReference =
-        FirebaseStorage.instance.ref().child(fileName);
-
-    StorageUploadTask uploadTask = storageReference.putFile(postFile);
-    await uploadTask.onComplete;
-    provider.deleteFile();
-    return await storageReference.getDownloadURL();
   }
 }
 
@@ -510,6 +489,74 @@ class NewPostFlatButton extends StatelessWidget {
   }
 }
 
+class NewPostOptions extends StatelessWidget {
+  // lets the user either post the captured video/image publicly or share it in
+  // a chat. If the user decides to share it in a chat, showDialog() is
+  // called to let the user chose which chat to share the video/image in.
+
+  NewPostOptions({@required this.provider});
+
+  final provider;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        FlatButton(
+          child: NewPostFlatButton(
+            buttonName: "Post",
+            backgroundColor: Colors.white,
+          ),
+          onPressed: () async {
+            await _uploadPost();
+            provider.deleteFile();
+          },
+        ),
+        FlatButton(
+          child: NewPostFlatButton(
+            buttonName: "Share",
+            backgroundColor: Colors.white,
+          ),
+          onPressed: () async {
+            await _shareWithFriends(context);
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<int> _uploadPost() async {
+    // Sends the an HTTP request containing the post file to the server for
+    // further processing. Returns with the response status code.
+    var request = http.MultipartRequest(
+        'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
+
+    if (provider.isImage)
+      request.fields["contentType"] = 'image';
+    else
+      request.fields["contentType"] = 'video';
+
+    request.files
+        .add(await http.MultipartFile.fromPath('media', provider.filePath));
+
+    var response = await request.send();
+    return response.statusCode;
+  }
+
+  Future<void> _shareWithFriends(BuildContext context) async {
+    // Displays an alertDialog that lets the user choose which friends to send
+    // the post to. Once the user selects a friend, calls _sendPost()
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return NewPostSendTo();
+        }).then((friend) async {
+      await sendPost(friend, provider.isImage, provider.filePath);
+      provider.deleteFile();
+    });
+  }
+}
+
 class NewPostSendTo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -566,7 +613,30 @@ class NewPostFriendsList extends StatelessWidget {
               onPressed: () => Navigator.pop(context, friendsList[index]),
             );
           }),
-      // Navigator.pop(context, )
+    );
+  }
+}
+
+class ChatPostOptions extends StatelessWidget {
+  // This widget is called if the user is sending a post directly from the chat
+  // page. Therefore, the user wants to send a post to that chat, so all we
+  // have to do is give them the option to send/not send a post.
+  ChatPostOptions({this.provider, this.friend});
+
+  final provider;
+  final User friend;
+
+  @override
+  Widget build(BuildContext context) {
+    return FlatButton(
+      child: NewPostFlatButton(
+        buttonName: "Share",
+        backgroundColor: Colors.white,
+      ),
+      onPressed: () async {
+        await sendPost(friend, provider.isImage, provider.filePath);
+        provider.deleteFile();
+      },
     );
   }
 }

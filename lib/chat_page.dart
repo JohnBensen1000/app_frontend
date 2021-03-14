@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/main.dart';
+import 'package:test_flutter/new_post.dart';
 import 'package:test_flutter/user_info.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -19,8 +20,8 @@ String getChatName(User friend) {
 Future<void> createChatIfDoesntExist(
     CollectionReference chatsCollection, String chatName, User friend) async {
   // If a document doesn't exist in google firestore to hold the chat, than
-  // a new document is created along with the 'conversation' list that will
-  // hold the actual conversation.
+  // a new document is created along with the 'conversation' field that will
+  // hold the conversation.
   await chatsCollection.document(chatName).get().then((doc) {
     if (!doc.exists) {
       chatsCollection.document(chatName).setData({
@@ -38,9 +39,9 @@ Future<void> createChatIfDoesntExist(
 class ChatPage extends StatelessWidget {
   // Main Widget for a chat. First makes sure that there is a document in google
   // firestore to hold the chat. Then uses a StreamBuilder() to connect to the
-  // document that holds the conversation. Returns a ListView.builder() that
-  // contains a list of every individual chat that was sent. This list updates
-  // in real time whenever a new chat is saved in the google firestore document.
+  // document that holds the chats. Returns a ListView.builder() that contains a
+  // list of every individual chat that was sent. This list updates in real
+  // time whenever a new chat is saved in the google firestore document.
 
   final User friend;
 
@@ -90,7 +91,10 @@ class ChatPage extends StatelessWidget {
                     }),
               ),
             ),
-            ChatPageFooter(chatName: chatName, chatCollection: chatCollection),
+            ChatPageFooter(
+                chatName: chatName,
+                friend: friend,
+                chatCollection: chatCollection),
           ],
         ));
   }
@@ -128,11 +132,15 @@ class ChatPageHeader extends PreferredSize {
 }
 
 class ChatPageFooter extends StatelessWidget {
-  // Widget that allows the user to send a new chat.
-  // TODO: allow user to send post as a chat from ChatPageFooter()
+  // Widget that allows the user to input text or take a post and send it as
+  // a new chat.
 
-  ChatPageFooter({@required this.chatName, @required this.chatCollection});
+  ChatPageFooter(
+      {@required this.chatName,
+      @required this.friend,
+      @required this.chatCollection});
   final String chatName;
+  final User friend;
   final CollectionReference chatCollection;
   final _chatController = TextEditingController();
 
@@ -161,9 +169,15 @@ class ChatPageFooter extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           FlatButton(
-            child: Text("Past Posts"),
-            onPressed: null,
-          ),
+              child: Text("Send Post"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          NewPost(fromChatPage: true, friend: friend)),
+                );
+              }),
           FlatButton(
               child: Text("Send Chat"),
               onPressed: () async {
@@ -190,7 +204,7 @@ class ChatPageFooter extends StatelessWidget {
 
 class Chat {
   // Class that holds relevant data about an individual chat. Also has a
-  // constructor that creates a Chat() object from a Map.
+  // constructor that creates a Chat() object from a Firestore Map.
   bool isPost;
   String sender;
   String text;
@@ -208,7 +222,7 @@ class Chat {
 
 class ChatWidget extends StatelessWidget {
   // This widget takes a Chat() object as an input and determines who sent the
-  // cjat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
+  // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
 
   ChatWidget({@required this.chat});
 
@@ -244,7 +258,9 @@ class ChatWidget extends StatelessWidget {
 }
 
 class ChatWidgetText extends StatelessWidget {
-  //
+  // Returns a text field that contains a chat. Adds '\n' characters to the
+  // string to break the text up into multiple lines to make it easier to read.
+
   final String senderID;
   final String chat;
   final MainAxisAlignment mainAxisAlignment;
@@ -306,6 +322,7 @@ class ChatWidgetText extends StatelessWidget {
 }
 
 class ChatWidgetPost extends StatelessWidget {
+  // A widget that wraps around a PostWidget() in order to display it correctly.
   ChatWidgetPost(
       {@required this.post,
       @required this.height,
