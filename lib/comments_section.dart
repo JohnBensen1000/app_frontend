@@ -98,7 +98,8 @@ class CommentSection extends StatelessWidget {
                         Container(
                             height: .9 * height,
                             child: CommentsListView(
-                                commentsList: provider.commentsList)),
+                                commentsList: provider.commentsList,
+                                post: provider.post)),
                         Container(
                             height: .1 * height,
                             child: AddComment(
@@ -140,10 +141,14 @@ class CommentSection extends StatelessWidget {
 class CommentsListView extends StatelessWidget {
   const CommentsListView({
     @required this.commentsList,
+    @required this.post,
+    this.displayReplyButton = true,
     Key key,
   }) : super(key: key);
 
   final List<Comment> commentsList;
+  final Post post;
+  final bool displayReplyButton;
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +158,10 @@ class CommentsListView extends StatelessWidget {
         itemCount: commentsList.length,
         itemBuilder: (BuildContext context, int index) {
           return CommentWidget(
-            comment: commentsList[index],
+            commentsList: commentsList,
+            index: index,
+            post: post,
+            displayReplyButton: displayReplyButton,
           );
         },
       ),
@@ -162,29 +170,44 @@ class CommentsListView extends StatelessWidget {
 }
 
 class CommentWidget extends StatelessWidget {
-  CommentWidget({@required this.comment});
+  CommentWidget(
+      {@required this.commentsList,
+      @required this.index,
+      @required this.post,
+      @required this.displayReplyButton});
 
-  final Comment comment;
+  final List<Comment> commentsList;
+  final int index;
+  final Post post;
+  final bool displayReplyButton;
 
   @override
   Widget build(BuildContext context) {
-    double leftPadding = 20.0 * comment.level;
+    double leftPadding = 20.0 * commentsList[index].level;
     double width = MediaQuery.of(context).size.width - leftPadding;
 
     return Container(
       padding: EdgeInsets.only(top: 5, bottom: 5, left: leftPadding),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+      child: Stack(
         children: <Widget>[
-          CommentWidgetHeader(width: .35 * width, comment: comment),
-          Text(
-            breakIntoLines(comment.commentText, 22, 26),
-            style: TextStyle(
-              fontFamily: 'Helvetica Neue',
-              fontSize: 18,
-              color: const Color(0xff000000),
+          CommentWidgetHeader(
+            width: .35 * width,
+            commentsList: commentsList,
+            index: index,
+            post: post,
+            displayReplyButton: displayReplyButton,
+          ),
+          Container(
+            padding: EdgeInsets.only(left: .35 * width),
+            child: Text(
+              breakIntoLines(commentsList[index].commentText, 22, 26),
+              style: TextStyle(
+                fontFamily: 'Helvetica Neue',
+                fontSize: 18,
+                color: const Color(0xff000000),
+              ),
+              textAlign: TextAlign.left,
             ),
-            textAlign: TextAlign.left,
           ),
         ],
       ),
@@ -193,14 +216,20 @@ class CommentWidget extends StatelessWidget {
 }
 
 class CommentWidgetHeader extends StatelessWidget {
-  const CommentWidgetHeader({
-    Key key,
-    @required this.comment,
-    @required this.width,
-  }) : super(key: key);
+  const CommentWidgetHeader(
+      {Key key,
+      @required this.width,
+      @required this.commentsList,
+      @required this.index,
+      @required this.post,
+      @required this.displayReplyButton})
+      : super(key: key);
 
-  final Comment comment;
   final double width;
+  final List<Comment> commentsList;
+  final int index;
+  final Post post;
+  final bool displayReplyButton;
 
   @override
   Widget build(BuildContext context) {
@@ -210,8 +239,8 @@ class CommentWidgetHeader extends StatelessWidget {
         Row(
           children: <Widget>[
             Container(
-              width: 55.0,
-              height: 55.0,
+              width: 30.0,
+              height: 30.0,
               decoration: BoxDecoration(
                 borderRadius:
                     BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
@@ -219,11 +248,11 @@ class CommentWidgetHeader extends StatelessWidget {
                 //   image: const AssetImage(''),
                 //   fit: BoxFit.cover,
                 // ),
-                border: Border.all(width: 3.0, color: const Color(0xff22a2ff)),
+                border: Border.all(width: 1.0, color: const Color(0xff22a2ff)),
               ),
             ),
             Text(
-              comment.userID,
+              commentsList[index].userID,
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
                 fontSize: 15,
@@ -233,6 +262,21 @@ class CommentWidgetHeader extends StatelessWidget {
             ),
           ],
         ),
+        // if (displayReplyButton == true)
+        //   Container(
+        //     height: 20,
+        //     alignment: Alignment.centerLeft,
+        //     child: FlatButton(
+        //       child: Text("Reply"),
+        //       onPressed: () => Navigator.push(
+        //           context,
+        //           MaterialPageRoute(
+        //               builder: (context) => AddCommentScaffold(
+        //                   post: post, commentsList: commentsList))),
+        //     ),
+        //   )
+        // else
+        //   Container(height: 20)
       ]),
     );
   }
@@ -326,7 +370,10 @@ class AddCommentScaffold extends StatelessWidget {
         children: <Widget>[
           Container(
               height: .9 * postHeight,
-              child: CommentsListView(commentsList: commentsList)),
+              child: CommentsListView(
+                commentsList: commentsList,
+                displayReplyButton: false,
+              )),
           Container(
             alignment: Alignment.bottomCenter,
             child: Container(
