@@ -36,6 +36,38 @@ Future<void> createChatIfDoesntExist(
   });
 }
 
+String breakIntoLines(
+    String origString, int minCharPerLine, int maxCharPerLine) {
+  /* Breaks up a chat string into multiple lines. The number of characters per
+    line will be between minCharPerLine and maxCharPerLine. */
+
+  String newString = origString;
+  int currentChar = 0;
+
+  while (newString.length - currentChar > maxCharPerLine) {
+    int cutoff = currentChar;
+
+    // Counts up until current line has at least minCharPerLine characters.
+    // Continues counting until the end of a word is reached.
+    while (cutoff - currentChar < minCharPerLine) cutoff++;
+    while (cutoff < newString.length && origString[cutoff] != ' ') cutoff++;
+    if (cutoff >= newString.length) break;
+
+    // If the number of characters in the current line is greater than
+    // maxCharPerLine, counts backwards to remove word from current line.
+    if (cutoff - currentChar > maxCharPerLine)
+      do {
+        cutoff--;
+      } while (origString[cutoff] != ' ');
+
+    newString =
+        newString.substring(0, cutoff) + '\n' + newString.substring(cutoff + 1);
+    currentChar = cutoff + 1;
+  }
+
+  return newString;
+}
+
 class ChatPage extends StatelessWidget {
   // Main Widget for a chat. First makes sure that there is a document in google
   // firestore to hold the chat. Then uses a StreamBuilder() to connect to the
@@ -271,7 +303,7 @@ class ChatWidgetText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String newChat = _breakIntoLines(28, 20);
+    String newChat = breakIntoLines(chat, 28, 20);
     return Container(
       padding: EdgeInsets.only(top: 4, bottom: 4),
       child: Row(
@@ -287,37 +319,6 @@ class ChatWidgetText extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _breakIntoLines(int minCharPerLine, int maxCharPerLine) {
-    /* Breaks up a chat string into multiple lines. The number of characters per
-    line will be between minCharPerLine and maxCharPerLine. */
-
-    String newChat = chat;
-    int currentChar = 0;
-
-    while (newChat.length - currentChar > maxCharPerLine) {
-      int cutoff = currentChar;
-
-      // Counts up until current line has at least minCharPerLine characters.
-      // Continues counting until the end of a word is reached.
-      while (cutoff - currentChar < minCharPerLine) cutoff++;
-      while (cutoff < newChat.length && chat[cutoff] != ' ') cutoff++;
-      if (cutoff >= newChat.length) break;
-
-      // If the number of characters in the current line is greater than
-      // maxCharPerLine, counts backwards to remove word from current line.
-      if (cutoff - currentChar > maxCharPerLine)
-        do {
-          cutoff--;
-        } while (chat[cutoff] != ' ');
-
-      newChat =
-          newChat.substring(0, cutoff) + '\n' + newChat.substring(cutoff + 1);
-      currentChar = cutoff + 1;
-    }
-
-    return newChat;
   }
 }
 

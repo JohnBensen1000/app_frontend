@@ -107,7 +107,6 @@ class PostWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(onlyShowBodyAfterPressed);
     double containerHeight = (onlyShowBody) ? height : height * 1.3333333;
     return ChangeNotifierProvider(
         create: (context) => PostWidgetProvider(),
@@ -130,7 +129,7 @@ class PostWidget extends StatelessWidget {
                     ),
                     if (!onlyShowBody) PostHeader(),
                     PostBody(),
-                    if (!onlyShowBody) CommentsButton(),
+                    if (!onlyShowBody) CommentsButton(post: post),
                   ]),
             )));
   }
@@ -439,24 +438,27 @@ class _VideoContainerState extends State<VideoContainer> {
 }
 
 class CommentsButton extends StatelessWidget {
+  CommentsButton({@required this.post});
+
+  final Post post;
+
   @override
   Widget build(BuildContext context) {
-    print(Provider.of<PostWidgetProvider>(context).showCommentButton);
     if (Provider.of<PostWidgetProvider>(context).showCommentButton) {
       return Padding(
           padding: const EdgeInsets.only(top: 10),
           child: Container(
-              padding: EdgeInsets.only(top: 3),
-              width: 146.0,
-              height: 25.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(13.0),
-                color: const Color(0xffffffff),
-                border: Border.all(width: 3.0, color: const Color(0xff707070)),
-              ),
-              child: Container(
-                padding: EdgeInsets.only(bottom: 5),
-                child: FlatButton(
+            padding: EdgeInsets.only(top: 3),
+            width: 146.0,
+            height: 25.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(13.0),
+              color: const Color(0xffffffff),
+              border: Border.all(width: 3.0, color: const Color(0xff707070)),
+            ),
+            child: Container(
+              padding: EdgeInsets.only(bottom: 5),
+              child: FlatButton(
                   child: Text(
                     'View Comments',
                     style: TextStyle(
@@ -468,28 +470,30 @@ class CommentsButton extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  onPressed: null,
-                  // onPressed: () {
-                  //   Provider.of<PostWidgetProvider>(context, listen: false)
-                  //       .showCommentButton = false;
-                  //   Scaffold.of(context)
-                  //       .showSnackBar(SnackBar(
-                  //         backgroundColor: Colors.white.withOpacity(.7),
-                  //         duration: Duration(days: 365),
-                  //         shape: RoundedRectangleBorder(
-                  //             borderRadius:
-                  //                 BorderRadius.all(Radius.circular(30))),
-                  //         padding: EdgeInsets.only(left: 5, right: 5),
-                  //         content: CommentSection(
-                  //             postID: PostWidgetState.of(context).post.postID),
-                  //       ))
-                  //       .closed
-                  //       .then((_) => Provider.of<PostWidgetProvider>(context,
-                  //               listen: false)
-                  //           .showCommentButton = true);
-                  // }),
-                ),
-              )));
+                  onPressed: () {
+                    Provider.of<PostWidgetProvider>(context, listen: false)
+                        .showCommentButton = false;
+                    Scaffold.of(context)
+                        .showSnackBar(SnackBar(
+                          // backgroundColor: Colors.transparent,
+                          backgroundColor: Colors.white.withOpacity(.7),
+                          duration: Duration(days: 365),
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30))),
+                          padding: EdgeInsets.only(left: 5, right: 5),
+                          content: CommentSection(
+                            post: post,
+                            height: 450,
+                          ),
+                        ))
+                        .closed
+                        .then((_) => Provider.of<PostWidgetProvider>(context,
+                                listen: false)
+                            .showCommentButton = true);
+                  }),
+            ),
+          ));
     } else {
       return Container();
     }

@@ -1,54 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-
 import 'dart:convert';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'user_info.dart';
 import 'backend_connect.dart';
+import 'view_post.dart';
+import 'chat_page.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
 
 class Comment {
+  /* Data structure that holds all important information about an individual
+     comment */
+
   final String userID;
   final String path;
-  final String comment;
+  final String commentText;
   final String datePosted;
   final int level;
 
-  Comment({this.userID, this.path, this.comment, this.datePosted, this.level});
+  Comment(
+      {@required this.commentText,
+      @required this.level,
+      @required this.userID,
+      this.path,
+      this.datePosted});
 }
 
-class CommentSection extends StatelessWidget {
-  CommentSection({
-    Key key,
-    @required this.postID,
-  }) : super(key: key);
+class CommentSectionProvider extends ChangeNotifier {
+  /* Maintains a list of comments associated with a post. The point of this 
+     provider is to update the list of comment widgets when the user adds a new
+     comment. */
 
-  final int postID;
+  CommentSectionProvider({this.post, List<Comment> commentsList})
+      : _commentsList = commentsList;
 
-  @override
-  Widget build(BuildContext context) {
-    // return Scaffold();
-    return ChangeNotifierProvider(
-      create: (context) => CommentsProvider(postID: postID),
-      child: CommentsPage(),
-    );
-  }
-}
-
-class CommentsProvider extends ChangeNotifier {
-  /* Manages state of entire comments section. Initially gets list of comments
-     from the server. _flattenCommentLevel() uses recursion to put all the 
-     comments into a single list. Provides functionality for updating the 
-     comments list when the user posts a new comment. 
-  */
-  CommentsProvider({this.postID});
-  List<Comment> _commentsList = [];
-  final int postID;
+  final Post post;
+  List<Comment> _commentsList;
 
   List<Comment> get commentsList {
     return _commentsList;
@@ -59,12 +51,75 @@ class CommentsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getAllComments() async {
-    String newUrl = backendConnection.url + "comments/$postID/comments/";
+  void addNewCommentToList(Map newCommentMap) {
+    // Finds the index of the comment that a user is responding to and inserts
+    // the new comment after this comment. If the user is making an original
+    // comment (not responding to another comment), then the new comment is
+    // inserted at the beginning of the list.
+
+    Comment newComment = Comment(
+        commentText: newCommentMap["commentText"], level: 1, userID: userID);
+
+    if (newCommentMap["parentComment"] != null) {
+      int parentIndex = _commentsList.indexOf(newCommentMap["parentComment"]);
+
+      _commentsList = _commentsList.sublist(0, parentIndex + 1) +
+          [newComment] +
+          _commentsList.sublist(parentIndex + 1, _commentsList.length);
+    } else {
+      _commentsList = [newComment] + _commentsList;
+    }
+
+    notifyListeners();
+  }
+}
+
+class CommentSection extends StatelessWidget {
+  CommentSection({@required this.height, @required this.post});
+
+  final double height;
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      child: FutureBuilder(
+          future: _getAllComments(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return ChangeNotifierProvider(
+                  create: (context) => CommentSectionProvider(
+                      post: post, commentsList: snapshot.data),
+                  child: Consumer<CommentSectionProvider>(
+                      builder: (context, provider, child) {
+                    return Column(
+                      children: <Widget>[
+                        Container(
+                            height: .9 * height,
+                            child: CommentsListView(
+                                commentsList: provider.commentsList)),
+                        Container(
+                            height: .1 * height,
+                            child: AddComment(
+                              post: provider.post,
+                              commentsList: provider.commentsList,
+                            )),
+                      ],
+                    );
+                  }));
+            } else {
+              return Center(child: Text("Loading"));
+            }
+          }),
+    );
+  }
+
+  Future<List<Comment>> _getAllComments() async {
+    String newUrl = backendConnection.url + "comments/${post.postID}/comments/";
     var response = await http.get(newUrl);
 
-    _commentsList =
-        _flattenCommentLevel(jsonDecode(response.body)["comments"], 1);
+    return _flattenCommentLevel(jsonDecode(response.body)["comments"], 1);
   }
 
   List<Comment> _flattenCommentLevel(var levelComments, int level) {
@@ -73,7 +128,7 @@ class CommentsProvider extends ChangeNotifier {
       commentsList.add(Comment(
           userID: comment["userID"],
           path: comment["path"],
-          comment: comment["comment"],
+          commentText: comment["comment"],
           datePosted: comment["datePosted"].toString(),
           level: level));
       commentsList += _flattenCommentLevel(comment["subComments"], level + 1);
@@ -82,39 +137,27 @@ class CommentsProvider extends ChangeNotifier {
   }
 }
 
-class CommentsPage extends StatelessWidget {
+class CommentsListView extends StatelessWidget {
+  const CommentsListView({
+    @required this.commentsList,
+    Key key,
+  }) : super(key: key);
+
+  final List<Comment> commentsList;
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<CommentsProvider>(
-        builder: (context, commentsProvider, child) {
-      return Container(
-        height: 450,
-        child: Stack(
-          children: <Widget>[
-            FutureBuilder(
-                future: commentsProvider.getAllComments(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return Container(
-                      child: ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        itemCount: commentsProvider.commentsList.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return CommentWidget(
-                            comment: commentsProvider.commentsList[index],
-                          );
-                        },
-                      ),
-                    );
-                  } else {
-                    return Center(child: Text("Loading"));
-                  }
-                }),
-            Container(alignment: Alignment.bottomCenter, child: AddComment()),
-          ],
-        ),
-      );
-    });
+    return Container(
+      child: ListView.builder(
+        scrollDirection: Axis.vertical,
+        itemCount: commentsList.length,
+        itemBuilder: (BuildContext context, int index) {
+          return CommentWidget(
+            comment: commentsList[index],
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -135,7 +178,7 @@ class CommentWidget extends StatelessWidget {
         children: <Widget>[
           CommentWidgetHeader(width: .35 * width, comment: comment),
           Text(
-            comment.comment,
+            breakIntoLines(comment.commentText, 22, 26),
             style: TextStyle(
               fontFamily: 'Helvetica Neue',
               fontSize: 18,
@@ -163,31 +206,34 @@ class CommentWidgetHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: width,
-      child: Row(
-        children: <Widget>[
-          Container(
-            width: 55.0,
-            height: 55.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-              // image: DecorationImage(
-              //   image: const AssetImage(''),
-              //   fit: BoxFit.cover,
-              // ),
-              border: Border.all(width: 3.0, color: const Color(0xff22a2ff)),
+      child: Column(children: <Widget>[
+        Row(
+          children: <Widget>[
+            Container(
+              width: 55.0,
+              height: 55.0,
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+                // image: DecorationImage(
+                //   image: const AssetImage(''),
+                //   fit: BoxFit.cover,
+                // ),
+                border: Border.all(width: 3.0, color: const Color(0xff22a2ff)),
+              ),
             ),
-          ),
-          Text(
-            comment.userID,
-            style: TextStyle(
-              fontFamily: 'Helvetica Neue',
-              fontSize: 15,
-              color: const Color(0xff707070),
+            Text(
+              comment.userID,
+              style: TextStyle(
+                fontFamily: 'Helvetica Neue',
+                fontSize: 15,
+                color: const Color(0xff707070),
+              ),
+              textAlign: TextAlign.left,
             ),
-            textAlign: TextAlign.left,
-          ),
-        ],
-      ),
+          ],
+        ),
+      ]),
     );
   }
 }
@@ -195,47 +241,158 @@ class CommentWidgetHeader extends StatelessWidget {
 class AddComment extends StatelessWidget {
   const AddComment({
     Key key,
+    @required this.post,
+    @required this.commentsList,
   }) : super(key: key);
+
+  final Post post;
+  final List<Comment> commentsList;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 343.0,
-      height: 52.0,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26.0),
-        color: const Color(0xffffffff),
-        border: Border.all(width: 1.0, color: const Color(0xff000000)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 12, right: 12),
-        child: Stack(
-          children: <Widget>[
-            Container(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Tap to add comment…',
-                style: TextStyle(
-                  fontFamily: 'SF Pro Text',
-                  fontSize: 20,
-                  color: const Color(0x69000000),
-                  letterSpacing: -0.48,
-                  height: 1.1,
+    return OutlineButton(
+      child: Container(
+        width: 343.0,
+        height: 52.0,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26.0),
+          color: const Color(0xffffffff),
+          border: Border.all(width: 1.0, color: const Color(0xff000000)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: Stack(
+            children: <Widget>[
+              Container(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Add a comment',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro Text',
+                    fontSize: 20,
+                    color: const Color(0x69000000),
+                    letterSpacing: -0.48,
+                    height: 1.1,
+                  ),
                 ),
-                textAlign: TextAlign.left,
               ),
-            ),
-            Container(
-              alignment: Alignment.centerRight,
-              child: SvgPicture.string(
-                _svg_myuv7f,
-                allowDrawingOutsideViewBox: true,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+      onPressed: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AddCommentScaffold(
+            post: post,
+            commentsList: commentsList,
+          ),
+        ),
+      ).then((newCommentMap) =>
+          Provider.of<CommentSectionProvider>(context, listen: false)
+              .addNewCommentToList(newCommentMap)),
     );
+  }
+}
+
+class AddCommentScaffold extends StatelessWidget {
+  AddCommentScaffold(
+      {@required this.post, @required this.commentsList, this.parentComment});
+
+  // Parent comment is the comment that a user is responding to. If the user
+  // making an initial comment (not a response to another comment), then
+  // parentComment is null.
+  final List<Comment> commentsList;
+  final Comment parentComment;
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextEditingController _textController = TextEditingController();
+
+    double postHeight = .6 * MediaQuery.of(context).size.height;
+    double postAspectRatio = postHeight / MediaQuery.of(context).size.width;
+
+    return Scaffold(
+        body: Stack(children: <Widget>[
+      Container(
+          alignment: Alignment.bottomCenter,
+          child: PostWidget(
+              post: post, height: postHeight, aspectRatio: postAspectRatio)),
+      Container(
+        color: Colors.white.withOpacity(.7),
+      ),
+      Column(
+        children: <Widget>[
+          Container(
+              height: .9 * postHeight,
+              child: CommentsListView(commentsList: commentsList)),
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: 343.0,
+              height: 52.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(26.0),
+                color: const Color(0xffffffff),
+                border: Border.all(width: 1.0, color: const Color(0xff000000)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Stack(
+                  children: <Widget>[
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      child: TextFormField(
+                        style: TextStyle(
+                          fontFamily: 'SF Pro Text',
+                          fontSize: 20,
+                          color: const Color(0x69000000),
+                          letterSpacing: -0.48,
+                          height: 1.1,
+                        ),
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                        ),
+                        autofocus: true,
+                        controller: _textController,
+                        onFieldSubmitted: (_) => Navigator.pop(context, null),
+                      ),
+                    ),
+                    Container(
+                      alignment: Alignment.centerRight,
+                      child: FlatButton(
+                        child: SvgPicture.string(
+                          _svg_myuv7f,
+                          allowDrawingOutsideViewBox: true,
+                        ),
+                        onPressed: () =>
+                            _postComment(context, _textController.text),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      )
+    ]));
+  }
+
+  Future<void> _postComment(BuildContext context, String commentText) async {
+    String postID = post.postID;
+    String commentPath = (parentComment != null) ? parentComment.path : '';
+
+    String newUrl = backendConnection.url +
+        "comments/${postID.toString()}/comments/$userID/";
+    var response = await http
+        .post(newUrl, body: {"path": commentPath, "comment": commentText});
+
+    if (response.statusCode == 200) {
+      Navigator.pop(context,
+          {'commentText': commentText, 'parentComment': parentComment});
+    }
   }
 }
 

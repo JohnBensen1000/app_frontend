@@ -9,7 +9,7 @@ import 'chat_page.dart';
 
 final serverAPI = new ServerAPI();
 
-String userID = "John1000";
+String userID = "Nick1000";
 double goldenRatio = 1.6180;
 
 class User {
@@ -23,13 +23,16 @@ class Post {
   //Constructor
   String userID;
   String username;
+  String postID;
   bool isImage;
   var postURL;
 
   Post.fromJson(Map postJson) {
+    print(postJson);
     this.userID = postJson["userID"];
     this.username = postJson["username"];
     this.isImage = postJson["isImage"];
+    this.postID = postJson["postID"].toString();
 
     String fileExtension = (this.isImage) ? 'png' : 'mp4';
 
