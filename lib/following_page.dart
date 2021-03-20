@@ -85,11 +85,10 @@ class _PostListScrollerState extends State<PostListScroller> {
   @override
   Widget build(BuildContext context) {
     postWidgets = [
-      buildPostWidget(postListIndex - 1),
-      buildPostWidget(postListIndex),
-      buildPostWidget(postListIndex + 1)
+      _buildPostWidget(postListIndex - 1),
+      _buildPostWidget(postListIndex),
+      _buildPostWidget(postListIndex + 1)
     ];
-
     offsets = [-postVerticalOffset, 0, postVerticalOffset];
 
     return ChangeNotifierProvider(
@@ -99,25 +98,27 @@ class _PostListScrollerState extends State<PostListScroller> {
         return Stack(children: [
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + offsets[0]),
-            child: buildGestureDetector(provider, postWidgets[0]),
+            child: _buildGestureDetector(provider, postWidgets[0]),
           ),
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + offsets[1]),
-            child: buildGestureDetector(provider, postWidgets[1]),
+            child: _buildGestureDetector(provider, postWidgets[1]),
           ),
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + offsets[2]),
-            child: buildGestureDetector(provider, postWidgets[2]),
+            child: _buildGestureDetector(provider, postWidgets[2]),
           ),
         ]);
       }),
     );
   }
 
-  Future<PostWidget> buildPostWidget(int index) async {
+  Future<PostWidget> _buildPostWidget(int index) async {
     // Looks to see if index is a valid index of widget.postList. If it is,
     // builds and returns a PostWidget() that corresponds to the correct
-    // item of widget.postList.
+    // item of widget.postList. If the post is a video, then this function
+    // initializes the videoController that will be used to play/pause the
+    // video.
 
     if (index < 0 || index >= widget.postList.length) {
       return null;
@@ -139,14 +140,12 @@ class _PostListScrollerState extends State<PostListScroller> {
         onlyShowBody: false,
         videoController: videoController,
       );
-      if (post.isImage == false) {
-        videoController.pause();
-      }
+
       return postWidget;
     }
   }
 
-  GestureDetector buildGestureDetector(
+  GestureDetector _buildGestureDetector(
       PostListScrollerProvider provider, Future<PostWidget> postWidget) {
     // Returns a GestureDetector that contains a post widget and updates the
     // provider whenever it detects a vertical drag.
@@ -171,7 +170,7 @@ class _PostListScrollerState extends State<PostListScroller> {
     return gestureDetector;
   }
 
-  void handleVerticalDragStop(double verticalOffset) {
+  void handleVerticalDragStop(double verticalOffset) async {
     // Responsible for determine what post widget to display whenever a vertical
     // drag is detected. If the user swipes down, then both the current and next
     // post widget are shifted up. The previous post widget is replaced with the
@@ -190,7 +189,8 @@ class _PostListScrollerState extends State<PostListScroller> {
         offsets[currIndex] = -postVerticalOffset;
         offsets[nextIndex] = 0;
 
-        postWidgets[prevIndex] = buildPostWidget(postListIndex + 1);
+        await _dealWithVideoControllers(nextIndex, currIndex, prevIndex);
+        postWidgets[prevIndex] = _buildPostWidget(postListIndex + 1);
         offsets[prevIndex] = postVerticalOffset;
       } else {
         // TODO: When user runs out of posts to watch, request more posts from server
@@ -202,11 +202,34 @@ class _PostListScrollerState extends State<PostListScroller> {
         offsets[prevIndex] = 0;
         offsets[currIndex] = postVerticalOffset;
 
-        postWidgets[nextIndex] = buildPostWidget(postListIndex - 1);
+        await _dealWithVideoControllers(prevIndex, currIndex, nextIndex);
+        postWidgets[nextIndex] = _buildPostWidget(postListIndex - 1);
         offsets[nextIndex] = -postVerticalOffset;
       } else {
         // TODO: When user runs out of posts to watch, request more posts from server
       }
+    }
+  }
+
+  Future<void> _dealWithVideoControllers(
+      int indexPlay, int indexPause, int indexDispose) async {
+    // This function only applies to video posts. Plays a video if it comes
+    // into view. Pauses a video if it goes off screen. Disposes a video
+    // controller if its PostWidget() is replaced.
+    PostWidget postWidgetPlay = await postWidgets[indexPlay];
+    PostWidget postWidgetPause = await postWidgets[indexPause];
+    PostWidget postWidgetDispose = await postWidgets[indexDispose];
+
+    if (postWidgetPlay != null && postWidgetPlay.videoController != null) {
+      await postWidgetPlay.videoController.play();
+    }
+    if (postWidgetPause != null && postWidgetPause.videoController != null) {
+      await postWidgetPause.videoController.pause();
+      await postWidgetPause.videoController.seekTo(Duration(microseconds: 0));
+    }
+    if (postWidgetDispose != null &&
+        postWidgetDispose.videoController != null) {
+      await postWidgetDispose.videoController.dispose();
     }
   }
 }

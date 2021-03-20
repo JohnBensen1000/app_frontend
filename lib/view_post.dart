@@ -385,13 +385,15 @@ class VideoContainer extends StatefulWidget {
 
 class _VideoContainerState extends State<VideoContainer> {
   VideoPlayerController _controller;
-  bool _isPlaying;
+  bool _isPlaying = false;
 
   @override
   void initState() {
     if (widget.videoController == null) {
       _controller = VideoPlayerController.network(widget.videoDownloadUrl);
       _controller.setLooping(true);
+    } else {
+      _controller = widget.videoController;
     }
     super.initState();
   }
@@ -411,10 +413,13 @@ class _VideoContainerState extends State<VideoContainer> {
     Post post = PostWidgetState.of(context).post;
 
     return FutureBuilder(
-        future: _initializeVideoController(),
+        future: _controller.initialize(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            if (widget.videoController == null) _playVideo();
+            if (widget.videoController == null) {
+              _controller.play();
+              _isPlaying = true;
+            }
             return GestureDetector(
               child: Container(
                   width: width - 2,
@@ -422,14 +427,14 @@ class _VideoContainerState extends State<VideoContainer> {
                   child: ClipRRect(
                     borderRadius:
                         BorderRadius.circular(widget.cornerRadius - 1),
-                    child: _getVideoPlayer(),
+                    child: VideoPlayer(_controller),
                   )),
               onTap: () {
-                if (_isPlaying) {
-                  _pauseVideo();
-                } else {
-                  _playVideo();
-                }
+                if (_isPlaying)
+                  _controller.pause();
+                else
+                  _controller.play();
+                _isPlaying = !_isPlaying;
               },
               onLongPress: () {
                 Navigator.push(
@@ -445,37 +450,6 @@ class _VideoContainerState extends State<VideoContainer> {
             return Center(child: Text("Loading..."));
           }
         });
-  }
-
-  Future<void> _initializeVideoController() async {
-    if (widget.videoController == null) {
-      await _controller.initialize();
-    } else {
-      await widget.videoController.initialize();
-    }
-  }
-
-  VideoPlayer _getVideoPlayer() {
-    if (widget.videoController == null)
-      return VideoPlayer(_controller);
-    else
-      return VideoPlayer(widget.videoController);
-  }
-
-  void _playVideo() {
-    if (widget.videoController == null)
-      widget.videoController.play();
-    else
-      _controller.play();
-    _isPlaying = true;
-  }
-
-  void _pauseVideo() {
-    if (widget.videoController == null)
-      widget.videoController.pause();
-    else
-      _controller.pause();
-    _isPlaying = false;
   }
 }
 
