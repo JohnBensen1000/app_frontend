@@ -95,6 +95,7 @@ class PostWidget extends StatelessWidget {
     this.onlyShowBody = true,
     this.isViewPost = false,
     this.onlyShowBodyAfterPressed = false,
+    this.videoController,
   });
 
   final Post post;
@@ -104,6 +105,7 @@ class PostWidget extends StatelessWidget {
   final bool onlyShowBody;
   final bool isViewPost;
   final bool onlyShowBodyAfterPressed;
+  final VideoPlayerController videoController;
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +119,7 @@ class PostWidget extends StatelessWidget {
             aspectRatio: aspectRatio,
             isViewPost: isViewPost,
             onlyShowBodyAfterPressed: onlyShowBodyAfterPressed,
+            videoController: videoController,
             child: Container(
               height: containerHeight,
               width: height / aspectRatio,
@@ -144,6 +147,7 @@ class PostWidgetState extends InheritedWidget {
     @required this.isViewPost,
     @required this.child,
     @required this.onlyShowBodyAfterPressed,
+    @required this.videoController,
   });
 
   final Post post;
@@ -153,6 +157,7 @@ class PostWidgetState extends InheritedWidget {
   final Widget child;
   final bool isViewPost;
   final bool onlyShowBodyAfterPressed;
+  final VideoPlayerController videoController;
 
   static PostWidgetState of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<PostWidgetState>();
@@ -203,7 +208,7 @@ class PostHeader extends StatelessWidget {
   }
 }
 
-class PostBody extends StatelessWidget {
+class PostBody extends StatefulWidget {
   // The PostBody() widget contains a Container() that has either a video or
   // image inside of it, and a FlatButton() that allows the user to open the
   // comments section. If playOnInit is set to false, then the Container()
@@ -213,6 +218,11 @@ class PostBody extends StatelessWidget {
     Key key,
   }) : super(key: key);
 
+  @override
+  _PostBodyState createState() => _PostBodyState();
+}
+
+class _PostBodyState extends State<PostBody> {
   Post post;
   double height;
   double width;
@@ -249,6 +259,7 @@ class PostBody extends StatelessWidget {
                 return VideoContainer(
                   videoDownloadUrl: snapshot.data,
                   cornerRadius: cornerRadius,
+                  videoController: PostWidgetState.of(context).videoController,
                 );
               else
                 return ImageContainer(
@@ -289,7 +300,7 @@ class PostBody extends StatelessWidget {
   }
 }
 
-class ImageContainer extends StatelessWidget {
+class ImageContainer extends StatefulWidget {
   ImageContainer({
     Key key,
     @required this.postImage,
@@ -301,6 +312,11 @@ class ImageContainer extends StatelessWidget {
   final double cornerRadius;
   final bool isThumbnail;
 
+  @override
+  _ImageContainerState createState() => _ImageContainerState();
+}
+
+class _ImageContainerState extends State<ImageContainer> {
   double height, width;
 
   @override
@@ -316,9 +332,9 @@ class ImageContainer extends StatelessWidget {
         height: height - 2,
         width: width - 2,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(cornerRadius - 1),
+          borderRadius: BorderRadius.circular(widget.cornerRadius - 1),
           image: DecorationImage(
-            image: postImage,
+            image: widget.postImage,
             fit: BoxFit.cover,
           ),
         ),
@@ -338,7 +354,7 @@ class ImageContainer extends StatelessWidget {
   }
 
   Widget _displayIfThumbnail() {
-    if (isThumbnail)
+    if (widget.isThumbnail)
       return Container(
           padding: EdgeInsets.all(height * .03),
           alignment: Alignment.topRight,
@@ -356,10 +372,12 @@ class VideoContainer extends StatefulWidget {
     Key key,
     @required this.videoDownloadUrl,
     @required this.cornerRadius,
+    @required this.videoController,
   }) : super(key: key);
 
   final String videoDownloadUrl;
   final double cornerRadius;
+  final VideoPlayerController videoController;
 
   @override
   _VideoContainerState createState() => _VideoContainerState();
@@ -371,14 +389,18 @@ class _VideoContainerState extends State<VideoContainer> {
 
   @override
   void initState() {
-    _controller = VideoPlayerController.network(widget.videoDownloadUrl);
-    _controller.setLooping(true);
+    if (widget.videoController == null) {
+      _controller = VideoPlayerController.network(widget.videoDownloadUrl);
+      _controller.setLooping(true);
+    }
     super.initState();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget.videoController == null) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 
@@ -389,51 +411,71 @@ class _VideoContainerState extends State<VideoContainer> {
     Post post = PostWidgetState.of(context).post;
 
     return FutureBuilder(
-      future: _controller.initialize(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return FutureBuilder(
-              future: _controller.play(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  _isPlaying = true;
-                  return GestureDetector(
-                    child: Container(
-                      width: width - 2,
-                      height: height - 2,
-                      child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(widget.cornerRadius - 1),
-                          child: VideoPlayer(_controller)),
-                    ),
-                    onTap: () {
-                      if (_isPlaying) {
-                        _controller.pause();
-                        _isPlaying = false;
-                      } else {
-                        _controller.play();
-                        _isPlaying = true;
-                      }
-                    },
-                    onLongPress: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ViewPost(
-                                  post: post,
-                                )),
-                      );
-                    },
-                  );
+        future: _initializeVideoController(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (widget.videoController == null) _playVideo();
+            return GestureDetector(
+              child: Container(
+                  width: width - 2,
+                  height: height - 2,
+                  child: ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(widget.cornerRadius - 1),
+                    child: _getVideoPlayer(),
+                  )),
+              onTap: () {
+                if (_isPlaying) {
+                  _pauseVideo();
                 } else {
-                  return Center(child: Text("Loading..."));
+                  _playVideo();
                 }
-              });
-        } else {
-          return Center(child: Text("Loading..."));
-        }
-      },
-    );
+              },
+              onLongPress: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ViewPost(
+                            post: post,
+                          )),
+                );
+              },
+            );
+          } else {
+            return Center(child: Text("Loading..."));
+          }
+        });
+  }
+
+  Future<void> _initializeVideoController() async {
+    if (widget.videoController == null) {
+      await _controller.initialize();
+    } else {
+      await widget.videoController.initialize();
+    }
+  }
+
+  VideoPlayer _getVideoPlayer() {
+    if (widget.videoController == null)
+      return VideoPlayer(_controller);
+    else
+      return VideoPlayer(widget.videoController);
+  }
+
+  void _playVideo() {
+    if (widget.videoController == null)
+      widget.videoController.play();
+    else
+      _controller.play();
+    _isPlaying = true;
+  }
+
+  void _pauseVideo() {
+    if (widget.videoController == null)
+      widget.videoController.pause();
+    else
+      _controller.pause();
+    _isPlaying = false;
   }
 }
 

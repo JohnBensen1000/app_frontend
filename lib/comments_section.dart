@@ -18,21 +18,21 @@ class Comment {
      comment */
 
   final String userID;
-  final String path;
   final String commentText;
+  final List<Comment> subComments;
+  final String path;
   final String datePosted;
-  final int level;
 
   Comment(
       {@required this.commentText,
-      @required this.level,
       @required this.userID,
+      @required this.subComments,
       this.path,
       this.datePosted});
 }
 
 class CommentSectionProvider extends ChangeNotifier {
-  /* Maintains a list of comments associated with a post. The point of this 
+  /* Maintains a list of comments associated with a post. The point of this
      provider is to update the list of comment widgets when the user adds a new
      comment. */
 
@@ -51,27 +51,27 @@ class CommentSectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addNewCommentToList(Map newCommentMap) {
-    // Finds the index of the comment that a user is responding to and inserts
-    // the new comment after this comment. If the user is making an original
-    // comment (not responding to another comment), then the new comment is
-    // inserted at the beginning of the list.
+  // void addNewCommentToList(Map newCommentMap) {
+  //   // Finds the index of the comment that a user is responding to and inserts
+  //   // the new comment after this comment. If the user is making an original
+  //   // comment (not responding to another comment), then the new comment is
+  //   // inserted at the beginning of the list.
 
-    Comment newComment = Comment(
-        commentText: newCommentMap["commentText"], level: 1, userID: userID);
+  //   Comment newComment = Comment(
+  //       commentText: newCommentMap["commentText"], level: 1, userID: userID);
 
-    if (newCommentMap["parentComment"] != null) {
-      int parentIndex = _commentsList.indexOf(newCommentMap["parentComment"]);
+  //   if (newCommentMap["parentComment"] != null) {
+  //     int parentIndex = _commentsList.indexOf(newCommentMap["parentComment"]);
 
-      _commentsList = _commentsList.sublist(0, parentIndex + 1) +
-          [newComment] +
-          _commentsList.sublist(parentIndex + 1, _commentsList.length);
-    } else {
-      _commentsList = [newComment] + _commentsList;
-    }
+  //     _commentsList = _commentsList.sublist(0, parentIndex + 1) +
+  //         [newComment] +
+  //         _commentsList.sublist(parentIndex + 1, _commentsList.length);
+  //   } else {
+  //     _commentsList = [newComment] + _commentsList;
+  //   }
 
-    notifyListeners();
-  }
+  //   notifyListeners();
+  // }
 }
 
 class CommentSection extends StatelessWidget {
@@ -120,19 +120,19 @@ class CommentSection extends StatelessWidget {
     String newUrl = backendConnection.url + "comments/${post.postID}/comments/";
     var response = await http.get(newUrl);
 
-    return _flattenCommentLevel(jsonDecode(response.body)["comments"], 1);
+    return _flattenCommentLevel(jsonDecode(response.body)["comments"]);
   }
 
-  List<Comment> _flattenCommentLevel(var levelComments, int level) {
+  List<Comment> _flattenCommentLevel(var levelComments) {
     List<Comment> commentsList = [];
     for (var comment in levelComments) {
       commentsList.add(Comment(
-          userID: comment["userID"],
-          path: comment["path"],
-          commentText: comment["comment"],
-          datePosted: comment["datePosted"].toString(),
-          level: level));
-      commentsList += _flattenCommentLevel(comment["subComments"], level + 1);
+        userID: comment["userID"],
+        commentText: comment["comment"],
+        subComments: _flattenCommentLevel(comment["subComments"]),
+        datePosted: comment["datePosted"].toString(),
+        path: comment["path"],
+      ));
     }
     return commentsList;
   }
@@ -142,48 +142,57 @@ class CommentsListView extends StatelessWidget {
   const CommentsListView({
     @required this.commentsList,
     @required this.post,
-    this.displayReplyButton = true,
     Key key,
   }) : super(key: key);
 
   final List<Comment> commentsList;
   final Post post;
-  final bool displayReplyButton;
 
   @override
   Widget build(BuildContext context) {
+    List<CommentWidget> commentWidgetList =
+        _getCommentsAndFirstResponses(commentsList, 0);
+
     return Container(
       child: ListView.builder(
         scrollDirection: Axis.vertical,
-        itemCount: commentsList.length,
+        itemCount: commentWidgetList.length,
         itemBuilder: (BuildContext context, int index) {
-          return CommentWidget(
-            commentsList: commentsList,
-            index: index,
-            post: post,
-            displayReplyButton: displayReplyButton,
-          );
+          return commentWidgetList[index];
         },
       ),
     );
+  }
+
+  List<CommentWidget> _getCommentsAndFirstResponses(
+      List<Comment> _commentList, int level) {
+    List<CommentWidget> commentWidgetList = [];
+
+    for (var comment in _commentList) {
+      commentWidgetList
+          .add(CommentWidget(comment: comment, post: post, level: level));
+      commentWidgetList +=
+          _getCommentsAndFirstResponses(comment.subComments, level + 1);
+    }
+    return commentWidgetList;
   }
 }
 
 class CommentWidget extends StatelessWidget {
   CommentWidget(
-      {@required this.commentsList,
-      @required this.index,
+      {@required this.comment,
       @required this.post,
-      @required this.displayReplyButton});
+      @required this.level,
+      this.showReplyBotton = true});
 
-  final List<Comment> commentsList;
-  final int index;
+  final Comment comment;
   final Post post;
-  final bool displayReplyButton;
+  final int level;
+  final bool showReplyBotton;
 
   @override
   Widget build(BuildContext context) {
-    double leftPadding = 20.0 * commentsList[index].level;
+    double leftPadding = 40.0 * level;
     double width = MediaQuery.of(context).size.width - leftPadding;
 
     return Container(
@@ -192,15 +201,14 @@ class CommentWidget extends StatelessWidget {
         children: <Widget>[
           CommentWidgetHeader(
             width: .35 * width,
-            commentsList: commentsList,
-            index: index,
+            comment: comment,
             post: post,
-            displayReplyButton: displayReplyButton,
+            showReplyBotton: showReplyBotton,
           ),
           Container(
             padding: EdgeInsets.only(left: .35 * width),
             child: Text(
-              breakIntoLines(commentsList[index].commentText, 22, 26),
+              breakIntoLines(comment.commentText, 22, 26),
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
                 fontSize: 18,
@@ -216,20 +224,18 @@ class CommentWidget extends StatelessWidget {
 }
 
 class CommentWidgetHeader extends StatelessWidget {
-  const CommentWidgetHeader(
-      {Key key,
-      @required this.width,
-      @required this.commentsList,
-      @required this.index,
-      @required this.post,
-      @required this.displayReplyButton})
-      : super(key: key);
+  const CommentWidgetHeader({
+    Key key,
+    @required this.width,
+    @required this.comment,
+    @required this.post,
+    @required this.showReplyBotton,
+  }) : super(key: key);
 
   final double width;
-  final List<Comment> commentsList;
-  final int index;
+  final Comment comment;
   final Post post;
-  final bool displayReplyButton;
+  final bool showReplyBotton;
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +258,7 @@ class CommentWidgetHeader extends StatelessWidget {
               ),
             ),
             Text(
-              commentsList[index].userID,
+              comment.userID,
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
                 fontSize: 15,
@@ -262,21 +268,22 @@ class CommentWidgetHeader extends StatelessWidget {
             ),
           ],
         ),
-        // if (displayReplyButton == true)
-        //   Container(
-        //     height: 20,
-        //     alignment: Alignment.centerLeft,
-        //     child: FlatButton(
-        //       child: Text("Reply"),
-        //       onPressed: () => Navigator.push(
-        //           context,
-        //           MaterialPageRoute(
-        //               builder: (context) => AddCommentScaffold(
-        //                   post: post, commentsList: commentsList))),
-        //     ),
-        //   )
-        // else
-        //   Container(height: 20)
+        if (showReplyBotton)
+          Container(
+            height: 20,
+            alignment: Alignment.centerLeft,
+            child: FlatButton(
+              child: Text("Reply"),
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AddCommentScaffold(
+                            post: post,
+                            commentsList: comment.subComments,
+                            parentComment: comment,
+                          ))),
+            ),
+          )
       ]),
     );
   }
@@ -332,9 +339,7 @@ class AddComment extends StatelessWidget {
             commentsList: commentsList,
           ),
         ),
-      ).then((newCommentMap) =>
-          Provider.of<CommentSectionProvider>(context, listen: false)
-              .addNewCommentToList(newCommentMap)),
+      ).then((newCommentMap) => print(newCommentMap)),
     );
   }
 }
@@ -346,9 +351,9 @@ class AddCommentScaffold extends StatelessWidget {
   // Parent comment is the comment that a user is responding to. If the user
   // making an initial comment (not a response to another comment), then
   // parentComment is null.
+  final Post post;
   final List<Comment> commentsList;
   final Comment parentComment;
-  final Post post;
 
   @override
   Widget build(BuildContext context) {
@@ -369,10 +374,22 @@ class AddCommentScaffold extends StatelessWidget {
       Column(
         children: <Widget>[
           Container(
-              height: .9 * postHeight,
+              padding: EdgeInsets.only(top: 45),
+              decoration: new BoxDecoration(
+                  border: Border(
+                      bottom: BorderSide(width: 1, color: Colors.black))),
+              child: CommentWidget(
+                comment: parentComment,
+                post: post,
+                level: 0,
+                showReplyBotton: false,
+              )),
+          Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              height: .65 * postHeight,
               child: CommentsListView(
                 commentsList: commentsList,
-                displayReplyButton: false,
+                post: post,
               )),
           Container(
             alignment: Alignment.bottomCenter,

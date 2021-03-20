@@ -9,7 +9,7 @@ import 'chat_page.dart';
 
 final serverAPI = new ServerAPI();
 
-String userID = "Nick1000";
+String userID = "Collin1000";
 double goldenRatio = 1.6180;
 
 class User {
@@ -28,7 +28,6 @@ class Post {
   var postURL;
 
   Post.fromJson(Map postJson) {
-    print(postJson);
     this.userID = postJson["userID"];
     this.username = postJson["username"];
     this.isImage = postJson["isImage"];

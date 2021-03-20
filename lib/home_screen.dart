@@ -93,118 +93,122 @@ class NavigationBar extends PreferredSize {
     if (pageProvider.pageLabel == PageLabel.discover) navBarOffset = -84.0;
     if (pageProvider.pageLabel == PageLabel.following) navBarOffset = 84.0;
 
-    return Column(
-      children: <Widget>[
-        Container(
-          height: 70.0,
-        ),
-        SvgPicture.string(
-          _svg_rfs5b5,
-          allowDrawingOutsideViewBox: true,
-        ),
-        Container(
-          padding: const EdgeInsets.only(left: 30, top: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Container(
-                width: 24.0,
-                height: 24.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                  // image: DecorationImage(
-                  //   image: const AssetImage(''),
-                  //   fit: BoxFit.cover,
-                  // ),
-                  border:
-                      Border.all(width: 1.0, color: const Color(0xff707070)),
-                ),
-              ),
-              Row(children: <Widget>[
-                Container(
-                    width: 100,
-                    height: 30,
-                    decoration: new BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(20)),
-                      color: Colors.grey[300],
-                    ),
-                    child: FlatButton(
-                      child: Text("Search", textAlign: TextAlign.center),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SearchPage()),
-                        );
-                      },
-                    )),
-                ButtonTheme(
-                  minWidth: 40,
-                  child: FlatButton(
-                    child: SvgPicture.string(
-                      _svg_n49k6t,
-                      allowDrawingOutsideViewBox: true,
-                      fit: BoxFit.fill,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NewPost()),
-                      );
-                    },
-                  ),
-                ),
-              ]),
-            ],
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: <Widget>[
+          Container(
+            height: 70.0,
           ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Container(
-              width: 240,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  NavButton(
-                    pageName: "Discover",
-                    pageLabel: PageLabel.discover,
-                  ),
-                  NavButton(
-                    pageName: "Friends",
-                    pageLabel: PageLabel.friends,
-                  ),
-                  NavButton(
-                    pageName: "Following",
-                    pageLabel: PageLabel.following,
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              child: Transform.translate(
-                offset: Offset(0, -10),
-                child: Container(
-                  width: 212.0,
-                  height: 7.0,
+          SvgPicture.string(
+            _svg_rfs5b5,
+            allowDrawingOutsideViewBox: true,
+          ),
+          Container(
+            padding: const EdgeInsets.only(left: 30, top: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Container(
+                  width: 24.0,
+                  height: 24.0,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4.0),
-                    color: const Color(0xffffffff),
+                    borderRadius: BorderRadius.circular(8.0),
+                    // image: DecorationImage(
+                    //   image: const AssetImage(''),
+                    //   fit: BoxFit.cover,
+                    // ),
                     border:
                         Border.all(width: 1.0, color: const Color(0xff707070)),
                   ),
-                  child: Transform.translate(
-                    offset: Offset(navBarOffset, 0),
-                    child: SvgPicture.string(
-                      _svg_cayeaa,
-                      allowDrawingOutsideViewBox: true,
+                ),
+                Row(children: <Widget>[
+                  Container(
+                      width: 100,
+                      height: 30,
+                      decoration: new BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        color: Colors.grey[300],
+                      ),
+                      child: FlatButton(
+                        child: Text("Search", textAlign: TextAlign.center),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SearchPage()),
+                          );
+                        },
+                      )),
+                  ButtonTheme(
+                    minWidth: 40,
+                    child: FlatButton(
+                      child: SvgPicture.string(
+                        _svg_n49k6t,
+                        allowDrawingOutsideViewBox: true,
+                        fit: BoxFit.fill,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => NewPost()),
+                        );
+                      },
+                    ),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                width: 240,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    NavButton(
+                      pageName: "Discover",
+                      pageLabel: PageLabel.discover,
+                    ),
+                    NavButton(
+                      pageName: "Friends",
+                      pageLabel: PageLabel.friends,
+                    ),
+                    NavButton(
+                      pageName: "Following",
+                      pageLabel: PageLabel.following,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                child: Transform.translate(
+                  offset: Offset(0, -10),
+                  child: Container(
+                    width: 212.0,
+                    height: 7.0,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4.0),
+                      color: const Color(0xffffffff),
+                      border: Border.all(
+                          width: 1.0, color: const Color(0xff707070)),
+                    ),
+                    child: Transform.translate(
+                      offset: Offset(navBarOffset, 0),
+                      child: SvgPicture.string(
+                        _svg_cayeaa,
+                        allowDrawingOutsideViewBox: true,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
