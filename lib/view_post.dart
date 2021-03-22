@@ -400,9 +400,8 @@ class _VideoContainerState extends State<VideoContainer> {
 
   @override
   void dispose() {
-    if (widget.videoController == null) {
-      _controller.dispose();
-    }
+    _controller.dispose();
+
     super.dispose();
   }
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'dart:core';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
@@ -40,27 +39,9 @@ class FollowingPage extends StatelessWidget {
 
 class PostListScrollerProvider extends ChangeNotifier {
   // Keeps track of the vertical offset of the posts in PostListScroller. Allows
-  // for smooth sliding up and down of the posts. swipeUp(), swipeDown(), and
-  // moveBack() all slowly change the vertical offsets to create a smooth
-  // transition from one post to the next (or to the same post as with
-  // moveBack()
-
-  final double _postVerticalOffset;
+  // for smooth sliding up and down of the posts.
 
   double _verticalOffset = 0;
-  List<double> offsets;
-  int prevIndex, currIndex, nextIndex;
-
-  PostListScrollerProvider({@required double postVerticalOffset})
-      : _postVerticalOffset = postVerticalOffset {
-    offsets = [-_postVerticalOffset, 0, _postVerticalOffset];
-  }
-
-  void findIndexes() {
-    prevIndex = offsets.indexOf(-_postVerticalOffset);
-    currIndex = offsets.indexOf(0);
-    nextIndex = offsets.indexOf(_postVerticalOffset);
-  }
 
   double get verticalOffset {
     return _verticalOffset;
@@ -71,46 +52,8 @@ class PostListScrollerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void swipeUp() async {
-    for (int i = 0; i < 100 * (_postVerticalOffset + _verticalOffset); i++) {
-      _updateOffsets(0, -.01, -.01);
-      await Future.delayed(Duration(microseconds: 10));
-    }
-    _setOffsets(_postVerticalOffset, -_postVerticalOffset, 0);
-  }
-
-  void swipeDown() async {
-    for (int i = 0; i < 100 * (_postVerticalOffset - _verticalOffset); i++) {
-      _updateOffsets(.01, .01, 0);
-      await Future.delayed(Duration(microseconds: 10));
-    }
-    _setOffsets(0, _postVerticalOffset, -_postVerticalOffset);
-  }
-
-  void moveBack() async {
-    double direction = (_verticalOffset > 0) ? -.01 : .01;
-
-    for (int i = 0; i < 100 * _verticalOffset.abs(); i++) {
-      _updateOffsets(direction, direction, direction);
-      await Future.delayed(Duration(microseconds: 10));
-    }
-    _setOffsets(-_postVerticalOffset, 0, _postVerticalOffset);
-  }
-
-  void _updateOffsets(double prevUpdate, double currUpdate, double nextUpdate) {
-    offsets[prevIndex] += prevUpdate;
-    offsets[currIndex] += currUpdate;
-    offsets[nextIndex] += nextUpdate;
-    notifyListeners();
-  }
-
-  void _setOffsets(double prevOffset, double currOffset, double nextOffset) {
-    offsets[prevIndex] = prevOffset;
-    offsets[currIndex] = currOffset;
-    offsets[nextIndex] = nextOffset;
-
-    _verticalOffset = 0;
-
+  void addToVerticalOffset(double changeInVerticaloffset) {
+    _verticalOffset += changeInVerticaloffset;
     notifyListeners();
   }
 }
@@ -137,6 +80,7 @@ class _PostListScrollerState extends State<PostListScroller> {
   double postVerticalOffset = 650;
 
   List<Future<PostWidget>> postWidgets;
+  List<double> offsets;
 
   @override
   Widget build(BuildContext context) {
@@ -145,22 +89,23 @@ class _PostListScrollerState extends State<PostListScroller> {
       _buildPostWidget(postListIndex),
       _buildPostWidget(postListIndex + 1)
     ];
+    offsets = [-postVerticalOffset, 0, postVerticalOffset];
+
     return ChangeNotifierProvider(
-      create: (context) =>
-          PostListScrollerProvider(postVerticalOffset: postVerticalOffset),
+      create: (context) => PostListScrollerProvider(),
       child: Consumer<PostListScrollerProvider>(
           builder: (context, provider, child) {
         return Stack(children: [
           Transform.translate(
-            offset: Offset(0, provider.verticalOffset + provider.offsets[0]),
+            offset: Offset(0, provider.verticalOffset + offsets[0]),
             child: _buildGestureDetector(provider, postWidgets[0]),
           ),
           Transform.translate(
-            offset: Offset(0, provider.verticalOffset + provider.offsets[1]),
+            offset: Offset(0, provider.verticalOffset + offsets[1]),
             child: _buildGestureDetector(provider, postWidgets[1]),
           ),
           Transform.translate(
-            offset: Offset(0, provider.verticalOffset + provider.offsets[2]),
+            offset: Offset(0, provider.verticalOffset + offsets[2]),
             child: _buildGestureDetector(provider, postWidgets[2]),
           ),
         ]);
@@ -216,16 +161,16 @@ class _PostListScrollerState extends State<PostListScroller> {
             }
           }),
       onVerticalDragUpdate: (value) =>
-          provider.verticalOffset += value.delta.dy,
+          provider.addToVerticalOffset(value.delta.dy),
       onVerticalDragEnd: (_) {
-        _handleVerticalDragStop(provider);
+        _handleVerticalDragStop(provider.verticalOffset);
+        provider.verticalOffset = 0;
       },
     );
     return gestureDetector;
   }
 
-  Future<void> _handleVerticalDragStop(
-      PostListScrollerProvider provider) async {
+  Future<void> _handleVerticalDragStop(double verticalOffset) async {
     // Responsible for determine what post widget to display whenever a vertical
     // drag is detected. If the user swipes down, then both the current and next
     // post widget are shifted up. The previous post widget is replaced with the
@@ -233,33 +178,51 @@ class _PostListScrollerState extends State<PostListScroller> {
     // The same logic applies for the user swiping up. Nothing happens if the
     // current post widget is either the first or last post in postList.
 
-    provider.findIndexes();
+    int prevIndex = offsets.indexOf(-postVerticalOffset);
+    int currIndex = offsets.indexOf(0);
+    int nextIndex = offsets.indexOf(postVerticalOffset);
 
-    if (postListIndex + 1 < widget.postList.length &&
-        provider.verticalOffset < -(postVerticalOffset / 4)) {
-      postListIndex++;
-      provider.swipeUp();
-      await _dealWithVideoControllers(await postWidgets[provider.nextIndex],
-          await postWidgets[provider.currIndex]);
-
-      postWidgets[provider.prevIndex] = _buildPostWidget(postListIndex + 1);
-    } else if (postListIndex - 1 >= 0 &&
-        provider.verticalOffset > (postVerticalOffset / 4)) {
-      postListIndex--;
-      provider.swipeDown();
-      await _dealWithVideoControllers(await postWidgets[provider.prevIndex],
-          await postWidgets[provider.currIndex]);
-
-      postWidgets[provider.nextIndex] = _buildPostWidget(postListIndex - 1);
-    } else {
-      provider.moveBack();
-      // TODO: When user runs out of posts to watch, request more posts from server
-
+    if (verticalOffset < -(postVerticalOffset / 4)) {
+      if (postListIndex + 1 < widget.postList.length) {
+        _handleDragDown(prevIndex, currIndex, nextIndex);
+      } else {
+        // TODO: When user runs out of posts to watch, request more posts from server
+      }
+    } else if (verticalOffset > (postVerticalOffset / 4)) {
+      if (postListIndex - 1 >= 0) {
+        _handleDragUp(prevIndex, currIndex, nextIndex);
+      } else {
+        // TODO: When user runs out of posts to watch, request more posts from server
+      }
     }
   }
 
-  Future<void> _dealWithVideoControllers(
-      PostWidget postWidgetPlay, PostWidget postWidgetPause) async {
+  Future<void> _handleDragDown(
+      int prevIndex, int currIndex, int nextIndex) async {
+    postListIndex++;
+    offsets[currIndex] = -postVerticalOffset;
+    offsets[nextIndex] = 0;
+
+    await _dealWithVideoControllers(await postWidgets[nextIndex],
+        await postWidgets[currIndex], await postWidgets[prevIndex]);
+    postWidgets[prevIndex] = _buildPostWidget(postListIndex + 1);
+    offsets[prevIndex] = postVerticalOffset;
+  }
+
+  Future<void> _handleDragUp(
+      int prevIndex, int currIndex, int nextIndex) async {
+    postListIndex--;
+    offsets[prevIndex] = 0;
+    offsets[currIndex] = postVerticalOffset;
+
+    await _dealWithVideoControllers(await postWidgets[prevIndex],
+        await postWidgets[currIndex], await postWidgets[nextIndex]);
+    postWidgets[nextIndex] = _buildPostWidget(postListIndex - 1);
+    offsets[nextIndex] = -postVerticalOffset;
+  }
+
+  Future<void> _dealWithVideoControllers(PostWidget postWidgetPlay,
+      PostWidget postWidgetPause, PostWidget postWidgetDispose) async {
     // This function only applies to video posts. Plays a video if it comes
     // into view. Pauses a video if it goes off screen.
 
