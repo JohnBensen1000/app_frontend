@@ -81,7 +81,7 @@ class CommentSectionProvider extends ChangeNotifier {
 }
 
 class CommentSection extends StatelessWidget {
-  // Main widget for entire comment section. Gets the comments form a post from
+  // Main widget for entire comment section. Gets the comments for a post from
   // the server and turns it into a list of Comments(). Returns a Column of 2
   // widgets: one widget is a scrollable list of all the comments. The second
   // is a button that when pressed, allows the user to add a new comment.
@@ -139,8 +139,8 @@ class CommentSection extends StatelessWidget {
   }
 
   List<Comment> _flattenCommentLevel(var levelComments, int level) {
-    // This function should not be needed, some work on server-side code should
-    // remove the need for this function.
+    // The functionality of this function should be done by the backend. (But
+    // isn't at the moment).
     List<Comment> commentsList = [];
     for (var comment in levelComments) {
       List<Comment> subComments =
@@ -154,21 +154,28 @@ class CommentSection extends StatelessWidget {
 
 class CommentsListView extends StatelessWidget {
   // Builds and returns a scrollable list view of every comment in commentsList.
-  // This list view is constrained vertically by the input height.
+  // The list view is constrained vertically by the variable height. levelOffset
+  // is subtracted from each comment.level. This is only non-zero if the
+  // responses to another comment is being displayed as the main level of
+  // comments.
 
   const CommentsListView({
     @required this.commentsList,
     @required this.post,
     @required this.height,
+    this.levelOffset = 0,
     Key key,
   }) : super(key: key);
 
   final List<Comment> commentsList;
   final Post post;
   final double height;
+  final int levelOffset;
 
   @override
   Widget build(BuildContext context) {
+    double indent = 20;
+
     return Container(
       height: height,
       child: Container(
@@ -176,7 +183,12 @@ class CommentsListView extends StatelessWidget {
           scrollDirection: Axis.vertical,
           itemCount: commentsList.length,
           itemBuilder: (BuildContext context, int index) {
-            return CommentWidget(comment: commentsList[index], post: post);
+            return CommentWidget(
+              comment: commentsList[index],
+              post: post,
+              indent: indent,
+              levelOffset: levelOffset,
+            );
           },
         ),
       ),
@@ -188,15 +200,19 @@ class CommentWidget extends StatelessWidget {
   CommentWidget(
       {@required this.comment,
       @required this.post,
+      this.indent = 0,
+      this.levelOffset = 0,
       this.showReplyBotton = true});
 
   final Comment comment;
   final Post post;
+  final double indent;
+  final int levelOffset;
   final bool showReplyBotton;
 
   @override
   Widget build(BuildContext context) {
-    double leftPadding = 40.0 * comment.level;
+    double leftPadding = indent * (comment.level - levelOffset);
     double width = MediaQuery.of(context).size.width - leftPadding;
 
     return Container(
@@ -208,11 +224,12 @@ class CommentWidget extends StatelessWidget {
             comment: comment,
             post: post,
             showReplyBotton: showReplyBotton,
+            showProfilePic: (comment.level - levelOffset) < 2,
           ),
           Container(
             padding: EdgeInsets.only(left: .35 * width),
             child: Text(
-              breakIntoLines(comment.commentText, 22, 26),
+              comment.commentText,
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
                 fontSize: 18,
@@ -234,12 +251,14 @@ class CommentWidgetHeader extends StatelessWidget {
     @required this.comment,
     @required this.post,
     @required this.showReplyBotton,
+    @required this.showProfilePic,
   }) : super(key: key);
 
   final double width;
   final Comment comment;
   final Post post;
   final bool showReplyBotton;
+  final bool showProfilePic;
 
   @override
   Widget build(BuildContext context) {
@@ -248,19 +267,21 @@ class CommentWidgetHeader extends StatelessWidget {
       child: Column(children: <Widget>[
         Row(
           children: <Widget>[
-            Container(
-              width: 30.0,
-              height: 30.0,
-              decoration: BoxDecoration(
-                borderRadius:
-                    BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                // image: DecorationImage(
-                //   image: const AssetImage(''),
-                //   fit: BoxFit.cover,
-                // ),
-                border: Border.all(width: 1.0, color: const Color(0xff22a2ff)),
+            if (showProfilePic)
+              Container(
+                width: 30.0,
+                height: 30.0,
+                decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+                  // image: DecorationImage(
+                  //   image: const AssetImage(''),
+                  //   fit: BoxFit.cover,
+                  // ),
+                  border:
+                      Border.all(width: 1.0, color: const Color(0xff22a2ff)),
+                ),
               ),
-            ),
             Text(
               comment.user_ID,
               style: TextStyle(
@@ -386,8 +407,21 @@ class AddCommentScaffold extends StatelessWidget {
         color: Colors.white.withOpacity(.7),
       ),
       Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Container(child: Container(height: 40, child: _getMainComment())),
+          if (parentComment != null)
+            Container(
+              padding: EdgeInsets.only(top: 45),
+              width: double.infinity,
+              decoration: new BoxDecoration(
+                  border: Border(
+                      bottom: BorderSide(width: 1, color: Colors.black))),
+              child: CommentWidget(
+                comment: parentComment,
+                post: post,
+                showReplyBotton: false,
+              ),
+            ),
           Container(
               padding: EdgeInsets.symmetric(horizontal: 20),
               height: .65 * postHeight,
@@ -395,6 +429,7 @@ class AddCommentScaffold extends StatelessWidget {
                 commentsList: commentsList,
                 post: post,
                 height: postHeight,
+                levelOffset: parentComment.level + 1,
               )),
           Container(
             alignment: Alignment.bottomCenter,
@@ -447,23 +482,6 @@ class AddCommentScaffold extends StatelessWidget {
         ],
       )
     ]));
-  }
-
-  Widget _getMainComment() {
-    if (parentComment != null) {
-      return Container(
-        padding: EdgeInsets.only(top: 45),
-        decoration: new BoxDecoration(
-            border: Border(bottom: BorderSide(width: 1, color: Colors.black))),
-        child: CommentWidget(
-          comment: parentComment,
-          post: post,
-          showReplyBotton: false,
-        ),
-      );
-    } else {
-      return Container();
-    }
   }
 
   Future<void> _postComment(BuildContext context, String commentText) async {
