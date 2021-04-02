@@ -48,6 +48,20 @@ class Post {
     this.postURL = chat.postData["postURL"];
     this.isImage = chat.postData['isImage'];
   }
+
+  Post.fromProfile(String profileType, String userID) {
+    if (profileType != "none") {
+      this.isImage = (profileType == 'image') ? true : false;
+
+      String fileExtension = (profileType == "image") ? "png" : "mp4";
+
+      this.postURL = FirebaseStorage.instance
+          .ref()
+          .child("$userID")
+          .child("profile.$fileExtension")
+          .getDownloadURL();
+    }
+  }
 }
 
 class FriendsList extends ChangeNotifier {
@@ -64,6 +78,13 @@ class FriendsList extends ChangeNotifier {
   }
 }
 
+class ProfilePic extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
 class UserInfo extends StatefulWidget {
   @override
   _UserInfoState createState() => _UserInfoState();
@@ -72,11 +93,6 @@ class UserInfo extends StatefulWidget {
 class _UserInfoState extends State<UserInfo> {
   @override
   Widget build(BuildContext context) {
-    // return ChangeNotifierProvider(
-    //     create: (context) => FriendsList(),
-    //     child: Homescreen(
-    //       pageLabel: PageLabel.friends,
-    //     ));
     return Homescreen(pageLabel: PageLabel.friends);
   }
 }

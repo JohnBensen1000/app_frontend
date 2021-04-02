@@ -206,8 +206,10 @@ class ChatPageFooter extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          NewPost(fromChatPage: true, friend: friend)),
+                      builder: (context) => NewPostScaffold(
+                            cameraUsage: CameraUsage.chat,
+                            friend: friend,
+                          )),
                 );
               }),
           FlatButton(

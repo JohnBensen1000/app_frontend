@@ -8,6 +8,7 @@ import 'user_info.dart';
 import 'new_post.dart';
 import 'backend_connect.dart';
 import 'search_page.dart';
+import 'settings_drawer.dart';
 
 final serverAPI = new ServerAPI();
 
@@ -46,6 +47,9 @@ class _HomescreenState extends State<Homescreen> {
             height: 150,
           ),
           body: PageBody(),
+          drawer: SettingsDrawer(
+            width: 250,
+          ),
         ));
   }
 }
@@ -121,6 +125,10 @@ class NavigationBar extends PreferredSize {
                     border:
                         Border.all(width: 1.0, color: const Color(0xff707070)),
                   ),
+                  child: FlatButton(
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                    child: null,
+                  ),
                 ),
                 Row(children: <Widget>[
                   Container(
@@ -151,7 +159,10 @@ class NavigationBar extends PreferredSize {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => NewPost()),
+                          MaterialPageRoute(
+                              builder: (context) => NewPostScaffold(
+                                    cameraUsage: CameraUsage.post,
+                                  )),
                         );
                       },
                     ),

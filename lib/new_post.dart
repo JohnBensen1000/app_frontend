@@ -14,6 +14,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'backend_connect.dart';
 import 'user_info.dart';
 import 'chat_page.dart';
+import 'friends_page.dart';
+
+enum CameraUsage {
+  post,
+  chat,
+  profile,
+}
 
 final backendConnection = new ServerAPI();
 
@@ -65,6 +72,27 @@ Future<String> uploadFile(
   return await storageReference.getDownloadURL();
 }
 
+Future<void> uploadProfilePic(bool isImage, String filePath) async {
+  // Uploads a file that will be used as a user's profile pic
+
+  String url = serverAPI.url + "users/" + userID + "/profile/";
+  String profileType = (isImage) ? 'image' : 'video';
+  var response = await http.post(url, body: {"profileType": profileType});
+
+  if (response.statusCode == 201) {
+    String fileExtension = (isImage) ? 'png' : 'mp4';
+    String fileName = "$userID/profile.$fileExtension";
+
+    StorageReference storageReference =
+        FirebaseStorage.instance.ref().child(fileName);
+
+    StorageUploadTask uploadTask = storageReference.putFile(File(filePath));
+    await uploadTask.onComplete;
+  } else {
+    print(" [SERVER ERROR] Was not able to save profile type");
+  }
+}
+
 class VideoTimer {
   /* Stream that keeps track of how much time has elapsed since the beginning
      of the recording. This stream is used for the circular progress indicator.
@@ -92,6 +120,11 @@ class PostPageProvider extends ChangeNotifier {
      the user is currently recording a video. When a change occurs, the widget 
      tree below this is rebuilt to reflect the change in state.  
   */
+  PostPageProvider({@required this.cameraUsage, @required this.friend});
+
+  final CameraUsage cameraUsage;
+  final User friend;
+
   bool isImage = true;
   bool showCapturedPost = false;
   bool isRecording = false;
@@ -125,22 +158,35 @@ class PostPageProvider extends ChangeNotifier {
   }
 }
 
-class NewPost extends StatefulWidget {
+class NewPostScaffold extends StatelessWidget {
+  NewPostScaffold({@required this.cameraUsage, this.friend});
+
+  final CameraUsage cameraUsage;
+  final User friend;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: NewPostWidget(cameraUsage: cameraUsage, friend: friend));
+  }
+}
+
+class NewPostWidget extends StatefulWidget {
   /* Allows users to use the camera to make a new post. This widget is divided
      into 3 main parts: connecting to the camera _initializeCamera(), seeing a 
      the input from the camera , _cameraView(), and after capturing an image, 
      seeing a preview of the image, _postPreview(). 
   */
-  NewPost({this.fromChatPage = false, this.friend});
+  NewPostWidget({@required this.cameraUsage, this.friend});
 
-  final bool fromChatPage;
+  final CameraUsage cameraUsage;
   final User friend;
 
   @override
-  _NewPostState createState() => _NewPostState();
+  _NewPostWidgetState createState() => _NewPostWidgetState();
 }
 
-class _NewPostState extends State<NewPost> {
+class _NewPostWidgetState extends State<NewPostWidget> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
 
@@ -159,10 +205,11 @@ class _NewPostState extends State<NewPost> {
     _deviceRatio = _size.width / _size.height;
 
     return ChangeNotifierProvider(
-        create: (_) => PostPageProvider(),
+        create: (_) => PostPageProvider(
+            cameraUsage: widget.cameraUsage, friend: widget.friend),
         child: Consumer<PostPageProvider>(
-            builder: (consumerContext, postPageState, child) => Scaffold(
-                    body: Stack(children: <Widget>[
+            builder: (consumerContext, postPageState, child) =>
+                Stack(children: <Widget>[
                   FutureBuilder<void>(
                       future: _initializeControllerFuture,
                       builder: (context, snapshot) {
@@ -175,8 +222,6 @@ class _NewPostState extends State<NewPost> {
                             return PostPreview(
                               controller: _controller,
                               deviceRatio: _deviceRatio,
-                              fromChatPage: widget.fromChatPage,
-                              friend: widget.friend,
                             );
                           }
                         } else {
@@ -192,7 +237,7 @@ class _NewPostState extends State<NewPost> {
                             backgroundColor: Colors.white),
                         onPressed: () => _exitPage(consumerContext),
                       )),
-                ]))));
+                ])));
   }
 
   Future<void> _initializeCamera() async {
@@ -239,6 +284,11 @@ class CameraView extends StatelessWidget {
                 child: AspectRatio(
                     aspectRatio: _controller.value.aspectRatio,
                     child: CameraPreview(_controller)))),
+        // if the camera is being used to take a profile picture/video, dim
+        // everything that will not be the profile picture/video.
+        if (Provider.of<PostPageProvider>(context).cameraUsage ==
+            CameraUsage.profile)
+          ProfilePicOutline(size: MediaQuery.of(context).size),
         Container(
           padding: EdgeInsets.all(60),
           alignment: Alignment.bottomCenter,
@@ -317,6 +367,47 @@ class CameraView extends StatelessWidget {
   }
 }
 
+class ProfilePicOutline extends StatelessWidget {
+  // Returns a semitransparent rectangle that takes up the full screen with a
+  // circle cut out from the center of it. This circle is completely
+  // transparent.
+  ProfilePicOutline({@required this.size});
+
+  final Size size;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: ProfilePicOutlineClip(size: size),
+      child: Container(
+        color: Colors.black54,
+      ),
+    );
+  }
+}
+
+class ProfilePicOutlineClip extends CustomClipper<Path> {
+  // Provides the functionality for actually cutting out the circle from the
+  // semitransparent rectangle.
+  ProfilePicOutlineClip({@required this.size});
+
+  final Size size;
+
+  @override
+  Path getClip(Size size) {
+    return new Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addOval(Rect.fromCircle(
+          center: Offset(size.width / 2, size.height / 2),
+          radius: .45 * size.width))
+      ..fillType = PathFillType.evenOdd;
+    ;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => true;
+}
+
 class PostPreview extends StatelessWidget {
   // Container that shows a preview of the video/image that the user took. Gives
   // the user an option to take another video/image. Returns either
@@ -328,20 +419,17 @@ class PostPreview extends StatelessWidget {
     Key key,
     @required CameraController controller,
     @required double deviceRatio,
-    this.fromChatPage = false,
-    this.friend,
   })  : _controller = controller,
         _deviceRatio = deviceRatio,
         super(key: key);
 
   final CameraController _controller;
   final double _deviceRatio;
-  final bool fromChatPage;
-  final User friend;
 
   @override
   Widget build(BuildContext context) {
     var provider = Provider.of<PostPageProvider>(context);
+    print(provider.cameraUsage);
     File postFile = File(provider.filePath);
 
     Widget previewWidget;
@@ -356,6 +444,8 @@ class PostPreview extends StatelessWidget {
               child: AspectRatio(
                   aspectRatio: _controller.value.aspectRatio,
                   child: previewWidget))),
+      if (provider.cameraUsage == CameraUsage.profile)
+        ProfilePicOutline(size: MediaQuery.of(context).size),
       Container(
           padding: EdgeInsets.only(bottom: 20),
           alignment: Alignment.bottomCenter,
@@ -367,8 +457,12 @@ class PostPreview extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    if (fromChatPage)
-                      ChatPostOptions(provider: provider, friend: friend)
+                    if (provider.cameraUsage == CameraUsage.chat)
+                      ChatPostOptions(provider: provider)
+                    else if (provider.cameraUsage == CameraUsage.profile)
+                      ProfilePicOptions(
+                        provider: provider,
+                      )
                     else
                       NewPostOptions(provider: provider),
                   ],
@@ -621,10 +715,9 @@ class ChatPostOptions extends StatelessWidget {
   // This widget is called if the user is sending a post directly from the chat
   // page. Therefore, the user wants to send a post to that chat, so all we
   // have to do is give them the option to send/not send a post.
-  ChatPostOptions({this.provider, this.friend});
+  ChatPostOptions({this.provider});
 
   final provider;
-  final User friend;
 
   @override
   Widget build(BuildContext context) {
@@ -634,7 +727,30 @@ class ChatPostOptions extends StatelessWidget {
         backgroundColor: Colors.white,
       ),
       onPressed: () async {
-        await sendPost(friend, provider.isImage, provider.filePath);
+        await sendPost(provider.friend, provider.isImage, provider.filePath);
+        provider.deleteFile();
+      },
+    );
+  }
+}
+
+class ProfilePicOptions extends StatelessWidget {
+  // This widget is called if the user is sending a post directly from the chat
+  // page. Therefore, the user wants to send a post to that chat, so all we
+  // have to do is give them the option to send/not send a post.
+  ProfilePicOptions({this.provider});
+
+  final provider;
+
+  @override
+  Widget build(BuildContext context) {
+    return FlatButton(
+      child: NewPostFlatButton(
+        buttonName: "Save",
+        backgroundColor: Colors.white,
+      ),
+      onPressed: () async {
+        await uploadProfilePic(provider.isImage, provider.filePath);
         provider.deleteFile();
       },
     );

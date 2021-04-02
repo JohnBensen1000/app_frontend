@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'welcome_page.dart';
-import 'view_post.dart';
-import 'comments_section.dart';
 
 main() {
   runApp(MyApp());
@@ -17,6 +15,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: WelcomePage(),
+      // home: Settings(),
       // home: CommentSection(),
     );
   }
