@@ -10,13 +10,12 @@ import 'package:provider/provider.dart';
 
 import 'backend_connect.dart';
 import 'comments_section.dart';
-import 'profile_page.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
 
-class ViewPost extends StatelessWidget {
-  ViewPost({
+class ViewPostScaffold extends StatelessWidget {
+  ViewPostScaffold({
     Key key,
     @required this.post,
     this.onlyShowBody = false,
@@ -332,14 +331,15 @@ class _ImageContainerState extends State<ImageContainer> {
         child: _displayIfThumbnail(),
       ),
       onLongPress: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ViewPost(
-                    post: post,
-                    onlyShowBody: onlyShowBodyAfterPressed,
-                  )),
-        );
+        if (PostWidgetState.of(context).isViewPost == false)
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ViewPostScaffold(
+                      post: post,
+                      onlyShowBody: onlyShowBodyAfterPressed,
+                    )),
+          );
       },
     );
   }
@@ -427,13 +427,14 @@ class _VideoContainerState extends State<VideoContainer> {
                 _isPlaying = !_isPlaying;
               },
               onLongPress: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ViewPost(
-                            post: post,
-                          )),
-                );
+                if (PostWidgetState.of(context).isViewPost == false)
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ViewPostScaffold(
+                              post: post,
+                            )),
+                  );
               },
             );
           } else {

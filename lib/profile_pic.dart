@@ -7,6 +7,10 @@ import 'user_info.dart';
 import 'view_post.dart';
 
 class ProfilePic extends StatelessWidget {
+  // Gets the profile post from google stroage and returns a stack of two
+  // widgets: a circular profile post and a blue cicular outline that goes
+  // around the profile post.
+
   ProfilePic({@required this.diameter, @required this.profileUserID});
 
   final double diameter;

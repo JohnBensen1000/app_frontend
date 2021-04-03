@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/main.dart';
 import 'package:test_flutter/new_post.dart';
 import 'package:test_flutter/user_info.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +7,7 @@ import 'view_post.dart';
 import 'user_info.dart';
 
 String getChatName(User friend) {
-  // Uses comparison between hashCodes of two userIDs to determin chat name.
+  // Uses comparison between hashCodes of two userIDs to determine chat name.
   // This way, the chat name for two friends will always be the same.
   if (userID.hashCode < friend.userID.hashCode) {
     return userID + "-" + friend.userID;
@@ -146,8 +145,7 @@ class ChatPageHeader extends PreferredSize {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        child: Stack(
+    return Stack(
       children: <Widget>[
         Container(
           alignment: Alignment.bottomCenter,
@@ -159,7 +157,7 @@ class ChatPageHeader extends PreferredSize {
                 child: Text("Back"),
                 onPressed: () => Navigator.of(context).pop())),
       ],
-    ));
+    );
   }
 }
 

@@ -125,8 +125,9 @@ class ProfilePageHeaderProvider extends ChangeNotifier {
   }
 
   Future<void> startFollowing() async {
-    String url = serverAPI.url + "users/" + userID + "/following/new/";
-    var response = await http.post(url, body: {"creatorID": user.userID});
+    String url =
+        serverAPI.url + "users/" + userID + "/following/${user.userID}/";
+    var response = await http.post(url);
 
     if (response.statusCode == 201) {
       _updateToFollowing();
@@ -150,17 +151,17 @@ class ProfilePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ProfilePageHeaderProvider>(
-        builder: (context, profileHeader, child) {
+        builder: (context, provider, child) {
       return Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Container(
               height: 15,
             ),
-            ProfilePic(diameter: 148, profileUserID: userID),
+            ProfilePic(diameter: 148, profileUserID: provider.user.userID),
             Container(
               child: Text(
-                '${profileHeader.user.username}',
+                '${provider.user.username}',
                 style: TextStyle(
                   fontFamily: 'Helvetica Neue',
                   fontSize: 25,
@@ -171,7 +172,7 @@ class ProfilePageHeader extends StatelessWidget {
             ),
             Container(
               child: Text(
-                '${profileHeader.user.userID}',
+                '${provider.user.userID}',
                 style: TextStyle(
                   fontFamily: 'Helvetica Neue',
                   fontSize: 12,
@@ -195,14 +196,13 @@ class ProfilePageHeader extends StatelessWidget {
                 height: 31.0,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16.0),
-                  // color: const Color(0xffffffff),
-                  color: profileHeader.followingColor,
+                  color: provider.followingColor,
                   border:
                       Border.all(width: 1.0, color: const Color(0xff707070)),
                 ),
                 child: Center(
                   child: Text(
-                    profileHeader.followingText,
+                    provider.followingText,
                     style: TextStyle(
                       fontFamily: 'Helvetica Neue',
                       fontSize: 20,

@@ -24,7 +24,7 @@ class Comment {
   int level;
   int numSubComments;
 
-  Comment.fromServer(Map commentJson, int level, int numSubComments) {
+  Comment.fromServer(Map commentJson) {
     // Used to construct comments from a json that was recieved from the server.
     // level and numSubComments should be calculated before calling this method.
 
@@ -32,8 +32,8 @@ class Comment {
     this.commentText = commentJson["comment"];
     this.datePosted = commentJson["datePosted"].toString();
     this.path = commentJson["path"];
-    this.level = level;
-    this.numSubComments = numSubComments;
+    this.level = commentJson['level'];
+    this.numSubComments = commentJson['numSubComments'];
   }
 
   Comment.fromUser(Comment parentComment, String commentText) {
@@ -132,21 +132,12 @@ class CommentSection extends StatelessWidget {
     // Sends an http request to the server to get a json representation of the
     // comments section. Then calls _flattenCommentLevel to create a list
     // of Comment() objects that are usuable.
-    String newUrl = backendConnection.url + "comments/${post.postID}/comments/";
+    String newUrl = backendConnection.url + "comments/${post.postID}/";
     var response = await http.get(newUrl);
 
-    return _flattenCommentLevel(jsonDecode(response.body)["comments"], 0);
-  }
-
-  List<Comment> _flattenCommentLevel(var levelComments, int level) {
-    // The functionality of this function should be done by the backend. (But
-    // isn't at the moment).
     List<Comment> commentsList = [];
-    for (var comment in levelComments) {
-      List<Comment> subComments =
-          _flattenCommentLevel(comment["subComments"], level + 1);
-      commentsList.add(Comment.fromServer(comment, level, subComments.length));
-      commentsList += subComments;
+    for (var comment in jsonDecode(response.body)["comments"]) {
+      commentsList.add(Comment.fromServer(comment));
     }
     return commentsList;
   }
@@ -488,12 +479,11 @@ class AddCommentScaffold extends StatelessWidget {
     String postID = post.postID;
     String commentPath = (parentComment != null) ? parentComment.path : '';
 
-    String newUrl = backendConnection.url +
-        "comments/${postID.toString()}/comments/$userID/";
-    var response = await http
-        .post(newUrl, body: {"path": commentPath, "comment": commentText});
+    String newUrl = backendConnection.url + "comments/${postID.toString()}/";
+    var response = await http.post(newUrl,
+        body: {"path": commentPath, "comment": commentText, "userID": userID});
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       Navigator.pop(context,
           {'commentText': commentText, 'parentComment': parentComment});
     }

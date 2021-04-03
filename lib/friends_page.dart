@@ -86,20 +86,6 @@ class FriendWidget extends StatelessWidget {
               padding: EdgeInsets.only(left: 20),
               child: Row(
                 children: <Widget>[
-                  // Container(
-                  //   width: 85.0,
-                  //   height: 87.0,
-                  //   decoration: BoxDecoration(
-                  //     borderRadius:
-                  //         BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                  //     // image: DecorationImage(
-                  //     //   image: const AssetImage(''),
-                  //     //   fit: BoxFit.cover,
-                  //     // ),
-                  //     border: Border.all(
-                  //         width: 5.0, color: const Color(0xff22a2ff)),
-                  //   ),
-                  // ),
                   ProfilePic(diameter: 85, profileUserID: friend.userID),
                   Container(
                     padding: EdgeInsets.only(left: 10),

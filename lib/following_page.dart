@@ -32,7 +32,7 @@ class FollowingPage extends StatelessWidget {
   }
 
   Future<List<dynamic>> _getPosts() async {
-    String newUrl = backendConnection.url + "posts/$userID/following/new/";
+    String newUrl = backendConnection.url + "posts/$userID/following/";
     var response = await http.get(newUrl);
     return json.decode(response.body)["postsList"];
   }
