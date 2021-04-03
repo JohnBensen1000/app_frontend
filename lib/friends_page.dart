@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter/profile_pic.dart';
 import 'package:test_flutter/user_info.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -9,8 +10,9 @@ import 'dart:convert';
 import 'backend_connect.dart';
 import 'user_info.dart';
 import 'chat_page.dart';
+import 'profile_page.dart';
 
-final backendConnection = new ServerAPI();
+final serverAPI = new ServerAPI();
 
 class FriendsPage extends StatefulWidget {
   @override
@@ -84,20 +86,21 @@ class FriendWidget extends StatelessWidget {
               padding: EdgeInsets.only(left: 20),
               child: Row(
                 children: <Widget>[
-                  Container(
-                    width: 85.0,
-                    height: 87.0,
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                      // image: DecorationImage(
-                      //   image: const AssetImage(''),
-                      //   fit: BoxFit.cover,
-                      // ),
-                      border: Border.all(
-                          width: 5.0, color: const Color(0xff22a2ff)),
-                    ),
-                  ),
+                  // Container(
+                  //   width: 85.0,
+                  //   height: 87.0,
+                  //   decoration: BoxDecoration(
+                  //     borderRadius:
+                  //         BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+                  //     // image: DecorationImage(
+                  //     //   image: const AssetImage(''),
+                  //     //   fit: BoxFit.cover,
+                  //     // ),
+                  //     border: Border.all(
+                  //         width: 5.0, color: const Color(0xff22a2ff)),
+                  //   ),
+                  // ),
+                  ProfilePic(diameter: 85, profileUserID: friend.userID),
                   Container(
                     padding: EdgeInsets.only(left: 10),
                     child: Column(

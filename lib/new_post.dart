@@ -22,7 +22,7 @@ enum CameraUsage {
   profile,
 }
 
-final backendConnection = new ServerAPI();
+final serverAPI = new ServerAPI();
 
 Future<void> sendPost(User friend, bool isImage, String filePath) async {
   // Sends a post as a direct message to a chat. Stores data about the post
@@ -623,7 +623,7 @@ class NewPostOptions extends StatelessWidget {
     // Sends the an HTTP request containing the post file to the server for
     // further processing. Returns with the response status code.
     var request = http.MultipartRequest(
-        'POST', Uri.parse(backendConnection.url + 'posts/$userID/posts/'));
+        'POST', Uri.parse(serverAPI.url + 'posts/$userID/posts/'));
 
     if (provider.isImage)
       request.fields["contentType"] = 'image';

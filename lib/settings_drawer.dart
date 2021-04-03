@@ -1,75 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/new_post.dart';
-import 'package:http/http.dart' as http;
-
-import 'dart:convert';
 
 import 'user_info.dart';
-import 'view_post.dart';
-
-class ProfilePic extends StatelessWidget {
-  ProfilePic({@required this.diameter});
-
-  final double diameter;
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: _getProfileURL(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            return Stack(
-              children: <Widget>[
-                ClipPath(
-                  clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
-                  child: PostWidget(
-                    post: snapshot.data,
-                    height: diameter,
-                    aspectRatio: 1,
-                    playOnInit: true,
-                  ),
-                ),
-                Container(
-                    width: diameter,
-                    height: diameter,
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                      border: Border.all(
-                          width: .01 * diameter,
-                          color: const Color(0xff22a2ff)),
-                    )),
-              ],
-            );
-          } else {
-            return Center(child: Text("Loading..."));
-          }
-        });
-  }
-
-  Future<Post> _getProfileURL() async {
-    String newUrl = serverAPI.url + "users/$userID/profile/";
-    var response = await http.get(newUrl);
-    return Post.fromProfile(json.decode(response.body)["profileType"], userID);
-  }
-}
-
-class ProfilePicClip extends CustomClipper<Path> {
-  ProfilePicClip({@required this.diameter, @required this.heightOffset});
-
-  final double diameter;
-  final double heightOffset;
-
-  @override
-  Path getClip(Size size) {
-    return new Path()
-      ..addOval(Rect.fromLTWH(0, heightOffset, diameter, diameter));
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => true;
-}
+import 'profile_pic.dart';
 
 class SettingsDrawer extends StatelessWidget {
   SettingsDrawer({
@@ -98,6 +31,7 @@ class SettingsDrawer extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 20, bottom: 20),
                 child: ProfilePic(
                   diameter: 200,
+                  profileUserID: userID,
                 )),
             SettingsButton(
               buttonName: "Change Profile Picture",
@@ -120,12 +54,6 @@ class NewProfilePic extends StatelessWidget {
           cameraUsage: CameraUsage.profile,
         )
       ]),
-
-      // Container(
-      //   width: MediaQuery.of(context).size.width,
-      //   height: MediaQuery.of(context).size.height,
-      //   color: Colors.transparent,
-      // )
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'user_info.dart';
 import 'backend_connect.dart';
 import 'view_post.dart';
+import 'profile_pic.dart';
 
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -156,19 +157,7 @@ class ProfilePageHeader extends StatelessWidget {
             Container(
               height: 15,
             ),
-            Container(
-              width: 148.0,
-              height: 148.0,
-              decoration: BoxDecoration(
-                borderRadius:
-                    BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                // image: DecorationImage(
-                //   image: const AssetImage(''),
-                //   fit: BoxFit.cover,
-                // ),
-                border: Border.all(width: 3.0, color: const Color(0xff22a2ff)),
-              ),
-            ),
+            ProfilePic(diameter: 148, profileUserID: userID),
             Container(
               child: Text(
                 '${profileHeader.user.username}',

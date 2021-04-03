@@ -50,7 +50,7 @@ class Post {
   }
 
   Post.fromProfile(String profileType, String userID) {
-    if (profileType != "none") {
+    if (profileType == "image" || profileType == "video") {
       this.isImage = (profileType == 'image') ? true : false;
 
       String fileExtension = (profileType == "image") ? "png" : "mp4";
@@ -75,13 +75,6 @@ class FriendsList extends ChangeNotifier {
           User(userID: friendJson['userID'], username: friendJson['username']));
     }
     notifyListeners();
-  }
-}
-
-class ProfilePic extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }
 

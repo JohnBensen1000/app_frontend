@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:test_flutter/profile_pic.dart';
 import 'user_info.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
@@ -9,6 +10,7 @@ import 'package:provider/provider.dart';
 
 import 'backend_connect.dart';
 import 'comments_section.dart';
+import 'profile_page.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
@@ -178,18 +180,9 @@ class PostHeader extends StatelessWidget {
       padding: EdgeInsets.only(bottom: 10),
       child: Row(
         children: <Widget>[
-          Container(
-            width: PostWidgetState.of(context).height / 7.60,
-            height: PostWidgetState.of(context).height / 7.60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-              // image: DecorationImage(
-              //   image: const AssetImage(''),
-              //   fit: BoxFit.cover,
-              // ),
-              border: Border.all(width: 3.0, color: const Color(0xff22a2ff)),
-            ),
-          ),
+          ProfilePic(
+              diameter: PostWidgetState.of(context).height / 7.60,
+              profileUserID: PostWidgetState.of(context).post.userID),
           Container(
             padding: EdgeInsets.only(left: 20),
             child: Text(
@@ -268,9 +261,7 @@ class _PostBodyState extends State<PostBody> {
                   isThumbnail: true,
                 );
             } else {
-              return Center(
-                child: Text("Loading..."),
-              );
+              return Container();
             }
           })
     ]);
