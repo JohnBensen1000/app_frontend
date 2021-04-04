@@ -46,7 +46,6 @@ Future<List<User>> getFriendsList() async {
   List<User> friendsList = [];
 
   String newUrl = serverAPI.url + "users/$userID/friends/";
-  print(newUrl);
   var response = await http.get(newUrl);
 
   for (var friendJson in json.decode(response.body)["friends"]) {

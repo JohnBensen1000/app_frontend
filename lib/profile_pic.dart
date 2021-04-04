@@ -55,7 +55,7 @@ class ProfilePic extends StatelessWidget {
   Future<Post> _getProfileURL() async {
     String newUrl = serverAPI.url + "users/$profileUserID/profile/";
     var response = await http.get(newUrl);
-    print(json.decode(response.body));
+
     return Post.fromProfile(
         json.decode(response.body)["profileType"], profileUserID);
   }

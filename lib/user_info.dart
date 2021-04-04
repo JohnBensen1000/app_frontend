@@ -86,6 +86,6 @@ class UserInfo extends StatefulWidget {
 class _UserInfoState extends State<UserInfo> {
   @override
   Widget build(BuildContext context) {
-    return Homescreen(pageLabel: PageLabel.friends);
+    return HomeScreen(pageLabel: PageLabel.friends);
   }
 }

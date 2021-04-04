@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
+import 'dart:math';
+
 import 'following_page.dart';
 import 'friends_page.dart';
-import 'user_info.dart';
 import 'new_post.dart';
 import 'backend_connect.dart';
 import 'search_page.dart';
@@ -18,35 +19,36 @@ enum PageLabel {
   following,
 }
 
-class Homescreen extends StatefulWidget {
+class HomeScreen extends StatefulWidget {
   final PageLabel pageLabel;
 
-  Homescreen({Key key, this.pageLabel}) : super(key: key);
+  HomeScreen({Key key, this.pageLabel}) : super(key: key);
 
   @override
-  _HomescreenState createState() => _HomescreenState(pageLabel: pageLabel);
+  _HomeScreenState createState() => _HomeScreenState(pageLabel: pageLabel);
 }
 
-class _HomescreenState extends State<Homescreen> {
+class _HomeScreenState extends State<HomeScreen> {
   /* The homescreen is composed of two main parts: NavigationBar and PageBody
-     The NavigationBar displays which page the user is on. PageBody contains a 
-     child widget that could be one of the following: DiscoverPage(), 
-     FriendsPage(), or FollowingPage(). 
+     The NavigationBar displays which page the user is on. PageBody contains 
+     three widgets: DiscoverPage(), FriendsPage(), or FollowingPage(). Two of 
+     these widgets are offset to be off screen so that only one widget is seen 
+     at any given time. 
   */
   final PageLabel pageLabel;
 
-  _HomescreenState({this.pageLabel});
+  _HomeScreenState({this.pageLabel});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (context) => PageProvider(),
+        create: (context) => HomeScreenProvider(),
         child: Scaffold(
           backgroundColor: const Color(0xffffffff),
           appBar: NavigationBar(
             height: 150,
           ),
-          body: PageBody(),
+          body: PageBody(height: MediaQuery.of(context).size.height - 150),
           drawer: SettingsDrawer(
             width: 250,
           ),
@@ -54,23 +56,53 @@ class _HomescreenState extends State<Homescreen> {
   }
 }
 
-class PageProvider extends ChangeNotifier {
-  /* Responsible for keeping track of which page user is on. Notifies listeners
-     when a new page has been selected by the user.
+class HomeScreenProvider extends ChangeNotifier {
+  /* Responsible for keeping track of which page user is on. Also responsible
+     for smooth transitions between pages. As the user drags horizontally, this
+     provider continuously updates a variable, offset. When the user stops
+     sliding horizontally, this provider decides if the user swiped far enough
+     to display a new page. 
   */
-  Widget pageBody = FriendsPage();
   PageLabel pageLabel = PageLabel.friends;
+  double _offset = 0;
 
-  void changePageLabel(PageLabel newPageLabel) {
-    this.pageLabel = newPageLabel;
-    if (newPageLabel == PageLabel.discover) {
-      this.pageBody = Text("Discover");
+  double get offset {
+    return _offset;
+  }
+
+  set offset(double offsetVelocity) {
+    _offset = offsetVelocity;
+
+    if (_offset < -.33)
+      this.pageLabel = PageLabel.following;
+    else if (_offset > .33)
+      this.pageLabel = PageLabel.discover;
+    else
+      this.pageLabel = PageLabel.friends;
+
+    notifyListeners();
+  }
+
+  void handleHorizontalDragEnd() {
+    if (_offset < -.33) {
+      setMainPage(PageLabel.following);
+    } else if (_offset > .33) {
+      setMainPage(PageLabel.discover);
+    } else {
+      setMainPage(PageLabel.friends);
     }
-    if (newPageLabel == PageLabel.friends) {
-      this.pageBody = FriendsPage();
-    }
+  }
+
+  void setMainPage(PageLabel newPageLabel) {
     if (newPageLabel == PageLabel.following) {
-      this.pageBody = FollowingPage();
+      _offset = -1.0;
+      pageLabel = PageLabel.following;
+    } else if (newPageLabel == PageLabel.discover) {
+      _offset = 1.0;
+      pageLabel = PageLabel.discover;
+    } else {
+      _offset = 0.0;
+      pageLabel = PageLabel.friends;
     }
     notifyListeners();
   }
@@ -91,11 +123,7 @@ class NavigationBar extends PreferredSize {
 
   @override
   Widget build(BuildContext context) {
-    var pageProvider = Provider.of<PageProvider>(context);
-    double navBarOffset = 0;
-
-    if (pageProvider.pageLabel == PageLabel.discover) navBarOffset = -84.0;
-    if (pageProvider.pageLabel == PageLabel.following) navBarOffset = 84.0;
+    HomeScreenProvider provider = Provider.of<HomeScreenProvider>(context);
 
     return Container(
       color: Colors.white,
@@ -118,10 +146,6 @@ class NavigationBar extends PreferredSize {
                   height: 24.0,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
-                    // image: DecorationImage(
-                    //   image: const AssetImage(''),
-                    //   fit: BoxFit.cover,
-                    // ),
                     border:
                         Border.all(width: 1.0, color: const Color(0xff707070)),
                   ),
@@ -207,7 +231,8 @@ class NavigationBar extends PreferredSize {
                           width: 1.0, color: const Color(0xff707070)),
                     ),
                     child: Transform.translate(
-                      offset: Offset(navBarOffset, 0),
+                      offset: Offset(
+                          max(-1.0, min(-provider.offset, 1.0)) * 84.0, 0),
                       child: SvgPicture.string(
                         _svg_cayeaa,
                         allowDrawingOutsideViewBox: true,
@@ -233,38 +258,85 @@ class NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color = Color(0x73000000);
-    var pageProvider = Provider.of<PageProvider>(context);
+    return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
+      print(provider.pageLabel);
+      Color textColor = (pageLabel == provider.pageLabel)
+          ? Color(0xFF000000)
+          : Color(0x73000000);
 
-    if (pageLabel == pageProvider.pageLabel) color = Color(0xFF000000);
-
-    return TextButton(
-      child: Text(
-        pageName,
-        style: TextStyle(
-          fontFamily: '.AppleSystemUIFont',
-          fontSize: 15,
-          color: color,
+      return TextButton(
+        child: Text(
+          pageName,
+          style: TextStyle(
+            fontFamily: '.AppleSystemUIFont',
+            fontSize: 15,
+            color: textColor,
+          ),
+          textAlign: TextAlign.left,
         ),
-        textAlign: TextAlign.left,
-      ),
-      onPressed: () {
-        pageProvider.changePageLabel(pageLabel);
-      },
-    );
+        onPressed: () {
+          provider.setMainPage(pageLabel);
+        },
+      );
+    });
   }
 }
 
 class PageBody extends StatelessWidget {
-  /* Wraps one of the following pages: FollowingPage(), DiscoverPage(), and 
-     FriendsPage(). Rebuilds itself every time the user changes from one of 
-     these pages to another.
+  /* Contains three widgets. These widgets are horizontally translated so that
+     only one widget is seen at a time. These translation offsets are updated
+     continuously as the user swipes horizontally. Each widget is wrapped with
+     a Container() that takes up the entire page. This is done so that 
+     the GestureDetector() could respond to the user's swipes regardless of 
+     where on the page they swipe. 
   */
+  PageBody({@required this.height});
+
+  final double height;
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<PageProvider>(
-      builder: (context, pageProvider, child) => pageProvider.pageBody,
+    double width = MediaQuery.of(context).size.width;
+
+    Widget discoverPage = Center(
+      child: Text("For you"),
     );
+    Widget friendsPage = FriendsPage();
+    Widget followingPage = FollowingPage();
+
+    return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
+      return GestureDetector(
+        child: Stack(children: [
+          Transform.translate(
+              offset: Offset(width * (provider.offset - 1), 0),
+              child: Container(
+                  width: width,
+                  height: height,
+                  color: Colors.white,
+                  child: discoverPage)),
+          Transform.translate(
+              offset: Offset(width * (provider.offset), 0),
+              child: Container(
+                  width: width,
+                  height: height,
+                  color: Colors.white,
+                  child: friendsPage)),
+          Transform.translate(
+              offset: Offset(width * (provider.offset + 1), 0),
+              child: Container(
+                  width: width,
+                  height: height,
+                  color: Colors.white,
+                  child: followingPage)),
+        ]),
+        onHorizontalDragUpdate: (value) =>
+            Provider.of<HomeScreenProvider>(context, listen: false).offset +=
+                2.0 * (value.delta.dx / width),
+        onHorizontalDragEnd: (_) =>
+            Provider.of<HomeScreenProvider>(context, listen: false)
+                .handleHorizontalDragEnd(),
+      );
+    });
   }
 }
 

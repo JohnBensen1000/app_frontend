@@ -205,7 +205,7 @@ class _PostListScrollerState extends State<PostListScroller> {
     // Returns a GestureDetector that contains a post widget and updates the
     // provider whenever it detects a vertical drag.
 
-    GestureDetector gestureDetector = GestureDetector(
+    return GestureDetector(
       child: FutureBuilder(
           future: postWidget,
           builder: (context, snapshot) {
@@ -221,7 +221,6 @@ class _PostListScrollerState extends State<PostListScroller> {
         _handleVerticalDragStop(provider);
       },
     );
-    return gestureDetector;
   }
 
   Future<void> _handleVerticalDragStop(
