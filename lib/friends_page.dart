@@ -1,16 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:test_flutter/profile_pic.dart';
 import 'package:test_flutter/user_info.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import 'backend_connect.dart';
 import 'user_info.dart';
 import 'chat_page.dart';
-import 'profile_page.dart';
 
 final serverAPI = new ServerAPI();
 

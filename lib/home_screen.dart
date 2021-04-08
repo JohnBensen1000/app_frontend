@@ -1,8 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-
-import 'dart:math';
 
 import 'following_page.dart';
 import 'friends_page.dart';
@@ -259,7 +259,6 @@ class NavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
-      print(provider.pageLabel);
       Color textColor = (pageLabel == provider.pageLabel)
           ? Color(0xFF000000)
           : Color(0x73000000);
@@ -299,7 +298,7 @@ class PageBody extends StatelessWidget {
     double width = MediaQuery.of(context).size.width;
 
     Widget discoverPage = Center(
-      child: Text("For you"),
+      child: Text("Coming soon."),
     );
     Widget friendsPage = FriendsPage();
     Widget followingPage = FollowingPage();

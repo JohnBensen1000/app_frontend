@@ -1,14 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_svg/flutter_svg.dart';
-import 'user_info.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 import 'backend_connect.dart';
+import 'user_info.dart';
 import 'view_post.dart';
 import 'profile_pic.dart';
-
-import 'package:firebase_storage/firebase_storage.dart';
 
 FirebaseStorage storage = FirebaseStorage.instance;
 final serverAPI = new ServerAPI();

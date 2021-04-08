@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:test_flutter/profile_pic.dart';
-import 'user_info.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -10,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import 'backend_connect.dart';
 import 'comments_section.dart';
+import 'user_info.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;

@@ -1,8 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'backend_connect.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+
+import 'backend_connect.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final backendConnection = new ServerAPI();
