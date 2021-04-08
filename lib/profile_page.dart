@@ -35,7 +35,7 @@ class ProfilePage extends StatelessWidget {
               ChangeNotifierProvider(
                 create: (context) =>
                     ProfilePageHeaderProvider(height: .4 * height, user: user),
-                child: ProfilePageHeader(),
+                child: ProfilePageHeader(user: user),
               ),
               ProfilePostBody(
                   height: .57 * height,
@@ -110,116 +110,123 @@ class ProfilePageHeaderProvider extends ChangeNotifier {
 
   Color followingColor;
   String followingText;
+  bool isFollowing;
 
   ProfilePageHeaderProvider({this.height, this.user}) {
-    _updateToNotFollowing();
-    isFollowing();
+    followingText = "Loading...";
+    checkIfFollowing();
   }
 
-  Future<void> isFollowing() async {
+  Future<void> checkIfFollowing() async {
     String url = serverAPI.url + "users/$userID/following/${user.userID}/";
     var response = await http.get(url);
 
-    if (json.decode(response.body)["following_bool"] == true) {
-      _updateToFollowing();
-    }
+    isFollowing = json.decode(response.body)["following_bool"];
+    _setFollowingButton();
   }
 
-  Future<void> startFollowing() async {
+  Future<void> changeFollowing() async {
     String url =
         serverAPI.url + "users/" + userID + "/following/${user.userID}/";
-    var response = await http.post(url);
+
+    var response =
+        (isFollowing) ? await http.delete(url) : await http.post(url);
 
     if (response.statusCode == 201) {
-      _updateToFollowing();
+      isFollowing = !isFollowing;
+      _setFollowingButton();
     }
   }
 
-  void _updateToFollowing() {
-    followingColor = Colors.grey[300];
-    followingText = "Following";
-    notifyListeners();
-  }
-
-  void _updateToNotFollowing() {
-    followingColor = Colors.white;
-    followingText = "Follow";
+  void _setFollowingButton() {
+    if (isFollowing) {
+      followingColor = Colors.grey[300];
+      followingText = "Following";
+    } else {
+      followingColor = Colors.white;
+      followingText = "Follow";
+    }
     notifyListeners();
   }
 }
 
 class ProfilePageHeader extends StatelessWidget {
+  ProfilePageHeader({@required this.user});
+
+  final User user;
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProfilePageHeaderProvider>(
-        builder: (context, provider, child) {
-      return Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Container(
-              height: 15,
-            ),
-            ProfilePic(diameter: 148, profileUserID: provider.user.userID),
-            Container(
-              child: Text(
-                '${provider.user.username}',
-                style: TextStyle(
-                  fontFamily: 'Helvetica Neue',
-                  fontSize: 25,
-                  color: const Color(0xff000000),
-                ),
-                textAlign: TextAlign.left,
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Container(
+            height: 15,
+          ),
+          ProfilePic(diameter: 148, profileUserID: user.userID),
+          Container(
+            child: Text(
+              '${user.username}',
+              style: TextStyle(
+                fontFamily: 'Helvetica Neue',
+                fontSize: 25,
+                color: const Color(0xff000000),
               ),
+              textAlign: TextAlign.left,
             ),
-            Container(
-              child: Text(
-                '${provider.user.userID}',
-                style: TextStyle(
-                  fontFamily: 'Helvetica Neue',
-                  fontSize: 12,
-                  color: Colors.grey[400],
-                ),
-                textAlign: TextAlign.left,
+          ),
+          Container(
+            child: Text(
+              '${user.userID}',
+              style: TextStyle(
+                fontFamily: 'Helvetica Neue',
+                fontSize: 12,
+                color: Colors.grey[400],
               ),
+              textAlign: TextAlign.left,
             ),
-            Container(
-              height: 20,
-              child: SvgPicture.string(
-                _svg_jmyh3o,
-                allowDrawingOutsideViewBox: true,
-              ),
+          ),
+          Container(
+            height: 20,
+            child: SvgPicture.string(
+              _svg_jmyh3o,
+              allowDrawingOutsideViewBox: true,
             ),
-            FlatButton(
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              child: Container(
-                width: 125.0,
-                height: 31.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.0),
-                  color: provider.followingColor,
-                  border:
-                      Border.all(width: 1.0, color: const Color(0xff707070)),
-                ),
-                child: Center(
-                  child: Text(
-                    provider.followingText,
-                    style: TextStyle(
-                      fontFamily: 'Helvetica Neue',
-                      fontSize: 20,
-                      color: const Color(0xff000000),
+          ),
+          Consumer<ProfilePageHeaderProvider>(
+            builder: (context, provider, child) {
+              return FlatButton(
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                child: Container(
+                  width: 125.0,
+                  height: 31.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.0),
+                    color: provider.followingColor,
+                    border:
+                        Border.all(width: 1.0, color: const Color(0xff707070)),
+                  ),
+                  child: Center(
+                    child: Text(
+                      provider.followingText,
+                      style: TextStyle(
+                        fontFamily: 'Helvetica Neue',
+                        fontSize: 20,
+                        color: const Color(0xff000000),
+                      ),
+                      textAlign: TextAlign.left,
                     ),
-                    textAlign: TextAlign.left,
                   ),
                 ),
-              ),
-              onPressed: () {
-                Provider.of<ProfilePageHeaderProvider>(context, listen: false)
-                    .startFollowing();
-              },
-            ),
-          ]);
-    });
+                onPressed: () {
+                  Provider.of<ProfilePageHeaderProvider>(context, listen: false)
+                      .changeFollowing();
+                },
+              );
+            },
+          ),
+        ]);
   }
 }
 
