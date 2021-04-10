@@ -10,6 +10,7 @@ import 'backend_connect.dart';
 import 'user_info.dart';
 import 'view_post.dart';
 import 'profile_pic.dart';
+import 'settings_drawer.dart';
 
 FirebaseStorage storage = FirebaseStorage.instance;
 final serverAPI = new ServerAPI();
@@ -27,28 +28,35 @@ class ProfilePage extends StatelessWidget {
     double height = MediaQuery.of(context).size.height - 50;
 
     return Scaffold(
-        appBar: ProfilePageAppBar(height: .02 * height),
-        body: Container(
-          padding: EdgeInsets.only(top: 50),
-          child: Column(
-            children: <Widget>[
-              ChangeNotifierProvider(
-                create: (context) =>
-                    ProfilePageHeaderProvider(height: .4 * height, user: user),
-                child: ProfilePageHeader(user: user),
-              ),
-              ProfilePostBody(
-                  height: .57 * height,
-                  user: user,
-                  sidePadding: 20,
-                  betweenPadding: 5),
-            ],
-          ),
-        ));
+      appBar: ProfilePageAppBar(height: .02 * height),
+      body: Container(
+        padding: EdgeInsets.only(top: 50),
+        child: Column(
+          children: <Widget>[
+            ChangeNotifierProvider(
+              create: (context) =>
+                  ProfilePageHeaderProvider(height: .4 * height, user: user),
+              child: ProfilePageHeader(user: user),
+            ),
+            ProfilePostBody(
+                height: .57 * height,
+                user: user,
+                sidePadding: 20,
+                betweenPadding: 5),
+          ],
+        ),
+      ),
+      drawer: SettingsDrawer(
+        width: 250,
+      ),
+    );
   }
 }
 
 class ProfilePageAppBar extends PreferredSize {
+  // Top of profile page. Lets the user access their setting's page and exit
+  // the profile page.
+
   ProfilePageAppBar({this.height});
   final double height;
 
@@ -56,55 +64,62 @@ class ProfilePageAppBar extends PreferredSize {
   Size get preferredSize => Size.fromHeight(height);
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Container(
-                  width: 24.0,
-                  height: 24.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    // image: DecorationImage(
-                    //   image: const AssetImage(''),
-                    //   fit: BoxFit.cover,
-                    // ),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  ),
+    return Container(
+      padding: EdgeInsets.only(top: 40, left: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 24.0,
+                height: 24.0,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  // image: DecorationImage(
+                  //   image: const AssetImage(''),
+                  //   fit: BoxFit.cover,
+                  // ),
+                  border:
+                      Border.all(width: 1.0, color: const Color(0xff707070)),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Container(
-                      width: 80,
-                      height: 25,
-                      decoration: new BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        color: Colors.grey[300],
-                      ),
-                      child: FlatButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Center(
-                            child: Text(
-                              'Exit',
-                              textAlign: TextAlign.center,
-                            ),
-                          ))),
+                child: FlatButton(
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  child: null,
                 ),
-              ],
-            ),
-          ],
-        ),
-      ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Container(
+                    width: 80,
+                    height: 25,
+                    decoration: new BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                      color: Colors.grey[300],
+                    ),
+                    child: FlatButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Center(
+                          child: Text(
+                            'Exit',
+                            textAlign: TextAlign.center,
+                          ),
+                        ))),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
 class ProfilePageHeaderProvider extends ChangeNotifier {
+  // Keeps track of whether the user is following or not following a creator.
+  // Sends http post to server if the user decideds to start following the
+  // creator, and a http delete to server if the user decides to stops following
+  // the creator.
+  //
   final double height;
   final User user;
 
@@ -151,6 +166,10 @@ class ProfilePageHeaderProvider extends ChangeNotifier {
 }
 
 class ProfilePageHeader extends StatelessWidget {
+  // Part of profile page that stays static as the user scrolls through the
+  // creator's posts. Displays the creator's profile pic, username and userID.
+  // Also displays a button that lets the user start/stop following this
+  // creator.
   ProfilePageHeader({@required this.user});
 
   final User user;
