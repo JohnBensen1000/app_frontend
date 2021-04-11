@@ -12,6 +12,8 @@ import 'package:video_player/video_player.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'models/user.dart';
+
 import 'backend_connect.dart';
 import 'user_info.dart';
 import 'chat_page.dart';

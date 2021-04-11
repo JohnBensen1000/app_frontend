@@ -5,6 +5,9 @@ import 'package:test_flutter/profile_pic.dart';
 import 'package:test_flutter/user_info.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+import 'models/user.dart';
 
 import 'backend_connect.dart';
 import 'user_info.dart';
@@ -25,11 +28,19 @@ class _FriendsPageState extends State<FriendsPage> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
-          return ListView.builder(
-              itemCount: snapshot.data.length,
-              itemBuilder: (BuildContext context, int index) {
-                return FriendWidget(friend: snapshot.data[index]);
-              });
+          return Column(
+            children: <Widget>[
+              NewFollowersAlert(),
+              Container(
+                height: 600,
+                child: ListView.builder(
+                    itemCount: snapshot.data.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return FriendWidget(friend: snapshot.data[index]);
+                    }),
+              ),
+            ],
+          );
         } else {
           return Center(
             child: Text("Loading"),
@@ -51,6 +62,45 @@ Future<List<User>> getFriendsList() async {
         User(userID: friendJson['userID'], username: friendJson['username']));
   }
   return friendsList;
+}
+
+class NewFollowersAlert extends StatefulWidget {
+  @override
+  _NewFollowersAlertState createState() => _NewFollowersAlertState();
+}
+
+class _NewFollowersAlertState extends State<NewFollowersAlert> {
+  String newFollowingText = "";
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+
+    _firebaseMessaging.configure(
+        onMessage: (message) async {
+          print(message);
+          setState(() {
+            newFollowingText = message["notification"]["title"];
+          });
+        },
+        onResume: null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Container(
+        height: 20,
+        width: 200,
+        decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+        child: Center(child: Text(newFollowingText)),
+      ),
+    );
+  }
 }
 
 class FriendWidget extends StatelessWidget {

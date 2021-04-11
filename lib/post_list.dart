@@ -2,13 +2,19 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/backend_connect.dart';
 import 'package:video_player/video_player.dart';
 import 'package:http/http.dart' as http;
 
+import 'models/post.dart';
+
+import 'backend_connect.dart';
 import 'user_info.dart';
 import 'view_post.dart';
 
-class PostListScrollerProvider extends ChangeNotifier {
+ServerAPI serverAPI = ServerAPI();
+
+class PostListTransitionProvider extends ChangeNotifier {
   // Keeps track of the vertical offset of the posts in PostListScroller. Allows
   // for smooth sliding up and down of the posts. swipeUp(), swipeDown(), and
   // moveBack() all slowly change the vertical offsets to create a smooth
@@ -19,7 +25,7 @@ class PostListScrollerProvider extends ChangeNotifier {
 
   List<double> offsets;
 
-  PostListScrollerProvider({@required this.postVerticalOffset}) {
+  PostListTransitionProvider({@required this.postVerticalOffset}) {
     offsets = [-postVerticalOffset, 0, postVerticalOffset];
   }
 
@@ -125,8 +131,8 @@ class _PostListState extends State<PostList> {
 
     return ChangeNotifierProvider(
       create: (context) =>
-          PostListScrollerProvider(postVerticalOffset: postVerticalOffset),
-      child: Consumer<PostListScrollerProvider>(
+          PostListTransitionProvider(postVerticalOffset: postVerticalOffset),
+      child: Consumer<PostListTransitionProvider>(
           builder: (context, provider, child) {
         alreadyWatched[postListIndex] = true;
 
@@ -181,7 +187,7 @@ class _PostListState extends State<PostList> {
   }
 
   GestureDetector _buildGestureDetector(
-      PostListScrollerProvider provider, Future<PostWidget> postWidget) {
+      PostListTransitionProvider provider, Future<PostWidget> postWidget) {
     // Returns a GestureDetector that contains a post widget and updates the
     // provider whenever it detects a vertical drag.
 
@@ -204,7 +210,7 @@ class _PostListState extends State<PostList> {
   }
 
   Future<void> _handleVerticalDragStop(
-      PostListScrollerProvider provider) async {
+      PostListTransitionProvider provider) async {
     // Responsible for determine what post widget to display whenever a vertical
     // drag is detected. If the user swipes down, then both the current and next
     // post widget are shifted up. The previous post widget is replaced with the

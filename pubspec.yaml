@@ -36,6 +36,7 @@ dependencies:
   cloud_firestore: ^0.13.7
   http: ^0.12.2
   provider: ^4.3.2+3
+  firebase_messaging: ^6.0.1
   flutter:
     sdk: flutter
 

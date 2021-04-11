@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:test_flutter/profile_page.dart';
 
-import 'user_info.dart';
+import 'models/user.dart';
+
 import 'backend_connect.dart';
 
 final backendConnection = new ServerAPI();

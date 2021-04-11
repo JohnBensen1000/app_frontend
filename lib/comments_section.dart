@@ -6,49 +6,15 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'models/post.dart';
+import 'models/comment.dart';
+
 import 'user_info.dart';
 import 'backend_connect.dart';
 import 'view_post.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
-
-class Comment {
-  // Data structure that holds all important information about an individual
-  // comment Provides multiple constructors for creating a Comment.
-
-  String user_ID;
-  String commentText;
-  String datePosted;
-  String path;
-  int level;
-  int numSubComments;
-
-  Comment.fromServer(Map commentJson) {
-    // Used to construct comments from a json that was recieved from the server.
-    // level and numSubComments should be calculated before calling this method.
-
-    this.user_ID = commentJson["userID"];
-    this.commentText = commentJson["comment"];
-    this.datePosted = commentJson["datePosted"].toString();
-    this.path = commentJson["path"];
-    this.level = commentJson['level'];
-    this.numSubComments = commentJson['numSubComments'];
-  }
-
-  Comment.fromUser(Comment parentComment, String commentText) {
-    // Used to contruct a new comment when the user successfully uploads a
-    // comment. parentComment is the comment that the user is responding to,
-    // this variable is left null if the user is making an initial comment.
-
-    this.user_ID = userID;
-    this.commentText = commentText;
-    this.datePosted = null;
-    this.path = null;
-    this.level = (parentComment != null) ? parentComment.level + 1 : 0;
-    this.numSubComments = 0;
-  }
-}
 
 class CommentSectionProvider extends ChangeNotifier {
   //  Maintains a list of comments associated with a post. The point of this
@@ -302,8 +268,10 @@ class CommentWidgetHeader extends StatelessWidget {
                             parentComment: comment,
                           ))).then((value) =>
                   Provider.of<CommentSectionProvider>(context, listen: false)
-                      .addNewCommentToList(comment,
-                          Comment.fromUser(comment, value["commentText"]))),
+                      .addNewCommentToList(
+                          comment,
+                          Comment.fromUser(
+                              userID, comment, value["commentText"]))),
             ),
           )
       ]),
@@ -364,7 +332,7 @@ class AddComment extends StatelessWidget {
       ).then((value) {
         Provider.of<CommentSectionProvider>(context, listen: false)
             .addNewCommentToList(
-                null, Comment.fromUser(null, value['commentText']));
+                null, Comment.fromUser(userID, null, value['commentText']));
       }),
     );
   }

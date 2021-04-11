@@ -6,6 +6,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import 'models/user.dart';
+import 'models/post.dart';
+
 import 'backend_connect.dart';
 import 'user_info.dart';
 import 'view_post.dart';

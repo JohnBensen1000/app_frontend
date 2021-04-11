@@ -7,6 +7,8 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
+import 'models/post.dart';
+
 import 'backend_connect.dart';
 import 'comments_section.dart';
 import 'user_info.dart';

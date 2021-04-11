@@ -3,8 +3,12 @@ import 'package:http/http.dart' as http;
 
 import 'dart:convert';
 
-import 'user_info.dart';
+import 'models/post.dart';
+
+import 'backend_connect.dart';
 import 'view_post.dart';
+
+ServerAPI serverAPI = ServerAPI();
 
 class ProfilePic extends StatelessWidget {
   // Gets the profile post from google stroage and returns a stack of two

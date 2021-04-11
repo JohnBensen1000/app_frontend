@@ -3,6 +3,10 @@ import 'package:test_flutter/new_post.dart';
 import 'package:test_flutter/user_info.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'models/user.dart';
+import 'models/chat.dart';
+import 'models/post.dart';
+
 import 'view_post.dart';
 import 'user_info.dart';
 
@@ -231,24 +235,6 @@ class ChatPageFooter extends StatelessWidget {
         {'sender': userID, 'text': _chatController.text, 'isPost': false}
       ])
     });
-  }
-}
-
-class Chat {
-  // Class that holds relevant data about an individual chat. Also has a
-  // constructor that creates a Chat() object from a Firestore Map.
-  bool isPost;
-  String sender;
-  String text;
-  Map postData;
-
-  Chat.fromFirebase(Map chatData) {
-    this.isPost = chatData['isPost'];
-    this.sender = chatData['sender'];
-    if (this.isPost)
-      this.postData = chatData['post'];
-    else
-      this.text = chatData["text"];
   }
 }
 
