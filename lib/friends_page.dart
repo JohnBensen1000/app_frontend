@@ -81,7 +81,7 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
         onMessage: (message) async {
           print(message);
           setState(() {
-            newFollowingText = message["notification"]["title"];
+            newFollowingText = message["notification"]["title="];
           });
         },
         onResume: null);
