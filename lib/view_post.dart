@@ -11,7 +11,6 @@ import 'models/post.dart';
 
 import 'backend_connect.dart';
 import 'comments_section.dart';
-import 'user_info.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;

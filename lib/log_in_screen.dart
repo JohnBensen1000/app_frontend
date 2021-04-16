@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'sign_up_page.dart';
-import 'user_info.dart';
+import 'get_into_account.dart';
 
 class LogInScreen extends StatelessWidget {
   LogInScreen({
@@ -19,73 +18,83 @@ class LogInScreen extends StatelessWidget {
           Container(
             width: double.infinity,
           ),
-          SizedBox(
-            width: 346.0,
-            child: Text(
-              'Lets Get You Started',
-              style: TextStyle(
-                fontFamily: 'Rockwell',
-                fontSize: 30,
-                color: const Color(0xff000000),
-                letterSpacing: -0.72,
-                height: 0.8,
+          Container(
+            padding: EdgeInsets.only(bottom: 20),
+            child: SizedBox(
+              width: 346.0,
+              child: Text(
+                'Lets Get You Started',
+                style: TextStyle(
+                  fontFamily: 'Rockwell',
+                  fontSize: 30,
+                  color: const Color(0xff000000),
+                  letterSpacing: -0.72,
+                  height: 0.8,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
 
           Container(
-            padding: EdgeInsets.only(top: 30.0),
-            width: 256.0,
-            height: 256.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-              // image: DecorationImage(
-              //   image: const AssetImage(''),
-              //   fit: BoxFit.cover,
-              // ),
-              border: Border.all(width: 3.0, color: const Color(0xff1de0e0)),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0x29000000),
-                  offset: Offset(0, 5),
-                  blurRadius: 8,
-                ),
-              ],
+            padding: EdgeInsets.only(bottom: 20),
+            child: Container(
+              width: 256.0,
+              height: 256.0,
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+                // image: DecorationImage(
+                //   image: const AssetImage(''),
+                //   fit: BoxFit.cover,
+                // ),
+                border: Border.all(width: 3.0, color: const Color(0xff1de0e0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0x29000000),
+                    offset: Offset(0, 5),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
             ),
           ),
           Container(
-            width: 276.0,
-            height: 42.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25.0),
-              color: const Color(0xffffffff),
-              border: Border.all(width: 1.0, color: const Color(0xff1de0e0)),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0x29000000),
-                  offset: Offset(0, 3),
-                  blurRadius: 6,
-                ),
-              ],
-            ),
-            child: FlatButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignUpPage()),
-                );
-              },
-              child: SizedBox(
-                width: 266.0,
-                child: Text(
-                  'Create an Account ',
-                  style: TextStyle(
-                    fontFamily: 'Devanagari Sangam MN',
-                    fontSize: 27,
-                    color: const Color(0xff707070),
+            child: Container(
+              width: 276.0,
+              height: 42.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(25.0),
+                color: const Color(0xffffffff),
+                border: Border.all(width: 1.0, color: const Color(0xff1de0e0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0x29000000),
+                    offset: Offset(0, 3),
+                    blurRadius: 6,
                   ),
-                  textAlign: TextAlign.center,
+                ],
+              ),
+              child: FlatButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            InputFieldsPageState(pageType: PageType.signUp)),
+                  );
+                },
+                child: SizedBox(
+                  width: 266.0,
+                  child: Text(
+                    'Create an Account ',
+                    style: TextStyle(
+                      fontFamily: 'Devanagari Sangam MN',
+                      fontSize: 27,
+                      color: const Color(0xff707070),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
             ),
@@ -95,8 +104,12 @@ class LogInScreen extends StatelessWidget {
               width: 202.0,
               child: FlatButton(
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => UserInfo()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => InputFieldsPageState(
+                                pageType: PageType.signIn,
+                              )));
                 },
                 child: Text(
                   'Already have an account? ',

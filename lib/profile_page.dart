@@ -10,7 +10,6 @@ import 'models/user.dart';
 import 'models/post.dart';
 
 import 'backend_connect.dart';
-import 'user_info.dart';
 import 'view_post.dart';
 import 'profile_pic.dart';
 import 'settings_drawer.dart';

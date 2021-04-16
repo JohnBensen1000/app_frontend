@@ -15,7 +15,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'models/user.dart';
 
 import 'backend_connect.dart';
-import 'user_info.dart';
 import 'chat_page.dart';
 import 'friends_page.dart';
 

@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:test_flutter/profile_pic.dart';
-import 'package:test_flutter/user_info.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -10,7 +9,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'models/user.dart';
 
 import 'backend_connect.dart';
-import 'user_info.dart';
 import 'chat_page.dart';
 
 final serverAPI = new ServerAPI();

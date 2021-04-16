@@ -9,7 +9,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'models/post.dart';
 import 'models/comment.dart';
 
-import 'user_info.dart';
 import 'backend_connect.dart';
 import 'view_post.dart';
 

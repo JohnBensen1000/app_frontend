@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/new_post.dart';
-import 'package:test_flutter/user_info.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'models/user.dart';
@@ -8,7 +7,7 @@ import 'models/chat.dart';
 import 'models/post.dart';
 
 import 'view_post.dart';
-import 'user_info.dart';
+import 'backend_connect.dart';
 
 String getChatName(User friend) {
   // Uses comparison between hashCodes of two userIDs to determine chat name.

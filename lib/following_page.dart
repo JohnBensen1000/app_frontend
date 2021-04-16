@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 
-import 'user_info.dart';
 import 'backend_connect.dart';
 import 'post_list.dart';
 

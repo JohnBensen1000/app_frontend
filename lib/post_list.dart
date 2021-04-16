@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'models/post.dart';
 
 import 'backend_connect.dart';
-import 'user_info.dart';
 import 'view_post.dart';
 
 ServerAPI serverAPI = ServerAPI();

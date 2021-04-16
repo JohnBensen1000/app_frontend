@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/new_post.dart';
 
-import 'user_info.dart';
 import 'profile_pic.dart';
+import 'backend_connect.dart';
 
 class SettingsDrawer extends StatelessWidget {
   SettingsDrawer({

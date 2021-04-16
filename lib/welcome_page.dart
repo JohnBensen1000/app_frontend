@@ -30,6 +30,9 @@ class WelcomePage extends StatelessWidget {
             ),
           ),
           Container(
+            height: 50,
+          ),
+          Container(
               width: 58.0,
               height: 58.0,
               decoration: BoxDecoration(
