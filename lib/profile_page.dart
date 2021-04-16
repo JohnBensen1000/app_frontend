@@ -200,7 +200,7 @@ class ProfilePageHeader extends StatelessWidget {
           ),
           Container(
             child: Text(
-              '${user.userID}',
+              '@${user.userID}',
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
                 fontSize: 12,
@@ -216,40 +216,52 @@ class ProfilePageHeader extends StatelessWidget {
               allowDrawingOutsideViewBox: true,
             ),
           ),
-          Consumer<ProfilePageHeaderProvider>(
-            builder: (context, provider, child) {
-              return FlatButton(
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                child: Container(
-                  width: 125.0,
-                  height: 31.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.0),
-                    color: provider.followingColor,
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  ),
-                  child: Center(
-                    child: Text(
-                      provider.followingText,
-                      style: TextStyle(
-                        fontFamily: 'Helvetica Neue',
-                        fontSize: 20,
-                        color: const Color(0xff000000),
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                ),
-                onPressed: () {
-                  Provider.of<ProfilePageHeaderProvider>(context, listen: false)
-                      .changeFollowing();
-                },
-              );
-            },
-          ),
+          // Only displays following button if the profile page does not belong to
+          // the current user.
+          if (user.userID != globals.userID) FollowingButton(),
         ]);
+  }
+}
+
+class FollowingButton extends StatelessWidget {
+  const FollowingButton({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ProfilePageHeaderProvider>(
+      builder: (context, provider, child) {
+        return FlatButton(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          child: Container(
+            width: 125.0,
+            height: 31.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16.0),
+              color: provider.followingColor,
+              border: Border.all(width: 1.0, color: const Color(0xff707070)),
+            ),
+            child: Center(
+              child: Text(
+                provider.followingText,
+                style: TextStyle(
+                  fontFamily: 'Helvetica Neue',
+                  fontSize: 20,
+                  color: const Color(0xff000000),
+                ),
+                textAlign: TextAlign.left,
+              ),
+            ),
+          ),
+          onPressed: () {
+            Provider.of<ProfilePageHeaderProvider>(context, listen: false)
+                .changeFollowing();
+          },
+        );
+      },
+    );
   }
 }
 
@@ -291,7 +303,7 @@ class ProfilePostBody extends StatelessWidget {
               ),
             );
           } else {
-            return Center(child: Text("Loading..."));
+            return Center(child: Text("Nothing to display"));
           }
         });
   }

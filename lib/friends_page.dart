@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:test_flutter/profile_pic.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -64,6 +63,11 @@ Future<List<User>> getFriendsList() async {
 }
 
 class NewFollowersAlert extends StatefulWidget {
+  // Firebase sends a push notification to this widget any time someone new
+  // starts following the current user. This widget displays if new people
+  // started following the current user, and updates whenever it recieves a
+  // notification from Firebase.
+
   @override
   _NewFollowersAlertState createState() => _NewFollowersAlertState();
 }
@@ -78,26 +82,53 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
 
     _firebaseMessaging.configure(
         onMessage: (message) async {
-          setState(() {
-            newFollowingText = message["notification"]["title"];
-          });
+          if (message["notification"]['body']['userID'] == globals.userID) {
+            setState(() {
+              newFollowingText = "New Followers!";
+            });
+            print(message["notification"]["body"]);
+          }
         },
         onResume: null);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 5),
-      child: Container(
-        height: 20,
-        width: 200,
-        decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.all(Radius.circular(20))),
-        child: Center(child: Text(newFollowingText)),
-      ),
-    );
+    return FutureBuilder(
+        future: _getNewFollower(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.data.length > 0) {
+            newFollowingText = "New Followers: ${snapshot.data.length}";
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Container(
+                height: 20,
+                width: 200,
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                child: Center(child: Text(newFollowingText)),
+              ),
+            );
+          } else {
+            return Container();
+          }
+        });
+  }
+
+  Future<List<User>> _getNewFollower() async {
+    List<User> followersList = [];
+
+    String newUrl = serverAPI.url + "users/${globals.userID}/followers/";
+    var response = await http.get(newUrl);
+
+    for (var friendJson in json.decode(response.body)["new_followers"]) {
+      followersList.add(
+          User(userID: friendJson['userID'], username: friendJson['username']));
+    }
+    return followersList;
   }
 }
 
@@ -141,52 +172,23 @@ class FriendWidget extends StatelessWidget {
                           this.friend.username,
                           style: TextStyle(
                             fontFamily: 'SF Pro Text',
-                            fontSize: 15,
+                            fontSize: 24,
                             color: const Color(0xff000000),
                             letterSpacing: -0.36,
                             height: 1.4666666666666666,
                           ),
                           textAlign: TextAlign.left,
                         ),
-                        SizedBox(
-                          width: 34.0,
-                          child: Text(
-                            'Tier 7 ',
-                            style: TextStyle(
-                              fontFamily: 'SF Pro Text',
-                              fontSize: 10,
-                              color: const Color(0xff000000),
-                              letterSpacing: -0.004099999964237213,
-                              height: 1.2,
-                            ),
-                            textAlign: TextAlign.center,
+                        Text(
+                          '@${this.friend.userID}',
+                          style: TextStyle(
+                            fontFamily: 'SF Pro Text',
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                            letterSpacing: -0.36,
+                            height: 1.4666666666666666,
                           ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Transform.translate(
-                              offset: Offset(0.0, 5.5),
-                              child: Container(
-                                width: 73.0,
-                                height: 11.0,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(6.0),
-                                  color: const Color(0xffffffff),
-                                  border: Border.all(
-                                      width: 1.0,
-                                      color: const Color(0xff22a2ff)),
-                                ),
-                              ),
-                            ),
-                            Transform.translate(
-                              offset: Offset(0.0, -5.5),
-                              child: SvgPicture.string(
-                                _svg_qlaync,
-                                allowDrawingOutsideViewBox: true,
-                              ),
-                            ),
-                          ],
+                          textAlign: TextAlign.left,
                         ),
                       ],
                     ),

@@ -240,6 +240,7 @@ Future<bool> authenticateUserWithBackend(String idToken) async {
 
   if (response.statusCode == 200) {
     globals.userID = json.decode(response.body)["userID"];
+    globals.username = json.decode(response.body)["username"];
     return true;
   }
   return false;
@@ -485,6 +486,19 @@ class InputSubmitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String buttonText;
+    Future<void> Function(BuildContext) onPressedFunction;
+
+    switch (pageType) {
+      case PageType.signIn:
+        buttonText = "Sign In";
+        onPressedFunction = _signIn;
+        break;
+      case PageType.signUp:
+        buttonText = "Sign Up";
+        onPressedFunction = _signUp;
+        break;
+    }
     return SizedBox(
       width: 174.0,
       height: 52.0,
@@ -494,18 +508,9 @@ class InputSubmitButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               FlatButton(
-                onPressed: () {
-                  switch (pageType) {
-                    case PageType.signIn:
-                      _signIn(context);
-                      break;
-                    case PageType.signUp:
-                      _signUp(context);
-                      break;
-                  }
-                },
+                onPressed: () => onPressedFunction(context),
                 child: Text(
-                  'Sign In',
+                  buttonText,
                   style: TextStyle(
                     fontFamily: 'Devanagari Sangam MN',
                     fontSize: 35,
