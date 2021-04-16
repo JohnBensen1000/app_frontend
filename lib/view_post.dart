@@ -280,8 +280,8 @@ class _PostBodyState extends State<PostBody> {
   Future<ImageProvider> _getThumbnail() async {
     String thumbnailFile = await VideoThumbnail.thumbnailFile(
       video: (await post.postURL).toString(),
-      imageFormat: ImageFormat.PNG,
       thumbnailPath: (await getTemporaryDirectory()).path,
+      imageFormat: ImageFormat.PNG,
       maxHeight: height.toInt(),
       maxWidth: width.toInt(),
       quality: 10,

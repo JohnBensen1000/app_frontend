@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/new_post.dart';
 
+import 'globals.dart' as globals;
 import 'profile_pic.dart';
-import 'backend_connect.dart';
 
 class SettingsDrawer extends StatelessWidget {
   SettingsDrawer({
@@ -31,7 +31,7 @@ class SettingsDrawer extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 20, bottom: 20),
                 child: ProfilePic(
                   diameter: 200,
-                  profileUserID: userID,
+                  profileUserID: globals.userID,
                 )),
             SettingsButton(
               buttonName: "Change Profile Picture",

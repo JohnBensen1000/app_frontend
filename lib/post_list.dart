@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 
 import 'models/post.dart';
 
+import 'globals.dart' as globals;
 import 'backend_connect.dart';
 import 'view_post.dart';
 
@@ -248,7 +249,7 @@ class _PostListState extends State<PostList> {
     // Sends a post request to the server to tell it to record that the user
     // has watched the current post.
     String postID = widget.postList[postListIndex]["postID"].toString();
-    String newUrl = serverAPI.url + 'posts/$userID/watched/$postID/';
+    String newUrl = serverAPI.url + 'posts/${globals.userID}/watched/$postID/';
 
     var response = await http.post(newUrl, body: {'userRating': '5'});
     print(response.statusCode);

@@ -1,4 +1,3 @@
-String userID = "Collin1000";
 double goldenRatio = 1.6180;
 
 class ServerAPI {

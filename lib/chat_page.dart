@@ -6,16 +6,17 @@ import 'models/user.dart';
 import 'models/chat.dart';
 import 'models/post.dart';
 
+import 'globals.dart' as globals;
 import 'view_post.dart';
 import 'backend_connect.dart';
 
 String getChatName(User friend) {
   // Uses comparison between hashCodes of two userIDs to determine chat name.
   // This way, the chat name for two friends will always be the same.
-  if (userID.hashCode < friend.userID.hashCode) {
-    return userID + "-" + friend.userID;
+  if (globals.userID.hashCode < friend.userID.hashCode) {
+    return globals.userID + "-" + friend.userID;
   } else {
-    return friend.userID + "-" + userID;
+    return friend.userID + "-" + globals.userID;
   }
 }
 
@@ -27,7 +28,7 @@ Future<void> createChatIfDoesntExist(
   await chatsCollection.document(chatName).get().then((doc) {
     if (!doc.exists) {
       chatsCollection.document(chatName).setData({
-        "Members": [userID, friend.userID]
+        "Members": [globals.userID, friend.userID]
       });
       chatsCollection
           .document(chatName)
@@ -231,7 +232,11 @@ class ChatPageFooter extends StatelessWidget {
         .document('1')
         .updateData({
       'conversation': FieldValue.arrayUnion([
-        {'sender': userID, 'text': _chatController.text, 'isPost': false}
+        {
+          'sender': globals.userID,
+          'text': _chatController.text,
+          'isPost': false
+        }
       ])
     });
   }
@@ -249,7 +254,7 @@ class ChatWidget extends StatelessWidget {
     MainAxisAlignment chatAxisAlignment;
     Color backgroundColor;
 
-    if (chat.sender == userID) {
+    if (chat.sender == globals.userID) {
       chatAxisAlignment = MainAxisAlignment.end;
       backgroundColor = Colors.orange[300];
     } else {
@@ -324,7 +329,7 @@ class ChatWidgetPost extends StatelessWidget {
       PostWidget(
         post: post,
         height: height,
-        aspectRatio: goldenRatio,
+        aspectRatio: globals.goldenRatio,
         onlyShowBodyAfterPressed: true,
       )
     ]);

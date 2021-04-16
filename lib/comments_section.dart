@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'models/post.dart';
 import 'models/comment.dart';
 
+import 'globals.dart' as globals;
 import 'backend_connect.dart';
 import 'view_post.dart';
 
@@ -270,7 +271,7 @@ class CommentWidgetHeader extends StatelessWidget {
                       .addNewCommentToList(
                           comment,
                           Comment.fromUser(
-                              userID, comment, value["commentText"]))),
+                              globals.userID, comment, value["commentText"]))),
             ),
           )
       ]),
@@ -330,8 +331,8 @@ class AddComment extends StatelessWidget {
         ),
       ).then((value) {
         Provider.of<CommentSectionProvider>(context, listen: false)
-            .addNewCommentToList(
-                null, Comment.fromUser(userID, null, value['commentText']));
+            .addNewCommentToList(null,
+                Comment.fromUser(globals.userID, null, value['commentText']));
       }),
     );
   }
@@ -447,8 +448,11 @@ class AddCommentScaffold extends StatelessWidget {
     String commentPath = (parentComment != null) ? parentComment.path : '';
 
     String newUrl = backendConnection.url + "comments/${postID.toString()}/";
-    var response = await http.post(newUrl,
-        body: {"path": commentPath, "comment": commentText, "userID": userID});
+    var response = await http.post(newUrl, body: {
+      "path": commentPath,
+      "comment": commentText,
+      "userID": globals.userID
+    });
 
     if (response.statusCode == 201) {
       Navigator.pop(context,

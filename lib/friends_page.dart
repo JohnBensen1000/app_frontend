@@ -8,6 +8,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'models/user.dart';
 
+import 'globals.dart' as globals;
 import 'backend_connect.dart';
 import 'chat_page.dart';
 
@@ -52,7 +53,7 @@ class _FriendsPageState extends State<FriendsPage> {
 Future<List<User>> getFriendsList() async {
   List<User> friendsList = [];
 
-  String newUrl = serverAPI.url + "users/$userID/friends/";
+  String newUrl = serverAPI.url + "users/${globals.userID}/friends/";
   var response = await http.get(newUrl);
 
   for (var friendJson in json.decode(response.body)["friends"]) {

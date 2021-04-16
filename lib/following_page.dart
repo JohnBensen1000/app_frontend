@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 
+import 'globals.dart' as globals;
 import 'backend_connect.dart';
 import 'post_list.dart';
 
@@ -30,7 +31,8 @@ class FollowingPage extends StatelessWidget {
   }
 
   Future<List<dynamic>> _getPosts() async {
-    String newUrl = backendConnection.url + "posts/$userID/following/";
+    String newUrl =
+        backendConnection.url + "posts/${globals.userID}/following/";
     var response = await http.get(newUrl);
     return json.decode(response.body)["postsList"];
   }

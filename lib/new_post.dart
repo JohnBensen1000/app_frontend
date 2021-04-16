@@ -14,6 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'models/user.dart';
 
+import 'globals.dart' as globals;
 import 'backend_connect.dart';
 import 'chat_page.dart';
 import 'friends_page.dart';
@@ -46,7 +47,7 @@ Future<void> sendPost(User friend, bool isImage, String filePath) async {
       .updateData({
     'conversation': FieldValue.arrayUnion([
       {
-        'sender': userID,
+        'sender': globals.userID,
         'isPost': true,
         'post': {
           'postURL': postURL,
@@ -77,13 +78,13 @@ Future<String> uploadFile(
 Future<void> uploadProfilePic(bool isImage, String filePath) async {
   // Uploads a file that will be used as a user's profile pic
 
-  String url = serverAPI.url + "users/" + userID + "/profile/";
+  String url = serverAPI.url + "users/${globals.userID}/profile/";
   String profileType = (isImage) ? 'image' : 'video';
   var response = await http.post(url, body: {"profileType": profileType});
 
   if (response.statusCode == 201) {
     String fileExtension = (isImage) ? 'png' : 'mp4';
-    String fileName = "$userID/profile.$fileExtension";
+    String fileName = "${globals.userID}/profile.$fileExtension";
 
     StorageReference storageReference =
         FirebaseStorage.instance.ref().child(fileName);
@@ -625,7 +626,7 @@ class NewPostOptions extends StatelessWidget {
     // Sends the an HTTP request containing the post file to the server for
     // further processing. Returns with the response status code.
     var request = http.MultipartRequest(
-        'POST', Uri.parse(serverAPI.url + 'posts/$userID/posts/'));
+        'POST', Uri.parse(serverAPI.url + 'posts/${globals.userID}/posts/'));
 
     if (provider.isImage)
       request.fields["contentType"] = 'image';

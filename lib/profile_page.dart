@@ -9,6 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'models/user.dart';
 import 'models/post.dart';
 
+import 'globals.dart' as globals;
 import 'backend_connect.dart';
 import 'view_post.dart';
 import 'profile_pic.dart';
@@ -135,7 +136,8 @@ class ProfilePageHeaderProvider extends ChangeNotifier {
   }
 
   Future<void> checkIfFollowing() async {
-    String url = serverAPI.url + "users/$userID/following/${user.userID}/";
+    String url =
+        serverAPI.url + "users/${globals.userID}/following/${user.userID}/";
     var response = await http.get(url);
 
     isFollowing = json.decode(response.body)["following_bool"];
@@ -144,7 +146,7 @@ class ProfilePageHeaderProvider extends ChangeNotifier {
 
   Future<void> changeFollowing() async {
     String url =
-        serverAPI.url + "users/" + userID + "/following/${user.userID}/";
+        serverAPI.url + "users/${globals.userID}/following/${user.userID}/";
 
     var response =
         (isFollowing) ? await http.delete(url) : await http.post(url);

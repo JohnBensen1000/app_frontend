@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:test_flutter/home_screen.dart';
 
+import 'globals.dart' as globals;
 import 'backend_connect.dart';
 
 final serverAPI = new ServerAPI();
@@ -494,6 +495,7 @@ class InputSubmitButton extends StatelessWidget {
 
   Future<void> _signIn(BuildContext context) async {
     if (await Provider.of<SignInProvider>(context, listen: false).signIn()) {
+      globals.userID = "Collin1000";
       Navigator.push(
           context,
           MaterialPageRoute(
@@ -506,6 +508,7 @@ class InputSubmitButton extends StatelessWidget {
   Future<void> _signUp(BuildContext context) async {
     if (await Provider.of<SignUpProvider>(context, listen: false)
         .createNewAccount()) {
+      globals.userID = "Collin1000";
       Navigator.push(
           context,
           MaterialPageRoute(
