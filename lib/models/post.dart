@@ -1,5 +1,6 @@
 import 'package:firebase_storage/firebase_storage.dart';
 
+import 'user.dart';
 import 'chat.dart';
 
 class Post {

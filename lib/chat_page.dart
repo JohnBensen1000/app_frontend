@@ -8,7 +8,6 @@ import 'models/post.dart';
 
 import 'globals.dart' as globals;
 import 'view_post.dart';
-import 'backend_connect.dart';
 
 String getChatName(User friend) {
   // Uses comparison between hashCodes of two userIDs to determine chat name.

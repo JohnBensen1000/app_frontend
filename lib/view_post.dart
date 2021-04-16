@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:test_flutter/profile_page.dart';
 import 'package:test_flutter/profile_pic.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
@@ -8,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'models/post.dart';
+import 'models/user.dart';
 
 import 'backend_connect.dart';
 import 'comments_section.dart';
@@ -170,32 +172,45 @@ class PostWidgetState extends InheritedWidget {
 }
 
 class PostHeader extends StatelessWidget {
+  // Shows user profile and username of the post's creator above a post. The
+  // entire widget is a button that, when pressed, takes the user to the
+  // creator's profile page.
   const PostHeader({
     Key key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String userID = PostWidgetState.of(context).post.userID;
+    String username = PostWidgetState.of(context).post.username;
+
     return Container(
       padding: EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: <Widget>[
-          ProfilePic(
-              diameter: PostWidgetState.of(context).height / 7.60,
-              profileUserID: PostWidgetState.of(context).post.userID),
-          Container(
-            padding: EdgeInsets.only(left: 20),
-            child: Text(
-              PostWidgetState.of(context).post.username,
-              style: TextStyle(
-                fontFamily: 'Helvetica Neue',
-                fontSize: 25,
-                color: const Color(0xff000000),
+      child: GestureDetector(
+        child: Row(
+          children: <Widget>[
+            ProfilePic(
+                diameter: PostWidgetState.of(context).height / 7.60,
+                profileUserID: PostWidgetState.of(context).post.userID),
+            Container(
+              padding: EdgeInsets.only(left: 20),
+              child: Text(
+                PostWidgetState.of(context).post.username,
+                style: TextStyle(
+                  fontFamily: 'Helvetica Neue',
+                  fontSize: 25,
+                  color: const Color(0xff000000),
+                ),
+                textAlign: TextAlign.left,
               ),
-              textAlign: TextAlign.left,
             ),
-          ),
-        ],
+          ],
+        ),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ProfilePage(
+                    user: User(userID: userID, username: username)))),
       ),
     );
   }
