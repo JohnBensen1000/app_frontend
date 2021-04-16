@@ -47,14 +47,24 @@ class SignInProvider extends ChangeNotifier {
 
   List<InputField> get inputFields => [email, password];
 
-  Future<void> signIn() async {
+  Future<bool> signIn() async {
     try {
       final FirebaseUser user = (await auth.signInWithEmailAndPassword(
               email: email.textController.text,
               password: password.textController.text))
           .user;
+      return true;
     } catch (error) {
-      print(error);
+      switch (error.code) {
+        case "ERROR_WRONG_PASSWORD":
+          password.errorText = "This password is incorrected";
+          break;
+        case "ERROR_USER_NOT_FOUND":
+          email.errorText = "This email is not recognized";
+      }
+      notifyListeners();
+
+      return false;
     }
   }
 }
@@ -483,13 +493,14 @@ class InputSubmitButton extends StatelessWidget {
   }
 
   Future<void> _signIn(BuildContext context) async {
-    await Provider.of<SignInProvider>(context, listen: false).signIn();
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => HomeScreen(
-                  pageLabel: PageLabel.friends,
-                )));
+    if (await Provider.of<SignInProvider>(context, listen: false).signIn()) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                    pageLabel: PageLabel.friends,
+                  )));
+    }
   }
 
   Future<void> _signUp(BuildContext context) async {
