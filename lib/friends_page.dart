@@ -78,9 +78,8 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
 
     _firebaseMessaging.configure(
         onMessage: (message) async {
-          print(message);
           setState(() {
-            newFollowingText = message["notification"]["title="];
+            newFollowingText = message["notification"]["title"];
           });
         },
         onResume: null);

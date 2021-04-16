@@ -4,31 +4,16 @@ import 'package:adobe_xd/pinned.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:test_flutter/home_screen.dart';
+import 'package:http/http.dart' as http;
 
 import 'globals.dart' as globals;
 import 'backend_connect.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 final serverAPI = new ServerAPI();
 FirebaseAuth auth = FirebaseAuth.instance;
-
-enum PageType { signIn, signUp }
-
-class InputField {
-  // Object that contains the state of an individual InputFieldWidget.
-  final String hintText;
-  final bool obscureText;
-
-  String errorText;
-  TextEditingController textController;
-
-  InputField({@required this.hintText, this.obscureText = false}) {
-    this.errorText = "";
-    this.textController = TextEditingController();
-  }
-}
 
 class SignInProvider extends ChangeNotifier {
   // Contains state for sign in page.
@@ -42,19 +27,24 @@ class SignInProvider extends ChangeNotifier {
     @required this.password,
   }) {
     this.accountCreated = false;
-    this.email.textController.text = "jebbensen@gmail.com";
+    this.email.textController.text = "john@gmail.com";
     this.password.textController.text = "test12345";
   }
 
   List<InputField> get inputFields => [email, password];
 
   Future<bool> signIn() async {
+    // Signs into firebase account. If any errors, updates appropraite error
+    // messages. Returns true if successfully authenticated with firebase and
+    // backend, false otherwise.
     try {
-      final FirebaseUser user = (await auth.signInWithEmailAndPassword(
+      final FirebaseUser firebaseUser = (await auth.signInWithEmailAndPassword(
               email: email.textController.text,
               password: password.textController.text))
           .user;
-      return true;
+      bool authenticated = await authenticateUserWithBackend(
+          (await firebaseUser.getIdToken()).token);
+      return authenticated;
     } catch (error) {
       switch (error.code) {
         case "ERROR_WRONG_PASSWORD":
@@ -73,8 +63,9 @@ class SignInProvider extends ChangeNotifier {
 class SignUpProvider extends ChangeNotifier {
   // Contains state of entire sign up page. Contains InputField object for
   // every input field. Has functionality for checking if input data is
-  // formatted correctly and creating a new account. If there are any errors
-  // with the input data, create appropriate error messages.
+  // valid and creating a new account. If there are any errors  with the input
+  // data, create appropriate error messages. Creates both a firebase and a
+  // user account in the database.
 
   final InputField name;
   final InputField email;
@@ -84,6 +75,7 @@ class SignUpProvider extends ChangeNotifier {
   final InputField confirmPassword;
 
   bool accountCreated;
+  FirebaseUser firebaseUser;
 
   SignUpProvider({
     @required this.name,
@@ -99,19 +91,13 @@ class SignUpProvider extends ChangeNotifier {
   List<InputField> get inputFields =>
       [name, email, username, phone, password, confirmPassword];
 
-  Map<String, dynamic> get inputTextJson => {
-        "userID": username.textController.text,
-        "preferredLanguage": "english",
-        "username": name.textController.text,
-        "email": email.textController.text,
-        "phone": phone.textController.text,
-      };
-
   Future<bool> createNewAccount() async {
-    // Clears all error messages. Validates if each input is formatted correct,
-    // then checks if unique user account identifiers (userID, email, etc) are
+    // Clears all error messages. Validates if each input is formatted correct
+    // and checks if unique user account identifiers (userID, email, etc) are
     // already taken. If inputs are correct and identifiers are not taken,
-    // creates new account. If an account has already been created, do nothing.
+    // creates new firebase account. If a firebase account is created, then
+    // create an account in the database. If an account has already been
+    // created, do nothing.
 
     for (InputField inputField in inputFields) inputField.errorText = "";
     bool isNewAccountValid = true;
@@ -120,17 +106,18 @@ class SignUpProvider extends ChangeNotifier {
       if (_checkIfEmpty()) isNewAccountValid = false;
       if (!_checkIfPasswordsMatch()) isNewAccountValid = false;
       if (!_isEmailValid()) isNewAccountValid = false;
-
-      if (isNewAccountValid && (await _checkIfUniqueFieldsTaken()))
-        isNewAccountValid = false;
+      if (await _checkIfUniqueFieldsTaken()) isNewAccountValid = false;
 
       if (isNewAccountValid) {
         isNewAccountValid = await _createFirebaseAccount();
       }
       if (isNewAccountValid) {
-        String url = serverAPI.url + "users/new_user/";
-        var _ = await http.post(url, body: this.inputTextJson);
+        await _createAccount();
         accountCreated = true;
+
+        bool authenticated = await authenticateUserWithBackend(
+            (await firebaseUser.getIdToken()).token);
+        return authenticated;
       }
     }
     notifyListeners();
@@ -174,7 +161,14 @@ class SignUpProvider extends ChangeNotifier {
     // and/or phone) has been taken by another user. If any of these identifiers
     // have been taken, updates respective error messages and returs true.
     String url = serverAPI.url + "users/check/";
-    var response = await http.post(url, body: this.inputTextJson);
+
+    Map<dynamic, dynamic> postBody = {
+      "userID": username.textController.text,
+      "email": email.textController.text,
+      "phone": phone.textController.text,
+    };
+
+    var response = await http.post(url, body: postBody);
 
     Map<String, dynamic> responseBody = json.decode(response.body);
 
@@ -192,7 +186,7 @@ class SignUpProvider extends ChangeNotifier {
     // Creates an account in firebase. If firebase returns any errors, then
     // updates the appropriate error messages.
     try {
-      final FirebaseUser user = (await auth.createUserWithEmailAndPassword(
+      firebaseUser = (await auth.createUserWithEmailAndPassword(
               email: email.textController.text,
               password: password.textController.text))
           .user;
@@ -206,6 +200,64 @@ class SignUpProvider extends ChangeNotifier {
       return false;
     }
     return true;
+  }
+
+  Future<void> _createAccount() async {
+    // Sends a post request to create a new account. This new account will
+    // contain all of the information that the user just typed in. One
+    // additional field is sent: "idToken", this is needed to communicate with
+    // the corresponding firebase account.
+
+    String idToken = (await firebaseUser.getIdToken()).token;
+
+    String url = serverAPI.url + "users/${username.textController.text}/";
+
+    Map<dynamic, dynamic> postBody = {
+      "idToken": idToken,
+      "userID": username.textController.text,
+      "preferredLanguage": "english",
+      "username": name.textController.text,
+      "email": email.textController.text,
+      "phone": phone.textController.text,
+    };
+
+    await http.post(url, body: postBody);
+  }
+}
+
+Future<bool> authenticateUserWithBackend(String idToken) async {
+  // Authenticates the user with the backend. First gets deviceToken. Sends
+  // idToken and deviceToken to backend. Then sets the global variable userID to
+  // the data that the backend returns. Returns false if an error occurred on
+  // the backend, true otherwise.
+
+  FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+  String deviceToken = await _firebaseMessaging.getToken();
+
+  String _url = serverAPI.url + "authenticate/";
+  http.Response response = await http
+      .post(_url, body: {"idToken": idToken, "deviceToken": deviceToken});
+
+  if (response.statusCode == 200) {
+    globals.userID = json.decode(response.body)["userID"];
+    return true;
+  }
+  return false;
+}
+
+enum PageType { signIn, signUp }
+
+class InputField {
+  // Object that contains the state of an individual InputFieldWidget.
+  final String hintText;
+  final bool obscureText;
+
+  String errorText;
+  TextEditingController textController;
+
+  InputField({@required this.hintText, this.obscureText = false}) {
+    this.errorText = "";
+    this.textController = TextEditingController();
   }
 }
 
@@ -426,6 +478,7 @@ class InputSubmitButton extends StatelessWidget {
   // This button could either call SignInProvider.signIn() or
   // SignUpProvider.signUp(), depending on the value of pageType. When either
   // function completes successfully, pushes the user to HomeScreen() page.
+
   InputSubmitButton({@required this.pageType});
 
   final PageType pageType;
@@ -495,7 +548,6 @@ class InputSubmitButton extends StatelessWidget {
 
   Future<void> _signIn(BuildContext context) async {
     if (await Provider.of<SignInProvider>(context, listen: false).signIn()) {
-      globals.userID = "Collin1000";
       Navigator.push(
           context,
           MaterialPageRoute(
@@ -508,7 +560,6 @@ class InputSubmitButton extends StatelessWidget {
   Future<void> _signUp(BuildContext context) async {
     if (await Provider.of<SignUpProvider>(context, listen: false)
         .createNewAccount()) {
-      globals.userID = "Collin1000";
       Navigator.push(
           context,
           MaterialPageRoute(
