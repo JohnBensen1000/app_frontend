@@ -339,12 +339,13 @@ class AddComment extends StatelessWidget {
 }
 
 class AddCommentScaffold extends StatelessWidget {
-  AddCommentScaffold(
-      {@required this.post, @required this.commentsList, this.parentComment});
-
   // Parent comment is the comment that a user is responding to. If the user
   // making an initial comment (not a response to another comment), then
   // parentComment is null.
+
+  AddCommentScaffold(
+      {@required this.post, @required this.commentsList, this.parentComment});
+
   final Post post;
   final List<Comment> commentsList;
   final Comment parentComment;
@@ -388,7 +389,8 @@ class AddCommentScaffold extends StatelessWidget {
                 commentsList: commentsList,
                 post: post,
                 height: postHeight,
-                levelOffset: parentComment.level + 1,
+                levelOffset:
+                    (parentComment != null) ? parentComment.level + 1 : 0,
               )),
           Container(
             alignment: Alignment.bottomCenter,

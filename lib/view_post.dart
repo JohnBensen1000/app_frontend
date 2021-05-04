@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'models/post.dart';
 import 'models/user.dart';
 
+import 'globals.dart' as globals;
 import 'backend_connect.dart';
 import 'comments_section.dart';
 
@@ -37,7 +38,7 @@ class ViewPostScaffold extends StatelessWidget {
           playOnInit: true,
           onlyShowBody: onlyShowBody,
           height: 525,
-          aspectRatio: goldenRatio,
+          aspectRatio: globals.goldenRatio,
           isViewPost: true,
         ),
       ),

@@ -329,9 +329,9 @@ class ProfilePostBody extends StatelessWidget {
     // posts are broken up into rows of 3 ProfilePostWidget().
 
     double width = MediaQuery.of(context).size.width;
-    double mainPostHeight = (width - 2 * sidePadding) / goldenRatio;
-    double bodyPostHeight =
-        (((width - 2 * sidePadding) / 3) - betweenPadding) * goldenRatio;
+    double mainPostHeight = (width - 2 * sidePadding) / globals.goldenRatio;
+    double bodyPostHeight = (((width - 2 * sidePadding) / 3) - betweenPadding) *
+        globals.goldenRatio;
 
     List<Widget> profilePosts = [
       Padding(
@@ -339,7 +339,7 @@ class ProfilePostBody extends StatelessWidget {
         child: ProfilePostWidget(
             postJson: postList[0],
             postHeight: mainPostHeight,
-            aspectRatio: 1 / goldenRatio),
+            aspectRatio: 1 / globals.goldenRatio),
       )
     ];
 
@@ -370,13 +370,13 @@ class ProfilePostBody extends StatelessWidget {
           ProfilePostWidget(
               postJson: postList[i],
               postHeight: postHeight,
-              aspectRatio: goldenRatio),
+              aspectRatio: globals.goldenRatio),
         );
       } else {
         subPostsList.add(
           Container(
             height: postHeight,
-            width: postHeight / goldenRatio,
+            width: postHeight / globals.goldenRatio,
           ),
         );
       }

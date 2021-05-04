@@ -176,7 +176,7 @@ class _PostListState extends State<PostList> {
       PostWidget postWidget = PostWidget(
         post: post,
         height: 475,
-        aspectRatio: goldenRatio,
+        aspectRatio: globals.goldenRatio,
         playOnInit: true,
         onlyShowBody: false,
         videoController: videoController,
