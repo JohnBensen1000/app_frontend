@@ -37,6 +37,7 @@ class SignInProvider extends ChangeNotifier {
     // Signs into firebase account. If any errors, updates appropraite error
     // messages. Returns true if successfully authenticated with firebase and
     // backend, false otherwise.
+
     try {
       final FirebaseUser firebaseUser = (await auth.signInWithEmailAndPassword(
               email: email.textController.text,
@@ -235,6 +236,7 @@ Future<bool> authenticateUserWithBackend(String idToken) async {
   String deviceToken = await _firebaseMessaging.getToken();
 
   String _url = serverAPI.url + "authenticate/";
+
   http.Response response = await http
       .post(_url, body: {"idToken": idToken, "deviceToken": deviceToken});
 

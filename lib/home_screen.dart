@@ -300,7 +300,7 @@ class PageBody extends StatelessWidget {
     Widget discoverPage = Center(
       child: Text("Coming soon."),
     );
-    Widget friendsPage = FriendsPage();
+    Widget friendsPage = FriendsPageState();
     Widget followingPage = FollowingPage();
 
     return Consumer<HomeScreenProvider>(builder: (context, provider, child) {

@@ -4,50 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:test_flutter/profile_pic.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:provider/provider.dart';
 
 import 'models/user.dart';
 
 import 'globals.dart' as globals;
 import 'backend_connect.dart';
 import 'chat_page.dart';
+import 'new_followers_page.dart';
 
 final serverAPI = new ServerAPI();
-
-class FriendsPage extends StatefulWidget {
-  @override
-  _FriendsPageState createState() => _FriendsPageState();
-}
-
-class _FriendsPageState extends State<FriendsPage> {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: getFriendsList(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData) {
-          return Column(
-            children: <Widget>[
-              NewFollowersAlert(),
-              Container(
-                height: 600,
-                child: ListView.builder(
-                    itemCount: snapshot.data.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return FriendWidget(friend: snapshot.data[index]);
-                    }),
-              ),
-            ],
-          );
-        } else {
-          return Center(
-            child: Text("Loading"),
-          );
-        }
-      },
-    );
-  }
-}
 
 Future<List<User>> getFriendsList() async {
   List<User> friendsList = [];
@@ -62,11 +28,68 @@ Future<List<User>> getFriendsList() async {
   return friendsList;
 }
 
+class FriendsPageProvider extends ChangeNotifier {
+  void resetState() {
+    notifyListeners();
+  }
+}
+
+class FriendsPageState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+        create: (_) => FriendsPageProvider(),
+        child: Consumer<FriendsPageProvider>(
+            builder: (context, provider, child) => FutureBuilder(
+                  future: getFriendsList(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done &&
+                        snapshot.hasData) {
+                      return FriendsPage(
+                        friendsList: snapshot.data,
+                      );
+                    } else {
+                      return Center(
+                        child: Text("Loading"),
+                      );
+                    }
+                  },
+                )));
+  }
+}
+
+class FriendsPage extends StatelessWidget {
+  const FriendsPage({
+    @required this.friendsList,
+  });
+
+  final List<User> friendsList;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        NewFollowersAlert(),
+        Container(
+          height: 600,
+          child: ListView.builder(
+              itemCount: friendsList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return FriendWidget(friend: friendsList[index]);
+              }),
+        ),
+      ],
+    );
+  }
+}
+
 class NewFollowersAlert extends StatefulWidget {
   // Firebase sends a push notification to this widget any time someone new
   // starts following the current user. This widget displays if new people
   // started following the current user, and updates whenever it recieves a
-  // notification from Firebase.
+  // notification from Firebase. When pressed, sends user to new followers page.
+  // When the user returns from the new followers page, calls resetState()
+  // to reset the state of the page (to update the friends list).
 
   @override
   _NewFollowersAlertState createState() => _NewFollowersAlertState();
@@ -102,16 +125,26 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
             newFollowingText = "New Followers: ${snapshot.data.length}";
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: Container(
-                height: 20,
-                width: 200,
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black, width: 2),
-                    borderRadius: BorderRadius.all(Radius.circular(20))),
-                child: Center(child: Text(newFollowingText)),
-              ),
-            );
+                padding: const EdgeInsets.only(bottom: 5),
+                child: GestureDetector(
+                  child: Container(
+                    height: 20,
+                    width: 200,
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black, width: 2),
+                        borderRadius: BorderRadius.all(Radius.circular(20))),
+                    child: Center(child: Text(newFollowingText)),
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => NewFollowersPageState(
+                              newFollowersList: snapshot.data,
+                            )),
+                  ).then((_) =>
+                      Provider.of<FriendsPageProvider>(context, listen: false)
+                          .resetState()),
+                ));
           } else {
             return Container();
           }
