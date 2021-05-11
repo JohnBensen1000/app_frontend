@@ -6,10 +6,11 @@ import 'package:provider/provider.dart';
 
 import 'following_page.dart';
 import 'friends_page.dart';
-import 'new_post.dart';
+// import 'new_post.dart';
 import 'backend_connect.dart';
 import 'search_page.dart';
 import 'settings_drawer.dart';
+import 'camera/camera.dart';
 
 final serverAPI = new ServerAPI();
 
@@ -184,9 +185,8 @@ class NavigationBar extends PreferredSize {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => NewPostScaffold(
-                                    cameraUsage: CameraUsage.post,
-                                  )),
+                              builder: (context) => Camera(
+                                  cameraUsage: CameraUsage.post, friend: null)),
                         );
                       },
                     ),

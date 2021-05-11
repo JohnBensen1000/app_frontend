@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/new_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'models/user.dart';
@@ -7,6 +6,7 @@ import 'models/chat.dart';
 import 'models/post.dart';
 
 import 'globals.dart' as globals;
+import 'camera/camera.dart';
 import 'view_post.dart';
 
 String getChatName(User friend) {
@@ -202,17 +202,14 @@ class ChatPageFooter extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           FlatButton(
-              child: Text("Send Post"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => NewPostScaffold(
-                            cameraUsage: CameraUsage.chat,
-                            friend: friend,
-                          )),
-                );
-              }),
+            child: Text("Send Post"),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      Camera(cameraUsage: CameraUsage.chat, friend: friend),
+                )),
+          ),
           FlatButton(
               child: Text("Send Chat"),
               onPressed: () async {

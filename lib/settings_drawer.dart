@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/new_post.dart';
 
 import 'models/user.dart';
 
 import 'globals.dart' as globals;
 import 'profile_pic.dart';
 import 'profile_page.dart';
+import 'camera/camera.dart';
 
 class SettingsDrawer extends StatelessWidget {
   SettingsDrawer({
@@ -46,8 +46,12 @@ class SettingsDrawer extends StatelessWidget {
             ),
             SettingsButton(
               buttonName: "Change Profile Picture",
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => NewProfilePic())),
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => Camera(
+                            cameraUsage: CameraUsage.profile,
+                          ))),
             ),
             SettingsButton(
               buttonName: "Go To Profile Page",
@@ -66,18 +70,18 @@ class SettingsDrawer extends StatelessWidget {
   }
 }
 
-class NewProfilePic extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(children: <Widget>[
-        NewPostWidget(
-          cameraUsage: CameraUsage.profile,
-        )
-      ]),
-    );
-  }
-}
+// class NewProfilePic extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: Stack(children: <Widget>[
+//         Camera(
+//           cameraUsage: CameraUsage.profile,
+//         )
+//       ]),
+//     );
+//   }
+// }
 
 class SettingsButton extends StatelessWidget {
   SettingsButton({@required this.buttonName, @required this.onPressed});
