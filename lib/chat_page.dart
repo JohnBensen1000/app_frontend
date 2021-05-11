@@ -13,9 +13,9 @@ String getChatName(User friend) {
   // Uses comparison between hashCodes of two userIDs to determine chat name.
   // This way, the chat name for two friends will always be the same.
   if (globals.userID.hashCode < friend.userID.hashCode) {
-    return globals.userID + "-" + friend.userID;
+    return globals.userID + friend.userID;
   } else {
-    return friend.userID + "-" + globals.userID;
+    return friend.userID + globals.userID;
   }
 }
 

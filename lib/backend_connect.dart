@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'globals.dart' as globals;
 import 'models/user.dart';
@@ -34,35 +33,19 @@ Future<int> uploadPost(bool isImage, String filePath) async {
   return response.statusCode;
 }
 
-Future<void> sendPostInChat(User friend, bool isImage, String filePath) async {
-  // Sends a post as a direct message to a chat. Stores data about the post
-  // in the chat document in google firestore (including download url to access
-  // the file), and then  calls uploadFile() to store the actual post in google
-  // storage.
-
+Future<int> sendPostInChat(User friend, bool isImage, String filePath) async {
   String chatName = getChatName(friend);
-  CollectionReference chatsCollection = Firestore.instance.collection("Chats");
 
-  await createChatIfDoesntExist(chatsCollection, chatName, friend);
+  var request = http.MultipartRequest(
+      'POST', Uri.parse(ServerAPI().url + 'posts/$chatName/'));
 
-  String postURL = await uploadFile(chatName, isImage, filePath);
+  request.fields["sender"] = globals.userID;
+  request.fields["contentType"] = (isImage) ? 'image' : 'video';
 
-  await chatsCollection
-      .document(chatName)
-      .collection('chats')
-      .document('1')
-      .updateData({
-    'conversation': FieldValue.arrayUnion([
-      {
-        'sender': globals.userID,
-        'isPost': true,
-        'post': {
-          'postURL': postURL,
-          'isImage': isImage,
-        }
-      }
-    ])
-  });
+  request.files.add(await http.MultipartFile.fromPath('media', filePath));
+
+  var response = await request.send();
+  return response.statusCode;
 }
 
 Future<void> uploadProfilePic(bool isImage, String filePath) async {
@@ -84,23 +67,6 @@ Future<void> uploadProfilePic(bool isImage, String filePath) async {
   } else {
     print(" [SERVER ERROR] Was not able to save profile type");
   }
-}
-
-Future<String> uploadFile(
-    String chatName, bool isImage, String filePath) async {
-  // Uploads the post file to google storage. Determines the file name and
-  // extension, and returns the download url that of the file.
-
-  String fileExtension = (isImage) ? 'png' : 'mp4';
-  String fileName =
-      "$chatName/${DateTime.now().hashCode.toString()}.$fileExtension";
-
-  StorageReference storageReference =
-      FirebaseStorage.instance.ref().child(fileName);
-
-  StorageUploadTask uploadTask = storageReference.putFile(File(filePath));
-  await uploadTask.onComplete;
-  return await storageReference.getDownloadURL();
 }
 
 Future<List<User>> getFriendsList() async {
