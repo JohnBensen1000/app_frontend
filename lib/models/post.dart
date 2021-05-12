@@ -7,6 +7,7 @@ class Post {
   //Constructor
   String userID;
   String username;
+  User user;
   String postID;
   bool isImage;
   var postURL;
@@ -14,6 +15,8 @@ class Post {
   Post.fromJson(Map postJson) {
     this.userID = postJson["userID"];
     this.username = postJson["username"];
+    this.user =
+        User(userID: postJson["userID"], username: postJson["username"]);
     this.isImage = postJson["isImage"];
     this.postID = postJson["postID"].toString();
 
@@ -29,6 +32,7 @@ class Post {
   Post.fromChat(Chat chat) {
     this.userID = chat.sender;
     this.username = null;
+    this.user = User(userID: chat.sender, username: null);
     this.postURL = chat.postData["postURL"];
     this.isImage = chat.postData['isImage'];
   }

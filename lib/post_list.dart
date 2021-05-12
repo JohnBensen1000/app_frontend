@@ -10,7 +10,7 @@ import 'models/post.dart';
 
 import 'globals.dart' as globals;
 import 'backend_connect.dart';
-import 'view_post.dart';
+import 'post/post_view.dart';
 
 ServerAPI serverAPI = ServerAPI();
 
@@ -112,7 +112,7 @@ class _PostListState extends State<PostList> {
   int postListIndex = 0;
   double postVerticalOffset = 650;
 
-  List<Future<PostWidget>> postWidgets;
+  List<Future<PostView>> postViews;
   List<bool> alreadyWatched;
 
   @override
@@ -123,10 +123,10 @@ class _PostListState extends State<PostList> {
       );
 
     alreadyWatched = List<bool>.filled(widget.postList.length, false);
-    postWidgets = [
-      _buildPostWidget(postListIndex - 1),
-      _buildPostWidget(postListIndex),
-      _buildPostWidget(postListIndex + 1)
+    postViews = [
+      _buildPostView(postListIndex - 1),
+      _buildPostView(postListIndex),
+      _buildPostView(postListIndex + 1)
     ];
 
     return ChangeNotifierProvider(
@@ -139,24 +139,24 @@ class _PostListState extends State<PostList> {
         return Stack(children: [
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[0]),
-            child: _buildGestureDetector(provider, postWidgets[0]),
+            child: _buildGestureDetector(provider, postViews[0]),
           ),
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[1]),
-            child: _buildGestureDetector(provider, postWidgets[1]),
+            child: _buildGestureDetector(provider, postViews[1]),
           ),
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[2]),
-            child: _buildGestureDetector(provider, postWidgets[2]),
+            child: _buildGestureDetector(provider, postViews[2]),
           ),
         ]);
       }),
     );
   }
 
-  Future<PostWidget> _buildPostWidget(int index) async {
+  Future<PostView> _buildPostView(int index) async {
     // Looks to see if index is a valid index of widget.postList. If it is,
-    // builds and returns a PostWidget() that corresponds to the correct
+    // builds and returns a PostView() that corresponds to the correct
     // item of widget.postList. If the post is a video, then this function
     // initializes the videoController that will be used to play/pause the
     // video.
@@ -173,27 +173,26 @@ class _PostListState extends State<PostList> {
         videoController.setLooping(true);
       }
 
-      PostWidget postWidget = PostWidget(
+      PostView postView = PostView(
         post: post,
         height: 475,
         aspectRatio: globals.goldenRatio,
-        playOnInit: true,
-        onlyShowBody: false,
+        postStage: PostStage.playOnInit,
         videoController: videoController,
       );
 
-      return postWidget;
+      return postView;
     }
   }
 
   GestureDetector _buildGestureDetector(
-      PostListTransitionProvider provider, Future<PostWidget> postWidget) {
+      PostListTransitionProvider provider, Future<PostView> PostView) {
     // Returns a GestureDetector that contains a post widget and updates the
     // provider whenever it detects a vertical drag.
 
     return GestureDetector(
       child: FutureBuilder(
-          future: postWidget,
+          future: PostView,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return Center(child: snapshot.data);
@@ -226,18 +225,18 @@ class _PostListState extends State<PostList> {
         provider.verticalOffset < -(postVerticalOffset / 4)) {
       postListIndex++;
       provider.swipeUp();
-      await _dealWithVideoControllers(await postWidgets[provider.nextIndex],
-          await postWidgets[provider.currIndex]);
+      await _dealWithVideoControllers(await postViews[provider.nextIndex],
+          await postViews[provider.currIndex]);
 
-      postWidgets[provider.prevIndex] = _buildPostWidget(postListIndex + 1);
+      postViews[provider.prevIndex] = _buildPostView(postListIndex + 1);
     } else if (postListIndex - 1 >= 0 &&
         provider.verticalOffset > (postVerticalOffset / 4)) {
       postListIndex--;
       provider.swipeDown();
-      await _dealWithVideoControllers(await postWidgets[provider.prevIndex],
-          await postWidgets[provider.currIndex]);
+      await _dealWithVideoControllers(await postViews[provider.prevIndex],
+          await postViews[provider.currIndex]);
 
-      postWidgets[provider.nextIndex] = _buildPostWidget(postListIndex - 1);
+      postViews[provider.nextIndex] = _buildPostView(postListIndex - 1);
     } else {
       provider.moveBack();
       // TODO: When user runs out of posts to watch, request more posts from server
@@ -257,16 +256,16 @@ class _PostListState extends State<PostList> {
   }
 
   Future<void> _dealWithVideoControllers(
-      PostWidget postWidgetPlay, PostWidget postWidgetPause) async {
+      PostView postViewPlay, PostView postViewPause) async {
     // This function only applies to video posts. Plays a video if it comes
     // into view. Pauses a video if it goes off screen.
 
-    if (postWidgetPlay != null && postWidgetPlay.videoController != null) {
-      await postWidgetPlay.videoController.play();
+    if (postViewPlay != null && postViewPlay.videoController != null) {
+      await postViewPlay.videoController.play();
     }
-    if (postWidgetPause != null && postWidgetPause.videoController != null) {
-      await postWidgetPause.videoController.pause();
-      await postWidgetPause.videoController.seekTo(Duration(microseconds: 0));
+    if (postViewPause != null && postViewPause.videoController != null) {
+      await postViewPause.videoController.pause();
+      await postViewPause.videoController.seekTo(Duration(microseconds: 0));
     }
   }
 }

@@ -11,7 +11,7 @@ import 'models/comment.dart';
 
 import 'globals.dart' as globals;
 import 'backend_connect.dart';
-import 'view_post.dart';
+import 'post/post.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
@@ -360,9 +360,9 @@ class AddCommentScaffold extends StatelessWidget {
     return Scaffold(
         body: Stack(children: <Widget>[
       Container(
-          alignment: Alignment.bottomCenter,
-          child: PostWidget(
-              post: post, height: postHeight, aspectRatio: postAspectRatio)),
+        alignment: Alignment.bottomCenter,
+        child: PostPage(post: post),
+      ),
       Container(
         color: Colors.white.withOpacity(.7),
       ),

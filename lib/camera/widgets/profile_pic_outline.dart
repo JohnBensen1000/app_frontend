@@ -32,7 +32,7 @@ class ProfilePicOutlineClip extends CustomClipper<Path> {
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
       ..addOval(Rect.fromCircle(
           center: Offset(size.width / 2, size.height / 2),
-          radius: .45 * size.width))
+          radius: .5 * size.width))
       ..fillType = PathFillType.evenOdd;
     ;
   }

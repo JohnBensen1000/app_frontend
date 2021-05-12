@@ -7,7 +7,7 @@ import 'models/post.dart';
 
 import 'globals.dart' as globals;
 import 'camera/camera.dart';
-import 'view_post.dart';
+import 'post/post_view.dart';
 
 String getChatName(User friend) {
   // Uses comparison between hashCodes of two userIDs to determine chat name.
@@ -309,7 +309,7 @@ class ChatWidgetText extends StatelessWidget {
 }
 
 class ChatWidgetPost extends StatelessWidget {
-  // A widget that wraps around a PostWidget() in order to display it correctly.
+  // A widget that wraps around a PostView() in order to display it correctly.
   ChatWidgetPost(
       {@required this.post,
       @required this.height,
@@ -322,12 +322,11 @@ class ChatWidgetPost extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(mainAxisAlignment: mainAxisAlignment, children: <Widget>[
-      PostWidget(
-        post: post,
-        height: height,
-        aspectRatio: globals.goldenRatio,
-        onlyShowBodyAfterPressed: true,
-      )
+      PostView(
+          post: post,
+          height: height,
+          aspectRatio: globals.goldenRatio,
+          postStage: PostStage.onlyPost)
     ]);
   }
 }

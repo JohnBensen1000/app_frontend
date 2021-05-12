@@ -19,6 +19,7 @@ class ServerAPI {
 Future<int> uploadPost(bool isImage, String filePath) async {
   // Sends the an HTTP request containing the post file to the server for
   // further processing. Returns with the response status code.
+
   var request = http.MultipartRequest(
       'POST', Uri.parse(ServerAPI().url + 'posts/${globals.userID}/posts/'));
 
@@ -34,6 +35,9 @@ Future<int> uploadPost(bool isImage, String filePath) async {
 }
 
 Future<int> sendPostInChat(User friend, bool isImage, String filePath) async {
+  // Sends an image/video that is being sent in a chat to the backend. Waits
+  // for the backend to respond and returns the status code.
+
   String chatName = getChatName(friend);
 
   var request = http.MultipartRequest(
@@ -49,7 +53,9 @@ Future<int> sendPostInChat(User friend, bool isImage, String filePath) async {
 }
 
 Future<void> uploadProfilePic(bool isImage, String filePath) async {
-  // Uploads a file that will be used as a user's profile pic
+  // Uploads a file directly to google storage. Sends a POST request to the
+  // backend telling it that the user's profile has been updated and the
+  // file type of the profile.
 
   String url = ServerAPI().url + "users/${globals.userID}/profile/";
   String profileType = (isImage) ? 'image' : 'video';

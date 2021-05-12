@@ -9,9 +9,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'models/user.dart';
 import 'models/post.dart';
 
+import 'post/post_view.dart';
 import 'globals.dart' as globals;
 import 'backend_connect.dart';
-import 'view_post.dart';
 import 'profile_pic.dart';
 import 'settings_drawer.dart';
 
@@ -408,11 +408,16 @@ class ProfilePostWidget extends StatelessWidget {
       width: postHeight / aspectRatio,
       child: Stack(
         children: <Widget>[
-          PostWidget(
-            post: post,
-            height: postHeight,
-            aspectRatio: aspectRatio,
-          ),
+          PostView(
+              post: post,
+              height: postHeight,
+              aspectRatio: aspectRatio,
+              postStage: PostStage.onlyPost)
+          // PostWidget(
+          //   post: post,
+          //   height: postHeight,
+          //   aspectRatio: aspectRatio,
+          // ),
         ],
       ),
     );
