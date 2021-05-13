@@ -89,16 +89,7 @@ class _SignInState extends State<SignIn> {
     emailInputField.errorText = "";
 
     try {
-      bool isEmpty = false;
-      if (passwordInputField.textEditingController.text == "") {
-        passwordInputField.errorText = "No input";
-        isEmpty = true;
-      }
-      if (emailInputField.textEditingController.text == "") {
-        emailInputField.errorText = "No input";
-        isEmpty = true;
-      }
-      if (isEmpty) return false;
+      if (checkInputs()) return false;
 
       final FirebaseUser firebaseUser = (await auth.signInWithEmailAndPassword(
         email: emailInputField.textEditingController.text,
@@ -120,5 +111,23 @@ class _SignInState extends State<SignIn> {
 
       return false;
     }
+  }
+
+  bool checkInputs() {
+    // Checks if inputs are empty.
+
+    bool isEmpty = false;
+    if (passwordInputField.textEditingController.text == "") {
+      passwordInputField.errorText = "No input";
+      isEmpty = true;
+    }
+    if (emailInputField.textEditingController.text == "") {
+      emailInputField.errorText = "No input";
+      isEmpty = true;
+    }
+    if (isEmpty)
+      return false;
+    else
+      return true;
   }
 }
