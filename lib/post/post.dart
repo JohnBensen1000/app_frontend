@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:test_flutter/profile_page.dart';
-import 'package:test_flutter/profile_pic.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
 
 import '../models/post.dart';
 import '../models/user.dart';
 
 import '../globals.dart' as globals;
 import '../backend_connect.dart';
-import '../comments_section.dart';
 import 'post_view.dart';
 
 final backendConnection = new ServerAPI();
@@ -99,7 +93,8 @@ class PostAppBar extends PreferredSize {
                 allowDrawingOutsideViewBox: true,
               ),
               onPressed: () {
-                videoPlayerController.pause();
+                if (videoPlayerController != null)
+                  videoPlayerController.pause();
                 Navigator.of(context).pop();
               },
             ),

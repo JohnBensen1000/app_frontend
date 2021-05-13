@@ -1,24 +1,14 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:test_flutter/comments_section.dart';
 import 'package:test_flutter/post/post_view.dart';
+import 'package:test_flutter/profile_pic.dart';
 import 'package:video_player/video_player.dart';
 
 import '../models/post.dart';
 import '../models/comment.dart';
 
-import '../globals.dart' as globals;
-import '../backend_connect.dart';
-import '../post/post.dart';
-import 'comments_section.dart';
-import 'comments_page.dart';
-import 'comments.dart';
 import 'widgets/add_comment_button.dart';
+import 'comments.dart';
 
 class CommentsPage extends StatelessWidget {
   CommentsPage(
@@ -34,6 +24,8 @@ class CommentsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     double height = .6 * MediaQuery.of(context).size.height;
     double aspectRatio = height / MediaQuery.of(context).size.width;
+    double commentsSectionHeight =
+        (parentComment != null) ? .60 * height : .75 * height;
 
     return Scaffold(
       body: Stack(
@@ -51,11 +43,11 @@ class CommentsPage extends StatelessWidget {
             color: Colors.white.withOpacity(.7),
           ),
           Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(40),
+                padding: EdgeInsets.only(left: 20, top: 40, bottom: 10),
                 child: Row(
                   children: [
                     GestureDetector(
@@ -63,20 +55,27 @@ class CommentsPage extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(context);
                         }),
-                    if (parentComment != null) Text("Parent Comment"),
                   ],
                 ),
               ),
+              if (parentComment != null)
+                Container(
+                  height: .15 * height,
+                  child: CommentPageHeader(
+                    comment: parentComment,
+                  ),
+                ),
               Container(
                 width: double.infinity,
               ),
               Container(
                   padding: EdgeInsets.symmetric(horizontal: 20),
-                  height: .65 * height,
-                  child: CommentsListView(
+                  height: commentsSectionHeight,
+                  child: CommentsSection(
                     commentsList: commentsList,
+                    height: commentsSectionHeight,
+                    showReplyBotton: false,
                     post: post,
-                    height: height,
                     levelOffset:
                         (parentComment != null) ? parentComment.level + 1 : 0,
                   )),
@@ -97,6 +96,37 @@ class CommentsPage extends StatelessWidget {
         VideoPlayerController.network((await post.postURL).toString());
     videoController.setLooping(true);
     return videoController;
+  }
+}
+
+class CommentPageHeader extends StatelessWidget {
+  CommentPageHeader({@required this.comment});
+
+  final Comment comment;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(left: 20, right: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              ProfilePic(diameter: 55, userID: comment.user.userID),
+              Container(
+                  padding: EdgeInsets.only(left: 5),
+                  child: Text(comment.user.userID)),
+            ],
+          ),
+          Container(
+            padding: EdgeInsets.only(left: 10),
+            child: Text(
+              comment.commentText,
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
 

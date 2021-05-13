@@ -195,7 +195,7 @@ class FriendWidget extends StatelessWidget {
               padding: EdgeInsets.only(left: 20),
               child: Row(
                 children: <Widget>[
-                  ProfilePic(diameter: 85, profileUserID: friend.userID),
+                  ProfilePic(diameter: 85, userID: friend.userID),
                   Container(
                     padding: EdgeInsets.only(left: 10),
                     child: Column(

@@ -34,7 +34,7 @@ class SettingsDrawer extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 20, bottom: 20),
                 child: ProfilePic(
                   diameter: 200,
-                  profileUserID: globals.userID,
+                  userID: globals.userID,
                 )),
             Text(
               globals.username,

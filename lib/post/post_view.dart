@@ -156,8 +156,7 @@ class PostViewHeader extends StatelessWidget {
         child: Row(
           children: <Widget>[
             ProfilePic(
-                diameter: provider.height / 7.60,
-                profileUserID: provider.post.userID),
+                diameter: provider.height / 7.60, userID: provider.post.userID),
             Container(
               padding: EdgeInsets.only(left: 20),
               child: Text(

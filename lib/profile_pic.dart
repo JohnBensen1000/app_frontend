@@ -15,10 +15,10 @@ class ProfilePic extends StatelessWidget {
   // widgets: a circular profile post and a blue cicular outline that goes
   // around the profile post.
 
-  ProfilePic({@required this.diameter, @required this.profileUserID});
+  ProfilePic({@required this.diameter, @required this.userID});
 
   final double diameter;
-  final String profileUserID;
+  final String userID;
 
   @override
   Widget build(BuildContext context) {
@@ -56,13 +56,20 @@ class ProfilePic extends StatelessWidget {
   }
 
   Future<Post> getProfileURL() async {
-    String newUrl = serverAPI.url + "users/$profileUserID/profile/";
-    var response = await http.get(newUrl);
+    try {
+      String newUrl = serverAPI.url + "users/$userID/profile/";
+      var response = await http.get(newUrl);
 
-    if (json.decode(response.body)["profileType"] == "none") return null;
-
-    return Post.fromProfile(
-        json.decode(response.body)["profileType"], profileUserID);
+      if (json.decode(response.body)["profileType"] == "none") return null;
+      return Post.fromProfile(
+          json.decode(response.body)["profileType"], userID);
+    } on http.ClientException {
+      await Future.delayed(Duration(milliseconds: 100));
+      return getProfileURL();
+    } catch (e) {
+      print(e);
+      return null;
+    }
   }
 }
 

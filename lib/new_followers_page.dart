@@ -193,7 +193,7 @@ class NewFollowerProfile extends StatelessWidget {
           children: <Widget>[
             ProfilePic(
               diameter: size.height,
-              profileUserID: newFollower.userID,
+              userID: newFollower.userID,
             ),
             Text(newFollower.username,
                 textAlign: TextAlign.left, style: TextStyle(fontSize: 16)),

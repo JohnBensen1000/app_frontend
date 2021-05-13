@@ -186,7 +186,7 @@ class ProfilePageHeader extends StatelessWidget {
           Container(
             height: 15,
           ),
-          ProfilePic(diameter: 148, profileUserID: user.userID),
+          ProfilePic(diameter: 148, userID: user.userID),
           Container(
             child: Text(
               '${user.username}',
@@ -223,10 +223,17 @@ class ProfilePageHeader extends StatelessWidget {
   }
 }
 
-class FollowingButton extends StatelessWidget {
+class FollowingButton extends StatefulWidget {
   const FollowingButton({
     Key key,
   }) : super(key: key);
+
+  @override
+  _FollowingButtonState createState() => _FollowingButtonState();
+}
+
+class _FollowingButtonState extends State<FollowingButton> {
+  bool allowChangeFollow = true;
 
   @override
   Widget build(BuildContext context) {
@@ -255,9 +262,14 @@ class FollowingButton extends StatelessWidget {
               ),
             ),
           ),
-          onPressed: () {
-            Provider.of<ProfilePageHeaderProvider>(context, listen: false)
-                .changeFollowing();
+          onPressed: () async {
+            if (allowChangeFollow) {
+              allowChangeFollow = false;
+              await Provider.of<ProfilePageHeaderProvider>(context,
+                      listen: false)
+                  .changeFollowing();
+              allowChangeFollow = true;
+            }
           },
         );
       },
