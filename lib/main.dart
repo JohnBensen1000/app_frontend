@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'welcome_page.dart';
+import 'account/welcome_page.dart';
 import 'new_followers_page.dart';
 
 main() {

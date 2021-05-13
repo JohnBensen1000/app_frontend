@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'globals.dart' as globals;
 import 'models/user.dart';
@@ -118,4 +119,40 @@ Future<int> postComment(
   });
 
   return response.statusCode;
+}
+
+Future<bool> authenticateUserWithBackend(String idToken) async {
+  // Authenticates the user with the backend. First gets deviceToken. Sends
+  // idToken and deviceToken to backend. Then sets the global variable userID to
+  // the data that the backend returns. Returns false if an error occurred on
+  // the backend, true otherwise.
+
+  FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+  String deviceToken = await _firebaseMessaging.getToken();
+
+  String _url = ServerAPI().url + "authenticate/";
+
+  http.Response response = await http
+      .post(_url, body: {"idToken": idToken, "deviceToken": deviceToken});
+
+  if (response.statusCode == 200) {
+    globals.userID = json.decode(response.body)["userID"];
+    globals.username = json.decode(response.body)["username"];
+    return true;
+  }
+  return false;
+}
+
+Future<dynamic> postUniqueIdentifiers(Map<dynamic, dynamic> postBody) async {
+  String url = ServerAPI().url + "users/check/";
+
+  var response = await http.post(url, body: postBody);
+  Map<String, dynamic> responseBody = json.decode(response.body);
+  return responseBody;
+}
+
+Future<void> postCreateAccount(
+    Map<dynamic, dynamic> postBody, String userID) async {
+  String url = ServerAPI().url + "users/$userID/";
+  await http.post(url, body: postBody);
 }

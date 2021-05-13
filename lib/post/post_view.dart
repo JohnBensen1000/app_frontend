@@ -37,7 +37,8 @@ class PostViewProvider extends ChangeNotifier {
       @required this.playOnInit,
       @required this.fromChatPage,
       @required this.fullPage,
-      @required this.videoPlayerController}) {
+      @required this.videoPlayerController,
+      @required this.isVideoControllerGiven}) {
     this.cornerRadius = height / 19;
   }
 
@@ -48,6 +49,7 @@ class PostViewProvider extends ChangeNotifier {
   final bool playOnInit;
   final bool fromChatPage;
   final bool fullPage;
+  final bool isVideoControllerGiven;
   final VideoPlayerController videoPlayerController;
 
   double cornerRadius;
@@ -87,6 +89,8 @@ class PostView extends StatefulWidget {
 class _PostViewState extends State<PostView> {
   @override
   Widget build(BuildContext context) {
+    bool isVideoControllerGiven = (widget.videoPlayerController != null);
+
     double postViewHeight = (widget.postStage.index <= PostStage.onlyPost.index)
         ? widget.height
         : widget.height * 1.3333333;
@@ -104,6 +108,7 @@ class _PostViewState extends State<PostView> {
                     playOnInit: widget.playOnInit,
                     fromChatPage: widget.fromChatPage,
                     fullPage: widget.fullPage,
+                    isVideoControllerGiven: isVideoControllerGiven,
                     videoPlayerController: widget.videoPlayerController),
                 child: Consumer<PostViewProvider>(
                   builder: (context, provider, child) => Container(
@@ -270,7 +275,8 @@ class VideoContainer extends StatelessWidget {
           future: provider.videoPlayerController.initialize(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              if (provider.playOnInit) provider.videoPlayerController.play();
+              if (!provider.isVideoControllerGiven && provider.playOnInit)
+                provider.videoPlayerController.play();
               return VisibilityDetector(
                   key: Key("unique key"),
                   child: Container(
