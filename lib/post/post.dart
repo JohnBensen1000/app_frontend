@@ -22,7 +22,8 @@ FirebaseStorage storage = FirebaseStorage.instance;
 class PostPage extends StatelessWidget {
   // Returns a scaffold that only includes a PostView() and a return button.
   // If this widget is called from the chat page, then dont show the full
-  // post widget.
+  // post widget. Initializes videoPlayerController() here if the post is a
+  // video.
 
   PostPage({@required this.post, this.fromChatPage = false});
 
@@ -34,31 +35,53 @@ class PostPage extends StatelessWidget {
     PostStage postStage =
         (fromChatPage) ? PostStage.onlyPost : PostStage.fullWidget;
 
-    return Scaffold(
-        appBar: PostAppBar(
-          height: 40,
-        ),
-        body: Center(
-          child: Center(
-            child: PostView(
-              post: post,
-              aspectRatio: globals.goldenRatio,
-              height: 500,
-              postStage: postStage,
-              playOnInit: true,
-              fullPage: true,
-            ),
-          ),
-        ));
+    return FutureBuilder(
+      future: getVideoPlayerController(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Scaffold(
+              appBar: PostAppBar(
+                height: 40,
+                videoPlayerController: snapshot.data,
+              ),
+              body: Center(
+                child: Center(
+                  child: PostView(
+                    post: post,
+                    aspectRatio: globals.goldenRatio,
+                    height: 500,
+                    postStage: postStage,
+                    videoPlayerController: snapshot.data,
+                    playOnInit: true,
+                    fullPage: true,
+                  ),
+                ),
+              ));
+        } else {
+          return Container();
+        }
+      },
+    );
+  }
+
+  Future<void> getVideoPlayerController() async {
+    if (!post.isImage) {
+      VideoPlayerController videoPlayerController =
+          VideoPlayerController.network((await post.postURL).toString());
+      videoPlayerController.setLooping(true);
+      return videoPlayerController;
+    } else {
+      return null;
+    }
   }
 }
 
 class PostAppBar extends PreferredSize {
-  const PostAppBar({
-    this.height,
-  });
+  const PostAppBar(
+      {@required this.height, @required this.videoPlayerController});
 
   final double height;
+  final VideoPlayerController videoPlayerController;
 
   @override
   Size get preferredSize => Size.fromHeight(height);
@@ -75,7 +98,10 @@ class PostAppBar extends PreferredSize {
                 _svg_u0lq3x,
                 allowDrawingOutsideViewBox: true,
               ),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                videoPlayerController.pause();
+                Navigator.of(context).pop();
+              },
             ),
           ],
         ),
