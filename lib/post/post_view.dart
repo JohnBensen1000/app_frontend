@@ -6,13 +6,14 @@ import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../models/post.dart';
 
 import '../globals.dart' as globals;
 import '../backend_connect.dart';
-import '../comments_section.dart';
 import 'post.dart';
+import '../comments/comments.dart';
 
 final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
@@ -23,124 +24,123 @@ FirebaseStorage storage = FirebaseStorage.instance;
 // are described here:
 //      onlyPost: returns the image or video container
 //      fullWidget: also returns the post header and comments button
-//      playOnInit: if the post is a video, play the video instantly
 //      userFeedback: return like/dislike buttons
-//      postPage: return an entire page (PostPage())
-enum PostStage { onlyPost, fullWidget, playOnInit, userFeedback, postPage }
+enum PostStage { onlyPost, fullWidget, userFeedback }
 
 class PostViewProvider extends ChangeNotifier {
-  // Contains all state variables used in the app. Every widget under this is
-  // rebuild when the boolean _showComments is changed.
-  PostViewProvider({
-    @required this.post,
-    @required this.height,
-    @required this.aspectRatio,
-    @required this.videoController,
-    @required this.postStage,
-  }) {
+  // Contains all state variables used in the app.
+  PostViewProvider(
+      {@required this.post,
+      @required this.height,
+      @required this.aspectRatio,
+      @required this.postStage,
+      @required this.playOnInit,
+      @required this.fromChatPage,
+      @required this.fullPage,
+      @required this.videoPlayerController}) {
     this.cornerRadius = height / 19;
   }
 
   final Post post;
   final double height;
   final double aspectRatio;
-  final VideoPlayerController videoController;
   final PostStage postStage;
+  final bool playOnInit;
+  final bool fromChatPage;
+  final bool fullPage;
+  final VideoPlayerController videoPlayerController;
 
   double cornerRadius;
-  bool isPlaying = true;
-  bool _showComments = false;
-
-  bool get showComments {
-    return _showComments;
-  }
-
-  set showCommentButton(bool newShowComments) {
-    _showComments = newShowComments;
-    notifyListeners();
-  }
 }
 
-class PostView extends StatelessWidget {
-  // Contains layout and functionality of the post widget. Initializes
-  // PostViewProvider Determines what to return based on the given postStage.
-  // All user gestures (tapping, holding, etc) are handled here.
+class PostView extends StatefulWidget {
+  // Initializes PostViewProvider and determines what to return based on the
+  // given postStage. Also initializes the videoPlayerController if one is not
+  // passed into this widget. the VideoPlayerController used in the
+  // VideoContainer is stored here so that whatever widget is calling this could
+  // control the VideoPlayerController if it wants to.
 
   PostView({
     @required this.post,
     @required this.height,
     @required this.aspectRatio,
     @required this.postStage,
-    this.videoController,
+    this.playOnInit = false,
+    this.fromChatPage = false,
+    this.fullPage = false,
+    this.videoPlayerController,
   });
 
   final Post post;
   final double height;
   final double aspectRatio;
-  final VideoPlayerController videoController;
   final PostStage postStage;
+  final bool playOnInit;
+  final bool fromChatPage;
+  final bool fullPage;
+  VideoPlayerController videoPlayerController;
 
   @override
+  _PostViewState createState() => _PostViewState();
+}
+
+class _PostViewState extends State<PostView> {
+  @override
   Widget build(BuildContext context) {
-    double postViewHeight = (postStage.index <= PostStage.onlyPost.index)
-        ? height
-        : height * 1.3333333;
+    double postViewHeight = (widget.postStage.index <= PostStage.onlyPost.index)
+        ? widget.height
+        : widget.height * 1.3333333;
 
-    return GestureDetector(
-        child: ChangeNotifierProvider(
-            create: (context) => PostViewProvider(
-                post: post,
-                height: height,
-                aspectRatio: aspectRatio,
-                videoController: videoController,
-                postStage: postStage),
-            child: Consumer<PostViewProvider>(
-              builder: (context, provider, child) => Container(
-                height: postViewHeight,
-                width: provider.height / aspectRatio,
-                child: Column(
-                  children: <Widget>[
-                    if (provider.postStage.index >= PostStage.fullWidget.index)
-                      GestureDetector(
-                        child: PostViewHeader(),
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    ProfilePage(user: provider.post.user))),
-                      ),
-                    GestureDetector(
-                      child: PostViewBody(),
-                      onLongPress: () {
-                        if (provider.postStage.index < PostStage.postPage.index)
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => PostPage(
-                                        post: provider.post,
-                                      )));
-                      },
-                      onTap: () {
+    return FutureBuilder(
+        future: getVideoPlayerController(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return ChangeNotifierProvider(
+                create: (context) => PostViewProvider(
+                    post: widget.post,
+                    height: widget.height,
+                    aspectRatio: widget.aspectRatio,
+                    postStage: widget.postStage,
+                    playOnInit: widget.playOnInit,
+                    fromChatPage: widget.fromChatPage,
+                    fullPage: widget.fullPage,
+                    videoPlayerController: widget.videoPlayerController),
+                child: Consumer<PostViewProvider>(
+                  builder: (context, provider, child) => Container(
+                    height: postViewHeight,
+                    width: provider.height / provider.aspectRatio,
+                    child: Column(
+                      children: <Widget>[
                         if (provider.postStage.index >=
-                                PostStage.playOnInit.index &&
-                            provider.videoController != null) {
-                          if (provider.isPlaying)
-                            provider.videoController.pause();
-                          else
-                            provider.videoController.play();
+                            PostStage.fullWidget.index)
+                          PostViewHeader(),
+                        PostViewBody(),
+                        if (provider.postStage.index >=
+                            PostStage.fullWidget.index)
+                          CommentsButton(post: provider.post),
+                      ],
+                    ),
+                  ),
+                ));
+          } else {
+            return Container();
+          }
+        });
+  }
 
-                          provider.isPlaying = !provider.isPlaying;
-                        }
-                      },
-                    )
-                  ],
-                ),
-              ),
-            )));
+  Future<void> getVideoPlayerController() async {
+    if (widget.videoPlayerController == null && !widget.post.isImage) {
+      widget.videoPlayerController =
+          VideoPlayerController.network((await widget.post.postURL).toString());
+      widget.videoPlayerController.setLooping(true);
+    }
   }
 }
 
 class PostViewHeader extends StatelessWidget {
+  // Top of a full post widget. Contains the creator's profile and username.
+  // When pressed, takes the user to the creator's profile page.
+
   const PostViewHeader({
     Key key,
   }) : super(key: key);
@@ -150,103 +150,81 @@ class PostViewHeader extends StatelessWidget {
     PostViewProvider provider =
         Provider.of<PostViewProvider>(context, listen: false);
 
-    return Container(
-      padding: EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: <Widget>[
-          ProfilePic(
-              diameter: provider.height / 7.60,
-              profileUserID: provider.post.userID),
-          Container(
-            padding: EdgeInsets.only(left: 20),
-            child: Text(
-              provider.post.userID,
-              style: TextStyle(
-                fontFamily: 'Helvetica Neue',
-                fontSize: 25,
-                color: const Color(0xff000000),
+    return GestureDetector(
+      child: Container(
+        padding: EdgeInsets.only(bottom: 10),
+        child: Row(
+          children: <Widget>[
+            ProfilePic(
+                diameter: provider.height / 7.60,
+                profileUserID: provider.post.userID),
+            Container(
+              padding: EdgeInsets.only(left: 20),
+              child: Text(
+                provider.post.userID,
+                style: TextStyle(
+                  fontFamily: 'Helvetica Neue',
+                  fontSize: 25,
+                  color: const Color(0xff000000),
+                ),
+                textAlign: TextAlign.left,
               ),
-              textAlign: TextAlign.left,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ProfilePage(user: provider.post.user))),
     );
   }
 }
 
 class PostViewBody extends StatelessWidget {
+  // Decides whether the post is an image or a video and returns the appropriate
+  // widget. Also displays "Video" in the top right corner if the post is a
+  // video and playOnInit is set to false.
+
   @override
   Widget build(BuildContext context) {
     PostViewProvider provider =
         Provider.of<PostViewProvider>(context, listen: false);
 
-    return Stack(alignment: Alignment.center, children: <Widget>[
-      Container(
-        height: provider.height,
-        width: provider.height / provider.aspectRatio,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(provider.height / 19),
-          border: Border.all(width: 1.0, color: const Color(0xff707070)),
-        ),
-      ),
-      if (provider.post.isImage)
-        FutureBuilder(
-          future: getImage(provider.post),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done &&
-                snapshot.hasData) {
-              return ImageContainer(image: snapshot.data);
-            } else {
-              return Container();
-            }
-          },
-        )
-      else if (provider.postStage.index >= PostStage.playOnInit.index)
-        VideoContainer()
-      else
-        FutureBuilder(
-            future: getThumbnail(provider.post, provider.height,
-                provider.height / provider.aspectRatio),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                return ImageContainer(
-                  image: snapshot.data,
-                  isThumbnail: true,
-                );
-              } else {
-                return Container();
-              }
-            }),
-    ]);
-  }
-
-  Future<ImageProvider> getImage(Post post) async {
-    return Image.network(await post.postURL).image;
-  }
-
-  Future<ImageProvider> getThumbnail(
-      Post post, double height, double width) async {
-    String thumbnailFile = await VideoThumbnail.thumbnailFile(
-      video: (await post.postURL).toString(),
-      thumbnailPath: (await getTemporaryDirectory()).path,
-      imageFormat: ImageFormat.PNG,
-      maxHeight: height.toInt(),
-      maxWidth: width.toInt(),
-      quality: 10,
-    );
-
-    return Image.asset(thumbnailFile).image;
+    return GestureDetector(
+        child: Stack(alignment: Alignment.topRight, children: <Widget>[
+          Container(
+            height: provider.height,
+            width: provider.height / provider.aspectRatio,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(provider.height / 19),
+              border: Border.all(width: 1.0, color: const Color(0xff707070)),
+            ),
+            child:
+                (provider.post.isImage) ? ImageContainer() : VideoContainer(),
+          ),
+          if (!provider.playOnInit && !provider.post.isImage)
+            Container(
+                padding: EdgeInsets.all(provider.height * .03),
+                child: Text(
+                  "Video",
+                  style: TextStyle(color: Colors.grey),
+                ))
+        ]),
+        onLongPress: () {
+          if (!provider.fullPage)
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => PostPage(
+                          post: provider.post,
+                          fromChatPage: provider.fromChatPage,
+                        )));
+        });
   }
 }
 
 class ImageContainer extends StatelessWidget {
-  ImageContainer({@required this.image, this.isThumbnail = false});
-
-  final ImageProvider image;
-  final bool isThumbnail;
-
   @override
   Widget build(BuildContext context) {
     PostViewProvider provider =
@@ -255,25 +233,30 @@ class ImageContainer extends StatelessWidget {
     double height = provider.height;
     double width = provider.height / provider.aspectRatio;
 
-    return Container(
-        height: height - 2,
-        width: width - 2,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(provider.cornerRadius - 1),
-          image: DecorationImage(
-            image: image,
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: (isThumbnail)
-            ? Container(
-                padding: EdgeInsets.all(height * .03),
-                alignment: Alignment.topRight,
-                child: Text(
-                  "Video",
-                  style: TextStyle(color: Colors.grey),
-                ))
-            : Container());
+    return FutureBuilder(
+      future: getImage(provider.post),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          return Container(
+              height: height - 2,
+              width: width - 2,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(provider.cornerRadius - 1),
+                image: DecorationImage(
+                  image: snapshot.data,
+                  fit: BoxFit.cover,
+                ),
+              ));
+        } else {
+          return Container();
+        }
+      },
+    );
+  }
+
+  Future<ImageProvider> getImage(Post post) async {
+    return Image.network(await post.postURL).image;
   }
 }
 
@@ -283,25 +266,105 @@ class VideoContainer extends StatelessWidget {
     PostViewProvider provider =
         Provider.of<PostViewProvider>(context, listen: false);
 
-    return FutureBuilder(
-      future: provider.videoController.initialize(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          provider.videoController.play();
-          return Container(
-              width: provider.height / provider.aspectRatio - 2,
-              height: provider.height - 2,
-              child: ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(provider.cornerRadius - 1),
-                  child: VideoPlayer(
-                    provider.videoController,
-                  )));
-        } else {
-          return Container();
-        }
-      },
-    );
+    if (ModalRoute.of(context).isCurrent) {
+      return FutureBuilder(
+          future: provider.videoPlayerController.initialize(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              if (provider.playOnInit) provider.videoPlayerController.play();
+              return VisibilityDetector(
+                  key: Key("unique key"),
+                  child: Container(
+                      width: provider.height / provider.aspectRatio - 2,
+                      height: provider.height - 2,
+                      child: ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(provider.cornerRadius - 1),
+                          child: VideoPlayer(
+                            provider.videoPlayerController,
+                          ))),
+                  onVisibilityChanged: (VisibilityInfo info) {
+                    if (provider.playOnInit && info.visibleFraction == 1.0)
+                      provider.videoPlayerController.play();
+                    else
+                      provider.videoPlayerController.pause();
+                  });
+            } else
+              return Container();
+          });
+    } else
+      return Container();
+  }
+}
+
+class CommentsButton extends StatefulWidget {
+  CommentsButton({@required this.post});
+
+  final Post post;
+
+  @override
+  _CommentsButtonState createState() => _CommentsButtonState();
+}
+
+class _CommentsButtonState extends State<CommentsButton> {
+  bool showCommentsButton = true;
+
+  @override
+  Widget build(BuildContext context) {
+    PostViewProvider provider =
+        Provider.of<PostViewProvider>(context, listen: false);
+
+    if (showCommentsButton == true)
+      return Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: GestureDetector(
+              child: Container(
+                  padding: EdgeInsets.only(top: 3),
+                  width: 146.0,
+                  height: 25.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(13.0),
+                    color: const Color(0xffffffff),
+                    border:
+                        Border.all(width: 3.0, color: const Color(0xff707070)),
+                  ),
+                  child: Text(
+                    'View Comments',
+                    style: TextStyle(
+                      fontFamily: 'SF Pro Text',
+                      fontSize: 10,
+                      color: const Color(0x67000000),
+                      letterSpacing: -0.004099999964237213,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  )),
+              onTap: () {
+                setState(() {
+                  showCommentsButton = false;
+                });
+                Scaffold.of(context)
+                    .showSnackBar(SnackBar(
+                      // backgroundColor: Colors.transparent,
+                      backgroundColor: Colors.white.withOpacity(.7),
+                      duration: Duration(days: 365),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(30))),
+                      padding: EdgeInsets.only(left: 5, right: 5),
+                      content: Comments(
+                        post: widget.post,
+                        height: 450,
+                      ),
+                    ))
+                    .closed
+                    .then((_) {
+                  setState(() {
+                    showCommentsButton = true;
+                  });
+                });
+              }));
+    else
+      return Container();
   }
 }
 

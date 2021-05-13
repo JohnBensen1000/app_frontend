@@ -23,7 +23,7 @@ class ProfilePic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: _getProfileURL(),
+        future: getProfileURL(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return Stack(
@@ -55,7 +55,7 @@ class ProfilePic extends StatelessWidget {
         });
   }
 
-  Future<Post> _getProfileURL() async {
+  Future<Post> getProfileURL() async {
     String newUrl = serverAPI.url + "users/$profileUserID/profile/";
     var response = await http.get(newUrl);
 

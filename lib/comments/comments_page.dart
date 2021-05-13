@@ -1,85 +1,148 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:test_flutter/profile_page.dart';
-import 'package:test_flutter/profile_pic.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:video_player/video_player.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:test_flutter/comments_section.dart';
+import 'package:test_flutter/post/post_view.dart';
+import 'package:video_player/video_player.dart';
 
 import '../models/post.dart';
-import '../models/user.dart';
+import '../models/comment.dart';
 
 import '../globals.dart' as globals;
 import '../backend_connect.dart';
-import '../comments_section.dart';
-import 'post_view.dart';
+import '../post/post.dart';
+import 'comments_section.dart';
+import 'comments_page.dart';
+import 'comments.dart';
+import 'widgets/add_comment_button.dart';
 
-final backendConnection = new ServerAPI();
-FirebaseStorage storage = FirebaseStorage.instance;
-
-class PostPage extends StatelessWidget {
-  // Returns a scaffold that only includes a PostView() and a return button.
-  // If this widget is called from the chat page, then dont show the full
-  // post widget.
-
-  PostPage({@required this.post, this.fromChatPage = false});
+class CommentsPage extends StatelessWidget {
+  CommentsPage(
+      {@required this.post,
+      @required this.parentComment,
+      @required this.commentsList});
 
   final Post post;
-  final bool fromChatPage;
+  final Comment parentComment;
+  final List<Comment> commentsList;
 
   @override
   Widget build(BuildContext context) {
-    PostStage postStage =
-        (fromChatPage) ? PostStage.onlyPost : PostStage.fullWidget;
+    double height = .6 * MediaQuery.of(context).size.height;
+    double aspectRatio = height / MediaQuery.of(context).size.width;
 
     return Scaffold(
-        appBar: PostAppBar(
-          height: 40,
-        ),
-        body: Center(
-          child: Center(
-            child: PostView(
-              post: post,
-              aspectRatio: globals.goldenRatio,
-              height: 500,
-              postStage: postStage,
-              playOnInit: true,
-              fullPage: true,
-            ),
+      body: Stack(
+        children: <Widget>[
+          Container(
+              alignment: Alignment.bottomCenter,
+              child: PostView(
+                post: post,
+                height: 500,
+                aspectRatio: aspectRatio,
+                postStage: PostStage.onlyPost,
+                playOnInit: false,
+              )),
+          Container(
+            color: Colors.white.withOpacity(.7),
           ),
-        ));
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(40),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                        child: Text("Back"),
+                        onTap: () {
+                          Navigator.pop(context);
+                        }),
+                    if (parentComment != null) Text("Parent Comment"),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+              ),
+              Container(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  height: .65 * height,
+                  child: CommentsListView(
+                    commentsList: commentsList,
+                    post: post,
+                    height: height,
+                    levelOffset:
+                        (parentComment != null) ? parentComment.level + 1 : 0,
+                  )),
+              CommentsPageTextField(
+                videoPlayerController: null,
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Future<void> getVideoController() async {
+    // Initializes and returns a VideoPlayerController if a the post is a video
+    // and a VideoPlayerController was not passed into this widget.
+    VideoPlayerController videoController =
+        VideoPlayerController.network((await post.postURL).toString());
+    videoController.setLooping(true);
+    return videoController;
   }
 }
 
-class PostAppBar extends PreferredSize {
-  const PostAppBar({
-    this.height,
-  });
+class CommentsPageTextField extends StatelessWidget {
+  const CommentsPageTextField({
+    @required this.videoPlayerController,
+    Key key,
+  }) : super(key: key);
 
-  final double height;
-
-  @override
-  Size get preferredSize => Size.fromHeight(height);
+  final VideoPlayerController videoPlayerController;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Row(
-          children: <Widget>[
-            FlatButton(
-              child: SvgPicture.string(
-                _svg_u0lq3x,
-                allowDrawingOutsideViewBox: true,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
+    final TextEditingController textController = new TextEditingController();
+
+    return AddCommentButton(
+      child: Stack(
+        children: [
+          TextFormField(
+            style: TextStyle(
+              fontFamily: 'SF Pro Text',
+              fontSize: 20,
+              color: const Color(0x69000000),
+              letterSpacing: -0.48,
+              height: 1.1,
             ),
-          ],
-        ),
-      ],
+            decoration: InputDecoration(
+              border: InputBorder.none,
+            ),
+            autofocus: true,
+            controller: textController,
+          ),
+          Container(
+            padding: EdgeInsets.only(right: 12),
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+                child: SvgPicture.string(
+                  _svg_myuv7f,
+                  allowDrawingOutsideViewBox: true,
+                ),
+                onTap: () {
+                  Navigator.pop(context, textController.text);
+                }),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -96,3 +159,7 @@ const String _svg_n49k6t =
     '<svg viewBox="0.0 0.0 36.0 33.0" ><path transform="translate(-19.96, -19.9)" d="M 54.85551452636719 19.89999961853027 C 54.73547744750977 19.89999961853027 54.61544418334961 19.89999961853027 54.49540710449219 19.95500183105469 L 20.76573944091797 34.86000061035156 C 19.80546379089355 35.1349983215332 19.6854305267334 36.28999710083008 20.52567100524902 36.78499984741211 L 30.24845886230469 40.85499954223633 L 26.70744132995605 46.68499755859375 L 33.1292839050293 43.4949951171875 L 37.63057708740234 52.40499877929688 C 37.87064361572266 52.7349967956543 38.23074722290039 52.89999771118164 38.59085083007812 52.89999771118164 C 39.07098770141602 52.89999771118164 39.49111175537109 52.625 39.67115783691406 52.18499755859375 L 55.93581771850586 21.21999931335449 C 56.1758918762207 20.55999946594238 55.57572174072266 19.89999961853027 54.85551452636719 19.89999961853027 Z M 38.6508674621582 49.48999786376953 L 34.92980194091797 42.0099983215332 L 50.4742546081543 25.06999778747559 L 31.86892318725586 39.31499862670898 L 23.70658111572266 35.85000228881836 L 52.39480972290039 23.14500045776367 L 38.6508674621582 49.48999786376953 Z" fill="#707070" stroke="none" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /></svg>';
 const String _svg_lr91qk =
     '<svg viewBox="52.0 774.0 28.0 10.0" ><path transform="translate(52.0, 774.0)" d="M 0 0 L 28 0" fill="none" stroke="#707070" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /><path transform="translate(52.0, 779.0)" d="M 0 0 L 28 0" fill="none" stroke="#707070" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /><path transform="translate(52.0, 784.0)" d="M 0 0 L 28 0" fill="none" stroke="#707070" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /></svg>';
+const String _svg_njpmik =
+    '<svg viewBox="0.0 312.5 428.1 613.5" ><path transform="translate(0.12, 312.55)" d="M 21.88237380981445 0 L 403.8407897949219 0 C 415.9264526367188 0 425.7238159179688 9.837001800537109 425.7238159179688 21.9715576171875 L 427.8451232910156 606.23046875 C 429.5456848144531 616.9940795898438 416.944091796875 612.5372924804688 404.8584289550781 612.5372924804688 L 21.42789459228516 612.5372924804688 C 0.6503097414970398 612.1473999023438 -0.1241760328412056 615.7794189453125 -0.1241760328412056 603.6448974609375 L -0.0006602026987820864 21.9715576171875 C -0.0006602026987820864 9.837001800537109 9.796708106994629 0 21.88237380981445 0 Z" fill="#ffffff" fill-opacity="0.9" stroke="#707070" stroke-width="1" stroke-opacity="0.9" stroke-miterlimit="4" stroke-linecap="butt" /></svg>';
+const String _svg_myuv7f =
+    '<svg viewBox="327.0 861.5 20.0 23.0" ><path transform="matrix(0.0, 1.0, -1.0, 0.0, 347.0, 861.5)" d="M 11.49999904632568 0 L 23 20 L 0 20 Z" fill="#ffffff" stroke="#707070" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /></svg>';

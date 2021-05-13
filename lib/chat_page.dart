@@ -323,10 +323,12 @@ class ChatWidgetPost extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(mainAxisAlignment: mainAxisAlignment, children: <Widget>[
       PostView(
-          post: post,
-          height: height,
-          aspectRatio: globals.goldenRatio,
-          postStage: PostStage.onlyPost)
+        post: post,
+        height: height,
+        aspectRatio: globals.goldenRatio,
+        postStage: PostStage.onlyPost,
+        fromChatPage: true,
+      )
     ]);
   }
 }

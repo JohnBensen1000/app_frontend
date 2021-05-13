@@ -158,27 +158,28 @@ class _PostListState extends State<PostList> {
     // Looks to see if index is a valid index of widget.postList. If it is,
     // builds and returns a PostView() that corresponds to the correct
     // item of widget.postList. If the post is a video, then this function
-    // initializes the videoController that will be used to play/pause the
+    // initializes the videoPlayerController that will be used to play/pause the
     // video.
 
     if (index < 0 || index >= widget.postList.length) {
       return null;
     } else {
       Post post = Post.fromJson(widget.postList[index]);
-      VideoPlayerController videoController;
+      VideoPlayerController videoPlayerController;
 
       if (post.isImage == false) {
-        videoController =
+        videoPlayerController =
             VideoPlayerController.network((await post.postURL).toString());
-        videoController.setLooping(true);
+        videoPlayerController.setLooping(true);
       }
 
       PostView postView = PostView(
         post: post,
         height: 475,
         aspectRatio: globals.goldenRatio,
-        postStage: PostStage.playOnInit,
-        videoController: videoController,
+        postStage: PostStage.fullWidget,
+        videoPlayerController: videoPlayerController,
+        playOnInit: true,
       );
 
       return postView;
@@ -225,7 +226,7 @@ class _PostListState extends State<PostList> {
         provider.verticalOffset < -(postVerticalOffset / 4)) {
       postListIndex++;
       provider.swipeUp();
-      await _dealWithVideoControllers(await postViews[provider.nextIndex],
+      await _dealWithvideoPlayerControllers(await postViews[provider.nextIndex],
           await postViews[provider.currIndex]);
 
       postViews[provider.prevIndex] = _buildPostView(postListIndex + 1);
@@ -233,7 +234,7 @@ class _PostListState extends State<PostList> {
         provider.verticalOffset > (postVerticalOffset / 4)) {
       postListIndex--;
       provider.swipeDown();
-      await _dealWithVideoControllers(await postViews[provider.prevIndex],
+      await _dealWithvideoPlayerControllers(await postViews[provider.prevIndex],
           await postViews[provider.currIndex]);
 
       postViews[provider.nextIndex] = _buildPostView(postListIndex - 1);
@@ -255,17 +256,18 @@ class _PostListState extends State<PostList> {
     alreadyWatched[postListIndex] = true;
   }
 
-  Future<void> _dealWithVideoControllers(
+  Future<void> _dealWithvideoPlayerControllers(
       PostView postViewPlay, PostView postViewPause) async {
     // This function only applies to video posts. Plays a video if it comes
     // into view. Pauses a video if it goes off screen.
 
-    if (postViewPlay != null && postViewPlay.videoController != null) {
-      await postViewPlay.videoController.play();
+    if (postViewPlay != null && postViewPlay.videoPlayerController != null) {
+      await postViewPlay.videoPlayerController.play();
     }
-    if (postViewPause != null && postViewPause.videoController != null) {
-      await postViewPause.videoController.pause();
-      await postViewPause.videoController.seekTo(Duration(microseconds: 0));
+    if (postViewPause != null && postViewPause.videoPlayerController != null) {
+      await postViewPause.videoPlayerController.pause();
+      await postViewPause.videoPlayerController
+          .seekTo(Duration(microseconds: 0));
     }
   }
 }

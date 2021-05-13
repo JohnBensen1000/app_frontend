@@ -6,6 +6,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 import 'globals.dart' as globals;
 import 'models/user.dart';
+import 'models/post.dart';
+import 'models/comment.dart';
 import 'chat_page.dart';
 
 class ServerAPI {
@@ -86,4 +88,34 @@ Future<List<User>> getFriendsList() async {
         User(userID: friendJson['userID'], username: friendJson['username']));
   }
   return friendsList;
+}
+
+Future<List<Comment>> getAllComments(Post post) async {
+  // Sends an http request to the server to get a json representation of the
+  // comments section. Then calls _flattenCommentLevel to create a list
+  // of Comment() objects that are usuable.
+  String newUrl = ServerAPI().url + "comments/${post.postID}/";
+  var response = await http.get(newUrl);
+
+  List<Comment> commentsList = [];
+
+  for (var comment in jsonDecode(response.body)["comments"]) {
+    commentsList.add(Comment.fromServer(comment));
+  }
+  return commentsList;
+}
+
+Future<int> postComment(
+    Post post, Comment parentComment, String commentText) async {
+  String postID = post.postID;
+  String commentPath = (parentComment != null) ? parentComment.path : '';
+
+  String newUrl = ServerAPI().url + "comments/${postID.toString()}/";
+  var response = await http.post(newUrl, body: {
+    "path": commentPath,
+    "comment": commentText,
+    "userID": globals.userID
+  });
+
+  return response.statusCode;
 }

@@ -240,7 +240,7 @@ class CommentWidgetHeader extends StatelessWidget {
                 ),
               ),
             Text(
-              comment.user_ID,
+              comment.userID,
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
                 fontSize: 15,
