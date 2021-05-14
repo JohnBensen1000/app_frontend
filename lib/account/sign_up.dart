@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../backend_connect.dart';
+import '../navigation/home_screen.dart';
+
 import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';
 import 'widgets/account_submit_button.dart';
@@ -215,9 +217,19 @@ class _SignUpState extends State<SignUp> {
                                       inputField: provider.inputFields[index]);
                                 })),
                         if (keyboardActivated == false)
-                          AccountSubmitButton(
-                            buttonName: "Sign Up",
-                          ),
+                          FlatButton(
+                              child: AccountSubmitButton(
+                                buttonName: "Sign Up",
+                              ),
+                              onPressed: () async {
+                                if (await provider.createNewAccount())
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => Home(
+                                                pageLabel: PageLabel.friends,
+                                              )));
+                              }),
                       ],
                     ),
                   ),

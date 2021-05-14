@@ -152,7 +152,11 @@ class PostOptions extends StatelessWidget {
               if (provider.allowNewPost) {
                 provider.allowNewPost = false;
                 await uploadPost(provider.isImage, provider.filePath);
-                Navigator.pop(context);
+                int count = 0;
+                Navigator.popUntil(context, (route) {
+                  return count++ == 2;
+                });
+                ;
               }
             },
           ),

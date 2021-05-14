@@ -9,10 +9,10 @@ import 'globals.dart' as globals;
 import 'models/user.dart';
 import 'models/post.dart';
 import 'models/comment.dart';
-import 'chat_page.dart';
+import 'friends/chat_page.dart';
 
 class ServerAPI {
-  String _url = "http://192.168.0.180:8000/";
+  String _url = "http://192.168.1.21:8000/";
 
   String get url {
     return _url;
@@ -130,10 +130,10 @@ Future<bool> authenticateUserWithBackend(String idToken) async {
   FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
   String deviceToken = await _firebaseMessaging.getToken();
 
-  String _url = ServerAPI().url + "authenticate/";
+  String url = ServerAPI().url + "authenticate/";
 
   http.Response response = await http
-      .post(_url, body: {"idToken": idToken, "deviceToken": deviceToken});
+      .post(url, body: {"idToken": idToken, "deviceToken": deviceToken});
 
   if (response.statusCode == 200) {
     globals.userID = json.decode(response.body)["userID"];
@@ -155,4 +155,95 @@ Future<void> postCreateAccount(
     Map<dynamic, dynamic> postBody, String userID) async {
   String url = ServerAPI().url + "users/$userID/";
   await http.post(url, body: postBody);
+}
+
+Future<List<User>> getNewFollowers() async {
+  List<User> followersList = [];
+
+  String newUrl = ServerAPI().url + "users/${globals.userID}/followers/";
+  var response = await http.get(newUrl);
+
+  for (var friendJson in json.decode(response.body)["new_followers"]) {
+    followersList.add(
+        User(userID: friendJson['userID'], username: friendJson['username']));
+  }
+  return followersList;
+}
+
+Future<dynamic> postFollowBack(String newFollowerID, bool followBack) async {
+  String url =
+      ServerAPI().url + "users/${globals.userID}/following/$newFollowerID/";
+
+  Map<dynamic, dynamic> postBody = {"followBack": followBack.toString()};
+  var response = await http.post(url, body: postBody);
+
+  return response;
+}
+
+Future<List<dynamic>> getPosts() async {
+  String newUrl = ServerAPI().url + "posts/${globals.userID}/following/";
+  var response = await http.get(newUrl);
+  return json.decode(response.body)["postsList"];
+}
+
+Future<dynamic> recordWatched(String postID, int userFeedback) async {
+  String newUrl = ServerAPI().url + 'posts/${globals.userID}/watched/$postID/';
+
+  var response =
+      await http.post(newUrl, body: {'userRating': userFeedback.toString()});
+  return response;
+}
+
+Future<List<User>> searchUsers(String searchString) async {
+  String url = ServerAPI().url + "users/search/" + searchString + "/";
+  var response = await http.get(url);
+
+  List<User> creatorsList = [
+    for (var creator in json.decode(response.body)["creatorsList"])
+      User(userID: creator["userID"], username: creator["username"])
+  ];
+
+  return creatorsList;
+}
+
+Future<bool> checkIfFollowing(String creatorID) async {
+  String url =
+      ServerAPI().url + "users/${globals.userID}/following/$creatorID/";
+  var response = await http.get(url);
+
+  return json.decode(response.body)["following_bool"];
+}
+
+Future<dynamic> startFollowing(String creatorID) async {
+  String url =
+      ServerAPI().url + "users/${globals.userID}/following/$creatorID/";
+  await http.post(url);
+}
+
+Future<dynamic> stopFollowing(String creatorID) async {
+  String url =
+      ServerAPI().url + "users/${globals.userID}/following/$creatorID/";
+  await http.delete(url);
+}
+
+Future<List<dynamic>> getProfilePosts(User user) async {
+  // Sends a request to the server to get a list of the creator's posts. When
+  // this list is recieved, _getProfilePostsList() is called to build a list
+  // of ProfilePostWidget().
+  var response =
+      await http.get(ServerAPI().url + "posts/${user.userID}/posts/");
+  List<dynamic> postList = json.decode(response.body)["userPosts"];
+
+  if (postList.length == 0) {
+    return [];
+  }
+  return postList;
+}
+
+Future<Post> getProfileURL(String userID) async {
+  String newUrl = ServerAPI().url + "users/$userID/profile/";
+  var response = await http.get(newUrl);
+
+  if (json.decode(response.body)["profileType"] == "none") return null;
+  return Post.fromProfile(json.decode(response.body)["profileType"], userID);
 }

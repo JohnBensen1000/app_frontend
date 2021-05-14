@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
-import 'models/user.dart';
+import '../models/user.dart';
 
-import 'globals.dart' as globals;
-import 'profile_pic.dart';
-import 'profile_page.dart';
-import 'camera/camera.dart';
+import '../globals.dart' as globals;
+import '../profile/profile_page.dart';
+import '../profile/profile_pic.dart';
+import '../camera/camera.dart';
 
-class SettingsDrawer extends StatelessWidget {
+class SettingsDrawer extends StatefulWidget {
+  // The SettingsDrawer pops out from the left side of the screen. It contains
+  // the user's profile, username, and userID. Below that is a list of buttons.
+
   SettingsDrawer({
     this.width = 250,
     Key key,
@@ -15,6 +18,11 @@ class SettingsDrawer extends StatelessWidget {
 
   final double width;
 
+  @override
+  _SettingsDrawerState createState() => _SettingsDrawerState();
+}
+
+class _SettingsDrawerState extends State<SettingsDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -25,7 +33,7 @@ class SettingsDrawer extends StatelessWidget {
           ),
         ),
         padding: EdgeInsets.only(top: 40, bottom: 40),
-        width: width,
+        width: widget.width,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -51,7 +59,9 @@ class SettingsDrawer extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (context) => Camera(
                             cameraUsage: CameraUsage.profile,
-                          ))),
+                          ))).then((value) {
+                setState(() {});
+              }),
             ),
             SettingsButton(
               buttonName: "Go To Profile Page",
@@ -69,19 +79,6 @@ class SettingsDrawer extends StatelessWidget {
     );
   }
 }
-
-// class NewProfilePic extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Stack(children: <Widget>[
-//         Camera(
-//           cameraUsage: CameraUsage.profile,
-//         )
-//       ]),
-//     );
-//   }
-// }
 
 class SettingsButton extends StatelessWidget {
   SettingsButton({@required this.buttonName, @required this.onPressed});

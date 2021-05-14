@@ -1,13 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
-import 'package:test_flutter/profile_page.dart';
 
-import 'models/user.dart';
+import '../models/user.dart';
 
-import 'backend_connect.dart';
+import '../backend_connect.dart';
+
+import '../profile/profile_page.dart';
 
 final backendConnection = new ServerAPI();
 
@@ -20,21 +18,14 @@ class CreatorsList extends ChangeNotifier {
 
   Future<void> searchForCreators(String creatorString) async {
     if (creatorString != '') {
-      String newUrl =
-          backendConnection.url + "users/search/" + creatorString + "/";
-      var response = await http.get(newUrl);
-
-      _creatorsList = [
-        for (var creator in json.decode(response.body)["creatorsList"])
-          User(userID: creator["userID"], username: creator["username"])
-      ];
+      _creatorsList = await searchUsers(creatorString);
     } else {
       _creatorsList = [];
     }
     notifyListeners();
   }
 
-  Future<void> clearSearchList() async {
+  void clearSearchList() {
     _creatorsList = [];
     notifyListeners();
   }
@@ -128,16 +119,6 @@ class SearchResult extends StatelessWidget {
   final User creator;
   final TextEditingController _searchController;
 
-  Future<void> _goToProfilePage(BuildContext context) async {
-    await Provider.of<CreatorsList>(context, listen: false).clearSearchList();
-    _searchController.clear();
-    FocusScope.of(context).unfocus();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ProfilePage(user: creator)),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return new FlatButton(
@@ -154,7 +135,15 @@ class SearchResult extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           )),
-      onPressed: () => _goToProfilePage(context),
+      onPressed: () {
+        Provider.of<CreatorsList>(context, listen: false).clearSearchList();
+        _searchController.clear();
+        FocusScope.of(context).unfocus();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfilePage(user: creator)),
+        );
+      },
     );
   }
 }

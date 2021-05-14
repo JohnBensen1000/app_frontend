@@ -1,3 +1,3 @@
 String userID = "";
 String username = "";
-double goldenRatio = 16 / 9;
+double goldenRatio = 1.61803398875;

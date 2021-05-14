@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-import 'models/user.dart';
+import '../models/user.dart';
 
-import 'profile_pic.dart';
-import 'profile_page.dart';
-import 'backend_connect.dart';
-import 'globals.dart' as globals;
+import '../profile/profile_pic.dart';
+import '../profile/profile_page.dart';
+import '../backend_connect.dart';
 
 ServerAPI serverAPI = new ServerAPI();
 
@@ -26,8 +24,11 @@ class NewFollowersProvider extends ChangeNotifier {
   }
 }
 
-class NewFollowersPageState extends StatelessWidget {
-  NewFollowersPageState({@required this.newFollowersList});
+class NewFollowersPage extends StatelessWidget {
+  // Returns a list of all new followers. This widget is updated every time the
+  // user decides to "follow back" or "not follow back" a particular new
+  // follower.
+  NewFollowersPage({@required this.newFollowersList});
 
   final List<User> newFollowersList;
 
@@ -37,52 +38,34 @@ class NewFollowersPageState extends StatelessWidget {
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-        backgroundColor: const Color(0xffffffff),
-        appBar: NewFollowerAppBar(
-          height: headHeightPercent * height,
-        ),
-        body: ChangeNotifierProvider(
-          create: (_) =>
-              NewFollowersProvider(newFollowersList: newFollowersList),
-          child: NewFollowersPage(
-              headHeightPercent: headHeightPercent, height: height),
+    return ChangeNotifierProvider(
+        create: (_) => NewFollowersProvider(newFollowersList: newFollowersList),
+        child: Consumer<NewFollowersProvider>(
+          builder: (consumerContext, provider, child) => Scaffold(
+            backgroundColor: const Color(0xffffffff),
+            appBar: NewFollowersAppBar(
+              height: headHeightPercent * height,
+            ),
+            body: Container(
+              height: (1 - headHeightPercent) * height,
+              child: ListView.builder(
+                itemCount: provider.newFollowersList.length,
+                itemBuilder: (context, index) {
+                  return NewFollower(
+                    newFollower: provider.newFollowersList[index],
+                  );
+                },
+              ),
+            ),
+          ),
         ));
   }
 }
 
-class NewFollowersPage extends StatelessWidget {
-  const NewFollowersPage({
-    Key key,
-    @required this.headHeightPercent,
-    @required this.height,
-  }) : super(key: key);
-
-  final double headHeightPercent;
+class NewFollowersAppBar extends PreferredSize {
   final double height;
 
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<NewFollowersProvider>(
-      builder: (consumerContext, provider, child) => Container(
-        height: (1 - headHeightPercent) * height,
-        child: ListView.builder(
-          itemCount: provider.newFollowersList.length,
-          itemBuilder: (context, index) {
-            return NewFollowerWidget(
-              newFollower: provider.newFollowersList[index],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class NewFollowerAppBar extends PreferredSize {
-  final double height;
-
-  NewFollowerAppBar({@required this.height});
+  NewFollowersAppBar({@required this.height});
 
   @override
   Size get preferredSize => Size.fromHeight(height);
@@ -109,10 +92,10 @@ class NewFollowerAppBar extends PreferredSize {
   }
 }
 
-class NewFollowerWidget extends StatelessWidget {
+class NewFollower extends StatelessWidget {
   final User newFollower;
 
-  NewFollowerWidget({@required this.newFollower});
+  NewFollower({@required this.newFollower});
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +110,7 @@ class NewFollowerWidget extends StatelessWidget {
                 bottom: BorderSide(color: Colors.grey[400]))),
         height: 150,
         child: CustomMultiChildLayout(
-          delegate: NewFollowingWidgetDelegate(
+          delegate: NewFollowerDelegate(
               profileSize: profileSize,
               acceptDeclineSize: acceptDeclineSize,
               padding: 20),
@@ -138,7 +121,7 @@ class NewFollowerWidget extends StatelessWidget {
                     newFollower: newFollower, size: profileSize)),
             LayoutId(
                 id: 1,
-                child: NewFollowerAcceptDecline(
+                child: AcceptDeclineWidget(
                   size: acceptDeclineSize,
                   newFollower: newFollower,
                 )),
@@ -147,12 +130,12 @@ class NewFollowerWidget extends StatelessWidget {
   }
 }
 
-class NewFollowingWidgetDelegate extends MultiChildLayoutDelegate {
+class NewFollowerDelegate extends MultiChildLayoutDelegate {
   final Size profileSize;
   final Size acceptDeclineSize;
   final double padding;
 
-  NewFollowingWidgetDelegate(
+  NewFollowerDelegate(
       {@required this.profileSize,
       @required this.acceptDeclineSize,
       @required this.padding});
@@ -170,7 +153,7 @@ class NewFollowingWidgetDelegate extends MultiChildLayoutDelegate {
   }
 
   @override
-  bool shouldRelayout(NewFollowingWidgetDelegate oldDelegate) {
+  bool shouldRelayout(NewFollowerDelegate oldDelegate) {
     return false;
   }
 }
@@ -211,8 +194,8 @@ class NewFollowerProfile extends StatelessWidget {
   }
 }
 
-class NewFollowerAcceptDecline extends StatelessWidget {
-  const NewFollowerAcceptDecline(
+class AcceptDeclineWidget extends StatelessWidget {
+  const AcceptDeclineWidget(
       {Key key, @required this.newFollower, @required this.size})
       : super(key: key);
 
@@ -245,13 +228,7 @@ class NewFollowerAcceptDecline extends StatelessWidget {
   }
 
   Future<void> _followBack(BuildContext context, bool followBack) async {
-    String url = serverAPI.url +
-        "users/${globals.userID}/following/${newFollower.userID}/";
-
-    Map<dynamic, dynamic> postBody = {"followBack": followBack.toString()};
-    var response = await http.post(url, body: postBody);
-
-    if (response.statusCode == 201) {}
+    var response = await postFollowBack(newFollower.userID, followBack);
 
     Provider.of<NewFollowersProvider>(context, listen: false)
         .removeNewFollower(newFollower);

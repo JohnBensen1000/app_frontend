@@ -1,32 +1,16 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:test_flutter/profile_pic.dart';
-import 'package:http/http.dart' as http;
+import 'package:test_flutter/profile/profile_pic.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 
-import 'models/user.dart';
+import '../models/user.dart';
 
-import 'globals.dart' as globals;
-import 'backend_connect.dart';
+import '../globals.dart' as globals;
+import '../backend_connect.dart';
 import 'chat_page.dart';
-import 'new_followers_page.dart';
+import 'new_followers.dart';
 
 final serverAPI = new ServerAPI();
-
-Future<List<User>> getFriendsList() async {
-  List<User> friendsList = [];
-
-  String newUrl = serverAPI.url + "users/${globals.userID}/friends/";
-  var response = await http.get(newUrl);
-
-  for (var friendJson in json.decode(response.body)["friends"]) {
-    friendsList.add(
-        User(userID: friendJson['userID'], username: friendJson['username']));
-  }
-  return friendsList;
-}
 
 class FriendsPageProvider extends ChangeNotifier {
   void resetState() {
@@ -118,7 +102,7 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: _getNewFollower(),
+        future: getNewFollowers(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.data.length > 0) {
@@ -127,41 +111,29 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
             return Padding(
                 padding: const EdgeInsets.only(bottom: 5),
                 child: GestureDetector(
-                  child: Container(
-                    height: 20,
-                    width: 200,
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black, width: 2),
-                        borderRadius: BorderRadius.all(Radius.circular(20))),
-                    child: Center(child: Text(newFollowingText)),
-                  ),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => NewFollowersPageState(
-                              newFollowersList: snapshot.data,
-                            )),
-                  ).then((_) =>
-                      Provider.of<FriendsPageProvider>(context, listen: false)
-                          .resetState()),
-                ));
+                    child: Container(
+                      height: 20,
+                      width: 200,
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 2),
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: Center(child: Text(newFollowingText)),
+                    ),
+                    onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => NewFollowersPage(
+                                    newFollowersList: snapshot.data,
+                                  )),
+                        ).then((newFriends) {
+                          Provider.of<FriendsPageProvider>(context,
+                                  listen: false)
+                              .resetState();
+                        })));
           } else {
             return Container();
           }
         });
-  }
-
-  Future<List<User>> _getNewFollower() async {
-    List<User> followersList = [];
-
-    String newUrl = serverAPI.url + "users/${globals.userID}/followers/";
-    var response = await http.get(newUrl);
-
-    for (var friendJson in json.decode(response.body)["new_followers"]) {
-      followersList.add(
-          User(userID: friendJson['userID'], username: friendJson['username']));
-    }
-    return followersList;
   }
 }
 

@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/backend_connect.dart';
 import 'package:video_player/video_player.dart';
-import 'package:http/http.dart' as http;
 
-import 'models/post.dart';
+import '../models/post.dart';
 
-import 'globals.dart' as globals;
-import 'backend_connect.dart';
-import 'post/post_view.dart';
+import '../globals.dart' as globals;
+import '../backend_connect.dart';
+import '../post/post_view.dart';
 
 ServerAPI serverAPI = ServerAPI();
 
@@ -249,10 +248,9 @@ class _PostListState extends State<PostList> {
     // Sends a post request to the server to tell it to record that the user
     // has watched the current post.
     String postID = widget.postList[postListIndex]["postID"].toString();
-    String newUrl = serverAPI.url + 'posts/${globals.userID}/watched/$postID/';
 
-    var response = await http.post(newUrl, body: {'userRating': '5'});
-    print(response.statusCode);
+    var response = await recordWatched(postID, 5);
+
     alreadyWatched[postListIndex] = true;
   }
 

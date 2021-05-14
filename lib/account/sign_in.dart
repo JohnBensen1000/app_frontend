@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:test_flutter/home_screen.dart';
+import 'package:test_flutter/navigation/home_screen.dart';
 
 import '../backend_connect.dart';
 import 'widgets/account_app_bar.dart';
@@ -68,7 +68,7 @@ class _SignInState extends State<SignIn> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => HomeScreen(
+                                builder: (context) => Home(
                                       pageLabel: PageLabel.friends,
                                     )));
                       } else {
@@ -89,7 +89,7 @@ class _SignInState extends State<SignIn> {
     emailInputField.errorText = "";
 
     try {
-      if (checkInputs()) return false;
+      if (!areInputsValid()) return false;
 
       final FirebaseUser firebaseUser = (await auth.signInWithEmailAndPassword(
         email: emailInputField.textEditingController.text,
@@ -113,7 +113,7 @@ class _SignInState extends State<SignIn> {
     }
   }
 
-  bool checkInputs() {
+  bool areInputsValid() {
     // Checks if inputs are empty.
 
     bool isEmpty = false;
@@ -125,9 +125,9 @@ class _SignInState extends State<SignIn> {
       emailInputField.errorText = "No input";
       isEmpty = true;
     }
-    if (isEmpty)
-      return false;
-    else
-      return true;
+
+    if (isEmpty) return false;
+
+    return true;
   }
 }

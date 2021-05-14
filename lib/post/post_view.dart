@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/profile_page.dart';
-import 'package:test_flutter/profile_pic.dart';
+import 'package:test_flutter/profile/profile_pic.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../models/post.dart';
 
-import '../globals.dart' as globals;
+import '../profile/profile_page.dart';
 import '../backend_connect.dart';
 import 'post.dart';
 import '../comments/comments.dart';

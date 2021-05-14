@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
-import 'following_page.dart';
-import 'friends_page.dart';
-// import 'new_post.dart';
-import 'backend_connect.dart';
+import '../feeds/following_page.dart';
+import '../friends/friends_page.dart';
+import '../backend_connect.dart';
 import 'search_page.dart';
 import 'settings_drawer.dart';
-import 'camera/camera.dart';
+import '../camera/camera.dart';
 
 final serverAPI = new ServerAPI();
 
@@ -20,50 +19,13 @@ enum PageLabel {
   following,
 }
 
-class HomeScreen extends StatefulWidget {
-  final PageLabel pageLabel;
-
-  HomeScreen({Key key, this.pageLabel}) : super(key: key);
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState(pageLabel: pageLabel);
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  /* The homescreen is composed of two main parts: NavigationBar and PageBody
-     The NavigationBar displays which page the user is on. PageBody contains 
-     three widgets: DiscoverPage(), FriendsPage(), or FollowingPage(). Two of 
-     these widgets are offset to be off screen so that only one widget is seen 
-     at any given time. 
-  */
-  final PageLabel pageLabel;
-
-  _HomeScreenState({this.pageLabel});
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) => HomeScreenProvider(),
-        child: Scaffold(
-          backgroundColor: const Color(0xffffffff),
-          appBar: NavigationBar(
-            height: 150,
-          ),
-          body: PageBody(height: MediaQuery.of(context).size.height - 150),
-          drawer: SettingsDrawer(
-            width: 250,
-          ),
-        ));
-  }
-}
-
 class HomeScreenProvider extends ChangeNotifier {
-  /* Responsible for keeping track of which page user is on. Also responsible
-     for smooth transitions between pages. As the user drags horizontally, this
-     provider continuously updates a variable, offset. When the user stops
-     sliding horizontally, this provider decides if the user swiped far enough
-     to display a new page. 
-  */
+  // Responsible for keeping track of which page user is on. Also responsible
+  // for smooth transitions between pages. As the user drags horizontally, this
+  // provider continuously updates a variable, offset. When the user stops
+  // sliding horizontally, this provider decides if the user swiped far enough
+  // to display a new page.
+
   PageLabel pageLabel = PageLabel.friends;
   double _offset = 0;
 
@@ -109,152 +71,205 @@ class HomeScreenProvider extends ChangeNotifier {
   }
 }
 
-class NavigationBar extends PreferredSize {
-  /* Contains a navigation bar composed of 3 buttons that allow the user to 
-     switch to a new page. FollowingPage(), DiscoverPage(), and FreindsPage(). 
-     Additionally, contains buttons that allow the user to navigate to the
-     settings page, search page, and camera page. 
-  */
+class Home extends StatefulWidget {
+  // Main page of the app. Consists of two parts: HomeAppBar() and HomePage().
+  // HomePage() consists of the discover, friends, and following pages. The
+  // user could navigate through these pages by sliding left or right. The
+  // HomeAppBar() allows the user to navigate to different parts of the app,
+  // including the settings, search, and camera pages. HomeAppBar() also
+  // displays which of the three pages from HomePage() that the user is on.
+
+  final PageLabel pageLabel;
+
+  Home({Key key, this.pageLabel}) : super(key: key);
+
+  @override
+  _HomeState createState() => _HomeState(pageLabel: pageLabel);
+}
+
+class _HomeState extends State<Home> {
+  final PageLabel pageLabel;
+
+  _HomeState({this.pageLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+        create: (context) => HomeScreenProvider(),
+        child: Scaffold(
+          backgroundColor: const Color(0xffffffff),
+          appBar: HomeAppBar(
+            height: 150,
+          ),
+          body: HomePage(height: MediaQuery.of(context).size.height - 150),
+          drawer: SettingsDrawer(
+            width: 250,
+          ),
+        ));
+  }
+}
+
+class HomeAppBar extends PreferredSize {
+  // Divided into two parts: HomeAppBarButtons() and HomeAppBarNavigation().
+  // both of these widgets allow the user to navigate to different parts of the
+  // app.
   final double height;
 
-  NavigationBar({this.height});
+  HomeAppBar({this.height});
 
   @override
   Size get preferredSize => Size.fromHeight(height);
 
   @override
   Widget build(BuildContext context) {
-    HomeScreenProvider provider = Provider.of<HomeScreenProvider>(context);
-
     return Container(
       color: Colors.white,
       child: Column(
         children: <Widget>[
           Container(
-            height: 70.0,
-          ),
-          SvgPicture.string(
-            _svg_rfs5b5,
-            allowDrawingOutsideViewBox: true,
-          ),
-          Container(
-            padding: const EdgeInsets.only(left: 30, top: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Container(
-                  width: 24.0,
-                  height: 24.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    border:
-                        Border.all(width: 1.0, color: const Color(0xff707070)),
-                  ),
-                  child: FlatButton(
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                    child: null,
-                  ),
-                ),
-                Row(children: <Widget>[
-                  Container(
-                      width: 100,
-                      height: 30,
-                      decoration: new BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        color: Colors.grey[300],
-                      ),
-                      child: FlatButton(
-                        child: Text("Search", textAlign: TextAlign.center),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => SearchPage()),
-                          );
-                        },
-                      )),
-                  ButtonTheme(
-                    minWidth: 40,
-                    child: FlatButton(
-                      child: SvgPicture.string(
-                        _svg_n49k6t,
-                        allowDrawingOutsideViewBox: true,
-                        fit: BoxFit.fill,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Camera(
-                                  cameraUsage: CameraUsage.post, friend: null)),
-                        );
-                      },
-                    ),
-                  ),
-                ]),
-              ],
+            padding: EdgeInsets.only(top: 70),
+            child: SvgPicture.string(
+              _svg_rfs5b5,
+              allowDrawingOutsideViewBox: true,
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                width: 240,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    NavButton(
-                      pageName: "Discover",
-                      pageLabel: PageLabel.discover,
-                    ),
-                    NavButton(
-                      pageName: "Friends",
-                      pageLabel: PageLabel.friends,
-                    ),
-                    NavButton(
-                      pageName: "Following",
-                      pageLabel: PageLabel.following,
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                child: Transform.translate(
-                  offset: Offset(0, -10),
-                  child: Container(
-                    width: 212.0,
-                    height: 7.0,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4.0),
-                      color: const Color(0xffffffff),
-                      border: Border.all(
-                          width: 1.0, color: const Color(0xff707070)),
-                    ),
-                    child: Transform.translate(
-                      offset: Offset(
-                          max(-1.0, min(-provider.offset, 1.0)) * 84.0, 0),
-                      child: SvgPicture.string(
-                        _svg_cayeaa,
-                        allowDrawingOutsideViewBox: true,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          HomeAppBarButtons(),
+          HomeAppBarNavigation(),
         ],
       ),
     );
   }
 }
 
-class NavButton extends StatelessWidget {
-  /* Widget used for the navigation buttons in NavigationBar. */
+class HomeAppBarButtons extends StatelessWidget {
+  const HomeAppBarButtons({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 30, top: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Container(
+            width: 24.0,
+            height: 24.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(width: 1.0, color: const Color(0xff707070)),
+            ),
+            child: FlatButton(
+              onPressed: () => Scaffold.of(context).openDrawer(),
+              child: null,
+            ),
+          ),
+          Row(children: <Widget>[
+            Container(
+                width: 100,
+                height: 30,
+                decoration: new BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  color: Colors.grey[300],
+                ),
+                child: FlatButton(
+                  child: Text("Search", textAlign: TextAlign.center),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SearchPage()),
+                    );
+                  },
+                )),
+            ButtonTheme(
+              minWidth: 40,
+              child: FlatButton(
+                child: SvgPicture.string(
+                  _svg_n49k6t,
+                  allowDrawingOutsideViewBox: true,
+                  fit: BoxFit.fill,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => Camera(
+                            cameraUsage: CameraUsage.post, friend: null)),
+                  );
+                },
+              ),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeAppBarNavigation extends StatelessWidget {
+  const HomeAppBarNavigation({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    HomeScreenProvider provider = Provider.of<HomeScreenProvider>(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          width: 240,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              NavigationButton(
+                pageName: "Discover",
+                pageLabel: PageLabel.discover,
+              ),
+              NavigationButton(
+                pageName: "Friends",
+                pageLabel: PageLabel.friends,
+              ),
+              NavigationButton(
+                pageName: "Following",
+                pageLabel: PageLabel.following,
+              ),
+            ],
+          ),
+        ),
+        Container(
+          child: Transform.translate(
+            offset: Offset(0, -10),
+            child: Container(
+              width: 212.0,
+              height: 7.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4.0),
+                color: const Color(0xffffffff),
+                border: Border.all(width: 1.0, color: const Color(0xff707070)),
+              ),
+              child: Transform.translate(
+                offset: Offset(max(-1.0, min(-provider.offset, 1.0)) * 84.0, 0),
+                child: SvgPicture.string(
+                  _svg_cayeaa,
+                  allowDrawingOutsideViewBox: true,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class NavigationButton extends StatelessWidget {
   final String pageName;
   final PageLabel pageLabel;
 
-  NavButton({this.pageName, this.pageLabel});
+  NavigationButton({this.pageName, this.pageLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -281,15 +296,15 @@ class NavButton extends StatelessWidget {
   }
 }
 
-class PageBody extends StatelessWidget {
-  /* Contains three widgets. These widgets are horizontally translated so that
-     only one widget is seen at a time. These translation offsets are updated
-     continuously as the user swipes horizontally. Each widget is wrapped with
-     a Container() that takes up the entire page. This is done so that 
-     the GestureDetector() could respond to the user's swipes regardless of 
-     where on the page they swipe. 
-  */
-  PageBody({@required this.height});
+class HomePage extends StatelessWidget {
+  // Contains three widgets. These widgets are horizontally translated so that
+  // only one widget is seen at a time. These translation offsets are updated
+  // continuously as the user swipes horizontally. Each widget is wrapped with
+  // a Container() that takes up the entire page. This is done so that
+  // the GestureDetector() could respond to the user's swipes regardless of
+  // where on the page they swipe.
+
+  HomePage({@required this.height});
 
   final double height;
 
