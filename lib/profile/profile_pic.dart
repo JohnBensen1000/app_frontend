@@ -17,42 +17,47 @@ class ProfilePic extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        ClipPath(
-            clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
-            child: FutureBuilder(
-                future: getProfileURL(userID),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      snapshot.hasData)
-                    return PostView(
-                        post: snapshot.data,
+    return Container(
+      width: diameter,
+      height: diameter,
+      child: Stack(
+        children: <Widget>[
+          ClipPath(
+              clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
+              child: FutureBuilder(
+                  future: getProfileURL(userID),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done &&
+                        snapshot.hasData)
+                      return PostView(
+                          post: snapshot.data,
+                          height: diameter,
+                          aspectRatio: 1,
+                          postStage: PostStage.onlyPost);
+                    else
+                      return Container(
+                        width: diameter,
                         height: diameter,
-                        aspectRatio: 1,
-                        postStage: PostStage.onlyPost);
-                  else
-                    return Container(
-                      width: diameter,
-                      height: diameter,
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                        border: Border.all(
-                            width: .02 * diameter,
-                            color: const Color(0xff22a2ff)),
-                      ),
-                    );
-                })),
-        Container(
-            width: diameter,
-            height: diameter,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-              border: Border.all(
-                  width: .02 * diameter, color: const Color(0xff22a2ff)),
-            )),
-      ],
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                              Radius.elliptical(9999.0, 9999.0)),
+                          border: Border.all(
+                              width: .02 * diameter,
+                              color: const Color(0xff22a2ff)),
+                        ),
+                      );
+                  })),
+          Container(
+              width: diameter,
+              height: diameter,
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+                border: Border.all(
+                    width: .02 * diameter, color: const Color(0xff22a2ff)),
+              )),
+        ],
+      ),
     );
   }
 }
