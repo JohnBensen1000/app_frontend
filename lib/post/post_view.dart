@@ -319,52 +319,51 @@ class _CommentsButtonState extends State<CommentsButton> {
       return Padding(
           padding: const EdgeInsets.only(top: 10),
           child: GestureDetector(
-            child: Container(
-                padding: EdgeInsets.only(top: 3),
-                width: 146.0,
-                height: 25.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(13.0),
-                  color: const Color(0xffffffff),
-                  border:
-                      Border.all(width: 3.0, color: const Color(0xff707070)),
-                ),
-                child: Text(
-                  'View Comments',
-                  style: TextStyle(
-                    fontFamily: 'SF Pro Text',
-                    fontSize: 10,
-                    color: const Color(0x67000000),
-                    letterSpacing: -0.004099999964237213,
-                    height: 1.2,
+              child: Container(
+                  padding: EdgeInsets.only(top: 3),
+                  width: 146.0,
+                  height: 25.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(13.0),
+                    color: const Color(0xffffffff),
+                    border:
+                        Border.all(width: 3.0, color: const Color(0xff707070)),
                   ),
-                  textAlign: TextAlign.center,
-                )),
-            // onTap: () {
-            //   setState(() {
-            //     showCommentsButton = false;
-            //   });
-            //   Scaffold.of(context)
-            //       .showSnackBar(SnackBar(
-            //         // backgroundColor: Colors.transparent,
-            //         backgroundColor: Colors.white.withOpacity(.7),
-            //         duration: Duration(days: 365),
-            //         shape: RoundedRectangleBorder(
-            //             borderRadius: BorderRadius.all(Radius.circular(30))),
-            //         padding: EdgeInsets.only(left: 5, right: 5),
-            //         content: Comments(
-            //           post: widget.post,
-            //           height: 450,
-            //         ),
-            //       ))
-            //       .closed
-            //       .then((_) {
-            //     setState(() {
-            //       showCommentsButton = true;
-            //     });
-            //   });
-            // }));
-          ));
+                  child: Text(
+                    'View Comments',
+                    style: TextStyle(
+                      fontFamily: 'SF Pro Text',
+                      fontSize: 10,
+                      color: const Color(0x67000000),
+                      letterSpacing: -0.004099999964237213,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  )),
+              onTap: () {
+                setState(() {
+                  showCommentsButton = false;
+                });
+                Scaffold.of(context)
+                    .showSnackBar(SnackBar(
+                      // backgroundColor: Colors.transparent,
+                      backgroundColor: Colors.white.withOpacity(.7),
+                      duration: Duration(days: 365),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(30))),
+                      padding: EdgeInsets.only(left: 5, right: 5),
+                      content: Comments(
+                        post: widget.post,
+                        height: 450,
+                      ),
+                    ))
+                    .closed
+                    .then((_) {
+                  setState(() {
+                    showCommentsButton = true;
+                  });
+                });
+              }));
     else
       return Container();
   }

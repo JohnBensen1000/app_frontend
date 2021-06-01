@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import 'log_in_screen.dart';
+import 'enter_account.dart';
 
 class WelcomePage extends StatelessWidget {
   WelcomePage({

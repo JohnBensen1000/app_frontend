@@ -1,5 +1,8 @@
+import 'dart:io' show Platform;
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart';
@@ -48,7 +51,7 @@ class SignUpProvider extends ChangeNotifier {
 
   Future<bool> createNewAccount() async {
     // Clears all error messages. Validates if each input is formatted
-    //correctly. If inputs are correct, creates an account in firebase
+    // correctly. If inputs are correct, creates an account in firebase
     // authentication and in the backend database. If the given email, phone,
     // and/or userID are taken, then an account is not created and the user is
     // notified which fields are taken. If an account is successfully created,
@@ -121,7 +124,7 @@ class SignUpProvider extends ChangeNotifier {
               email: email.textEditingController.text,
               password: password.textEditingController.text))
           .user;
-    } catch (error) {
+    } on PlatformException catch (error) {
       switch (error.code) {
         case "ERROR_WEAK_PASSWORD":
           password.errorText = "The selected password is too weak.";

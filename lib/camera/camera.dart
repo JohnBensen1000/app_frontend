@@ -20,12 +20,12 @@ enum CameraUsage {
 }
 
 class CameraProvider extends ChangeNotifier {
-  /* Manages state for the entire post page. Keeps track of whether the user has
-     captured a post, whether the post is an image or video, and whether or not
-     the user is currently recording a video. Also provides functionality for
-     taking an image and starting/stopping a video recording. Deletes the last
-     image/video when a new image/video is being taken.
-  */
+  // Manages state for the entire post page. Keeps track of whether the user has
+  // captured a post, whether the post is an image or video, and whether or not
+  // the user is currently recording a video. Also provides functionality for
+  // taking an image and starting/stopping a video recording. Deletes the last
+  // image/video when a new image/video is being taken.
+
   CameraProvider(
       {@required this.cameraUsage, @required this.controller, this.chat});
 

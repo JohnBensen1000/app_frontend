@@ -10,4 +10,8 @@ class User {
     this.username = userJson['username'];
     this.uid = userJson['uid'];
   }
+
+  Map toDict() {
+    return {'userID': this.userID, 'username': this.username, 'uid': this.uid};
+  }
 }

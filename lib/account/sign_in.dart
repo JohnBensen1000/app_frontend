@@ -89,7 +89,9 @@ class _SignInState extends State<SignIn> {
   Future<bool> _signIn() async {
     // Signs into firebase account. If any errors, updates appropraite error
     // messages. Returns true if successfully authenticated with firebase and
-    // backend, false otherwise.
+    // backend, false otherwise. After authenticating with backend, backend
+    // returns a user model for the signed-in user. The variable, global.users
+    // is set to this user model.
 
     passwordInputField.errorText = "";
     emailInputField.errorText = "";
