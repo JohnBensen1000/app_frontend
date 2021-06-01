@@ -9,34 +9,7 @@ import '../globals.dart' as globals;
 import '../camera/camera.dart';
 import '../post/post_view.dart';
 
-String getChatName(User friend) {
-  // Uses comparison between hashCodes of two userIDs to determine chat name.
-  // This way, the chat name for two friends will always be the same.
-  if (globals.userID.hashCode < friend.userID.hashCode) {
-    return globals.userID + friend.userID;
-  } else {
-    return friend.userID + globals.userID;
-  }
-}
-
-Future<void> createChatIfDoesntExist(
-    CollectionReference chatsCollection, String chatName, User friend) async {
-  // If a document doesn't exist in google firestore to hold the chat, than
-  // a new document is created along with the 'conversation' field that will
-  // hold the conversation.
-  await chatsCollection.document(chatName).get().then((doc) {
-    if (!doc.exists) {
-      chatsCollection.document(chatName).setData({
-        "Members": [globals.userID, friend.userID]
-      });
-      chatsCollection
-          .document(chatName)
-          .collection('chats')
-          .document('1')
-          .setData({'conversation': []});
-    }
-  });
-}
+import '../API/chats.dart';
 
 String breakIntoLines(
     String origString, int minCharPerLine, int maxCharPerLine) {
@@ -77,19 +50,17 @@ class ChatPage extends StatelessWidget {
   // list of every individual chat that was sent. This list updates in real
   // time whenever a new chat is saved in the google firestore document.
 
-  final User friend;
+  final Chat chat;
 
-  ChatPage({this.friend});
+  ChatPage({this.chat});
 
   @override
   Widget build(BuildContext context) {
-    String chatName = getChatName(friend);
     CollectionReference chatCollection = Firestore.instance.collection("Chats");
-    createChatIfDoesntExist(chatCollection, chatName, friend);
 
     return Scaffold(
         appBar: ChatPageHeader(
-          friend: friend,
+          chat: chat,
           height: 50,
         ),
         body: Column(
@@ -100,35 +71,30 @@ class ChatPage extends StatelessWidget {
                 padding: EdgeInsets.all(20.0),
                 child: StreamBuilder(
                     stream: Firestore.instance
-                        .collection('Chats')
-                        .document(chatName)
+                        .collection(globals.chatCollection)
+                        .document(chat.chatID)
                         .collection('chats')
-                        .document('1')
+                        .orderBy('time')
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return Text("No Data");
                       } else {
-                        List<dynamic> conversation =
-                            snapshot.data["conversation"];
                         return ListView.builder(
-                            itemCount: conversation.length,
+                            itemCount: snapshot.data.documents.length,
                             itemBuilder: (context, index) {
-                              if (conversation.length > 0)
+                              if (snapshot.data.documents.length > 0) {
                                 return ChatWidget(
-                                    chat: Chat.fromFirebase(
-                                        snapshot.data["conversation"][index]));
-                              else
+                                    chatItem: ChatItem.fromFirebase(
+                                        snapshot.data.documents[index].data));
+                              } else
                                 return Container();
                             });
                       }
                     }),
               ),
             ),
-            ChatPageFooter(
-                chatName: chatName,
-                friend: friend,
-                chatCollection: chatCollection),
+            ChatPageFooter(chat: chat, chatCollection: chatCollection),
           ],
         ));
   }
@@ -138,10 +104,10 @@ class ChatPageHeader extends PreferredSize {
   // Header widget that displays the name of the chat and a button that, when
   // pressed, returns the user to the FriendsPage().
 
-  ChatPageHeader({this.height, this.friend});
+  ChatPageHeader({this.height, this.chat});
 
   final double height;
-  final User friend;
+  final Chat chat;
 
   @override
   Size get preferredSize => Size.fromHeight(height);
@@ -152,7 +118,7 @@ class ChatPageHeader extends PreferredSize {
       children: <Widget>[
         Container(
           alignment: Alignment.bottomCenter,
-          child: Text(friend.username, style: TextStyle(fontSize: 20)),
+          child: Text(chat.chatName, style: TextStyle(fontSize: 20)),
         ),
         Container(
             alignment: Alignment.bottomLeft,
@@ -168,12 +134,9 @@ class ChatPageFooter extends StatelessWidget {
   // Widget that allows the user to input text or take a post and send it as
   // a new chat.
 
-  ChatPageFooter(
-      {@required this.chatName,
-      @required this.friend,
-      @required this.chatCollection});
-  final String chatName;
-  final User friend;
+  ChatPageFooter({@required this.chat, @required this.chatCollection});
+
+  final Chat chat;
   final CollectionReference chatCollection;
   final _chatController = TextEditingController();
 
@@ -207,34 +170,18 @@ class ChatPageFooter extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      Camera(cameraUsage: CameraUsage.chat, friend: friend),
+                      Camera(cameraUsage: CameraUsage.chat, chat: chat),
                 )),
           ),
           FlatButton(
               child: Text("Send Chat"),
               onPressed: () async {
-                await _sendChat();
+                await sendChatText(_chatController.text, chat.chatID);
                 _chatController.clear();
               }),
         ],
       )
     ]);
-  }
-
-  Future<void> _sendChat() async {
-    await chatCollection
-        .document(chatName)
-        .collection('chats')
-        .document('1')
-        .updateData({
-      'conversation': FieldValue.arrayUnion([
-        {
-          'sender': globals.userID,
-          'text': _chatController.text,
-          'isPost': false
-        }
-      ])
-    });
   }
 }
 
@@ -242,15 +189,16 @@ class ChatWidget extends StatelessWidget {
   // This widget takes a Chat() object as an input and determines who sent the
   // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
 
-  ChatWidget({@required this.chat});
+  ChatWidget({@required this.chatItem});
 
-  final Chat chat;
+  final ChatItem chatItem;
+
   @override
   Widget build(BuildContext context) {
     MainAxisAlignment chatAxisAlignment;
     Color backgroundColor;
 
-    if (chat.sender == globals.userID) {
+    if (chatItem.user.uid == globals.user.uid) {
       chatAxisAlignment = MainAxisAlignment.end;
       backgroundColor = Colors.orange[300];
     } else {
@@ -258,16 +206,16 @@ class ChatWidget extends StatelessWidget {
       backgroundColor = Colors.purple[300];
     }
 
-    if (chat.isPost == false) {
+    if (chatItem.isPost == false) {
       return ChatWidgetText(
-        senderID: chat.sender,
-        chat: chat.text,
+        senderID: chatItem.user.userID,
+        chat: chatItem.text,
         mainAxisAlignment: chatAxisAlignment,
         backgroundColor: backgroundColor,
       );
     } else {
       return ChatWidgetPost(
-        post: Post.fromChat(chat),
+        post: Post.fromChatItem(chatItem),
         height: 200,
         mainAxisAlignment: chatAxisAlignment,
       );

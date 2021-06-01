@@ -7,7 +7,10 @@ import '../models/post.dart';
 
 import '../post/post_view.dart';
 import '../globals.dart' as globals;
-import '../backend_connect.dart';
+
+import '../API/relations.dart';
+import '../API/posts.dart';
+
 import 'profile_pic.dart';
 
 class ProfilePageProvider extends ChangeNotifier {
@@ -29,14 +32,13 @@ class ProfilePageProvider extends ChangeNotifier {
   }
 
   Future<void> _checkIfFollowing() async {
-    isFollowing = await checkIfFollowing(user.userID);
+    isFollowing = await checkIfFollowing(user);
     _setFollowingButton();
   }
 
   Future<void> changeFollowing() async {
-    var response = (isFollowing)
-        ? await stopFollowing(user.userID)
-        : await startFollowing(user.userID);
+    var response =
+        (isFollowing) ? await stopFollowing(user) : await startFollowing(user);
 
     isFollowing = !isFollowing;
     _setFollowingButton();
@@ -74,7 +76,7 @@ class ProfilePage extends StatelessWidget {
               child: Column(
                 children: <Widget>[
                   ProfilePageHeader(),
-                  if (user.userID != globals.userID) FollowingButton(),
+                  if (user.uid != globals.user.uid) FollowingButton(),
                   ProfilePostBody(
                       height: .57 * height, sidePadding: 20, betweenPadding: 5),
                 ],
@@ -139,7 +141,7 @@ class ProfilePageHeader extends StatelessWidget {
           Container(
             height: 15,
           ),
-          ProfilePic(diameter: 148, userID: provider.user.userID),
+          ProfilePic(diameter: 148, user: provider.user),
           Container(
             child: Text(
               '${provider.user.username}',
@@ -251,7 +253,7 @@ class ProfilePostBody extends StatelessWidget {
     ProfilePageProvider provider =
         Provider.of<ProfilePageProvider>(context, listen: false);
     return FutureBuilder(
-        future: getProfilePosts(provider.user),
+        future: getUsersPosts(provider.user),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.data.length == 0)
@@ -279,8 +281,7 @@ class ProfilePostBody extends StatelessWidget {
         });
   }
 
-  List<Widget> _getProfilePostsList(
-      BuildContext context, List<dynamic> postList) {
+  List<Widget> _getProfilePostsList(BuildContext context, List<Post> postList) {
     // Determines width and height for every post on the profile page. The first
     // widget in the return list is a large ProfilePostWidget(). The remaining
     // posts are broken up into rows of 3 ProfilePostWidget().
@@ -294,7 +295,7 @@ class ProfilePostBody extends StatelessWidget {
       Padding(
         padding: EdgeInsets.only(bottom: betweenPadding),
         child: PostView(
-            post: Post.fromJson(postList[0]),
+            post: postList[0],
             height: mainPostHeight,
             aspectRatio: 1 / globals.goldenRatio,
             postStage: PostStage.onlyPost),
@@ -326,7 +327,7 @@ class ProfilePostBody extends StatelessWidget {
       if (i < postList.length) {
         subPostsList.add(
           PostView(
-              post: Post.fromJson(postList[i]),
+              post: postList[i],
               height: postHeight,
               aspectRatio: globals.goldenRatio,
               postStage: PostStage.onlyPost),

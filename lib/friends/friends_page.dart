@@ -4,13 +4,15 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart';
+import '../models/chat.dart';
 
 import '../globals.dart' as globals;
-import '../backend_connect.dart';
+
+import '../API/chats.dart';
+import '../API/relations.dart';
+
 import 'chat_page.dart';
 import 'new_followers.dart';
-
-final serverAPI = new ServerAPI();
 
 class FriendsPageProvider extends ChangeNotifier {
   void resetState() {
@@ -25,12 +27,12 @@ class FriendsPageState extends StatelessWidget {
         create: (_) => FriendsPageProvider(),
         child: Consumer<FriendsPageProvider>(
             builder: (context, provider, child) => FutureBuilder(
-                  future: getFriendsList(),
+                  future: getListOfChats(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done &&
                         snapshot.hasData) {
                       return FriendsPage(
-                        friendsList: snapshot.data,
+                        chatstList: snapshot.data,
                       );
                     } else {
                       return Center(
@@ -44,10 +46,10 @@ class FriendsPageState extends StatelessWidget {
 
 class FriendsPage extends StatelessWidget {
   const FriendsPage({
-    @required this.friendsList,
+    @required this.chatstList,
   });
 
-  final List<User> friendsList;
+  final List<Chat> chatstList;
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +59,9 @@ class FriendsPage extends StatelessWidget {
         Container(
           height: 600,
           child: ListView.builder(
-              itemCount: friendsList.length,
+              itemCount: chatstList.length,
               itemBuilder: (BuildContext context, int index) {
-                return FriendWidget(friend: friendsList[index]);
+                return FriendWidget(chat: chatstList[index]);
               }),
         ),
       ],
@@ -89,7 +91,7 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
 
     _firebaseMessaging.configure(
         onMessage: (message) async {
-          if (message["notification"]['body']['userID'] == globals.userID) {
+          if (message["notification"]['body']['uid'] == globals.user.uid) {
             setState(() {
               newFollowingText = "New Followers!";
             });
@@ -138,9 +140,9 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
 }
 
 class FriendWidget extends StatelessWidget {
-  final User friend;
+  final Chat chat;
 
-  FriendWidget({this.friend});
+  FriendWidget({this.chat});
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +152,7 @@ class FriendWidget extends StatelessWidget {
           context,
           MaterialPageRoute(
               builder: (context) => ChatPage(
-                    friend: friend,
+                    chat: chat,
                   )),
         );
       },
@@ -167,29 +169,19 @@ class FriendWidget extends StatelessWidget {
               padding: EdgeInsets.only(left: 20),
               child: Row(
                 children: <Widget>[
-                  ProfilePic(diameter: 85, userID: friend.userID),
+                  if (chat.isDirectMessage)
+                    ProfilePic(diameter: 85, user: chat.members[0]),
                   Container(
                     padding: EdgeInsets.only(left: 10),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          this.friend.username,
+                          this.chat.chatName,
                           style: TextStyle(
                             fontFamily: 'SF Pro Text',
                             fontSize: 24,
                             color: const Color(0xff000000),
-                            letterSpacing: -0.36,
-                            height: 1.4666666666666666,
-                          ),
-                          textAlign: TextAlign.left,
-                        ),
-                        Text(
-                          '@${this.friend.userID}',
-                          style: TextStyle(
-                            fontFamily: 'SF Pro Text',
-                            fontSize: 12,
-                            color: Colors.grey[500],
                             letterSpacing: -0.36,
                             height: 1.4666666666666666,
                           ),

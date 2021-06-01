@@ -3,11 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../models/user.dart';
 
-import '../backend_connect.dart';
+import '../API/users.dart';
 
 import '../profile/profile_page.dart';
-
-final backendConnection = new ServerAPI();
 
 class CreatorsList extends ChangeNotifier {
   List<User> _creatorsList = [];

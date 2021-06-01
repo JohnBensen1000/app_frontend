@@ -1,13 +1,19 @@
+import 'dart:io' show Platform;
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:test_flutter/navigation/home_screen.dart';
+import 'package:flutter/services.dart';
 
-import '../backend_connect.dart';
 import 'widgets/account_app_bar.dart';
 import 'widgets/input_field.dart';
 import 'widgets/account_submit_button.dart';
 
-final serverAPI = new ServerAPI();
+import '../models/user.dart';
+
+import '../navigation/home_screen.dart';
+import '../API/authentication.dart';
+import '../globals.dart' as globals;
+
 FirebaseAuth auth = FirebaseAuth.instance;
 
 class SignIn extends StatefulWidget {
@@ -64,7 +70,7 @@ class _SignInState extends State<SignIn> {
                       buttonName: "Sign In",
                     ),
                     onPressed: () async {
-                      if (await signIn()) {
+                      if (await _signIn()) {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -80,7 +86,7 @@ class _SignInState extends State<SignIn> {
         ));
   }
 
-  Future<bool> signIn() async {
+  Future<bool> _signIn() async {
     // Signs into firebase account. If any errors, updates appropraite error
     // messages. Returns true if successfully authenticated with firebase and
     // backend, false otherwise.
@@ -91,15 +97,16 @@ class _SignInState extends State<SignIn> {
     try {
       if (!areInputsValid()) return false;
 
-      final FirebaseUser firebaseUser = (await auth.signInWithEmailAndPassword(
+      FirebaseUser firebaseUser = (await auth.signInWithEmailAndPassword(
         email: emailInputField.textEditingController.text,
         password: passwordInputField.textEditingController.text,
       ))
           .user;
-      bool authenticated = await authenticateUserWithBackend(
-          (await firebaseUser.getIdToken()).token);
-      return authenticated;
-    } catch (error) {
+      Map response = await signIn(firebaseUser.uid);
+      globals.user = User.fromJson(response['user']);
+
+      return true;
+    } on PlatformException catch (error) {
       switch (error.code) {
         case "ERROR_WRONG_PASSWORD":
           passwordInputField.errorText = "This password is incorrected";
@@ -108,7 +115,6 @@ class _SignInState extends State<SignIn> {
           emailInputField.errorText = "This email is not recognized";
           break;
       }
-
       return false;
     }
   }

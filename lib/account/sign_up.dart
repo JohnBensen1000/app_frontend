@@ -2,14 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../backend_connect.dart';
+import '../models/user.dart';
+
 import '../navigation/home_screen.dart';
+import '../API/authentication.dart';
+import '../API/users.dart';
+import '../globals.dart' as globals;
 
 import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';
 import 'widgets/account_submit_button.dart';
 
-final serverAPI = new ServerAPI();
 FirebaseAuth auth = FirebaseAuth.instance;
 
 class SignUpProvider extends ChangeNotifier {
@@ -44,12 +47,12 @@ class SignUpProvider extends ChangeNotifier {
       [name, email, username, phone, password, confirmPassword];
 
   Future<bool> createNewAccount() async {
-    // Clears all error messages. Validates if each input is formatted correct
-    // and checks if unique user account identifiers (userID, email, etc) are
-    // already taken. If inputs are correct and identifiers are not taken,
-    // creates new firebase account. If a firebase account is created, then
-    // create an account in the database. If an account has already been
-    // created, do nothing.
+    // Clears all error messages. Validates if each input is formatted
+    //correctly. If inputs are correct, creates an account in firebase
+    // authentication and in the backend database. If the given email, phone,
+    // and/or userID are taken, then an account is not created and the user is
+    // notified which fields are taken. If an account is successfully created,
+    // signs into the account.
 
     for (InputField inputField in inputFields) inputField.errorText = "";
     bool isNewAccountValid = true;
@@ -58,19 +61,20 @@ class SignUpProvider extends ChangeNotifier {
       if (_checkIfEmpty()) isNewAccountValid = false;
       if (!_checkIfPasswordsMatch()) isNewAccountValid = false;
       if (!_isEmailValid()) isNewAccountValid = false;
-      if (await _checkIfUniqueFieldsTaken()) isNewAccountValid = false;
 
       if (isNewAccountValid) {
         isNewAccountValid = await _createFirebaseAccount();
       }
       if (isNewAccountValid) {
-        await _createAccount();
-        accountCreated = true;
-
-        bool authenticated = await authenticateUserWithBackend(
-            (await firebaseUser.getIdToken()).token);
-        return authenticated;
+        isNewAccountValid = await _createAccount();
       }
+      if (isNewAccountValid) accountCreated = true;
+    }
+
+    if (accountCreated)
+      await signIn(globals.user.uid);
+    else if (firebaseUser != null) {
+      await firebaseUser.delete();
     }
     notifyListeners();
     return isNewAccountValid;
@@ -109,29 +113,6 @@ class SignUpProvider extends ChangeNotifier {
     return isEmailValid;
   }
 
-  Future<bool> _checkIfUniqueFieldsTaken() async {
-    // Sends http post request to check if any unique identifiers (userID, email
-    // and/or phone) has been taken by another user. If any of these identifiers
-    // have been taken, updates respective error messages and returs true.
-
-    Map<dynamic, dynamic> postBody = {
-      "userID": username.textEditingController.text,
-      "email": email.textEditingController.text,
-      "phone": phone.textEditingController.text,
-    };
-
-    Map<String, dynamic> responseBody = await postUniqueIdentifiers(postBody);
-
-    if (responseBody["userID"])
-      username.errorText = "This username is already taken";
-    if (responseBody["email"]) email.errorText = "This email is already taken";
-    if (responseBody["phone"])
-      phone.errorText = "This phone number is already taken";
-
-    if (responseBody.containsValue(true)) return true;
-    return false;
-  }
-
   Future<bool> _createFirebaseAccount() async {
     // Creates an account in firebase. If firebase returns any errors, then
     // updates the appropriate error messages.
@@ -146,30 +127,47 @@ class SignUpProvider extends ChangeNotifier {
           password.errorText = "The selected password is too weak.";
           confirmPassword.textEditingController.clear();
           break;
+        case "ERROR_EMAIL_ALREADY_IN_USE":
+          email.errorText = "This email is already taken";
       }
       return false;
     }
     return true;
   }
 
-  Future<void> _createAccount() async {
-    // Sends a post request to create a new account. This new account will
-    // contain all of the information that the user just typed in. One
-    // additional field is sent: "idToken", this is needed to communicate with
-    // the corresponding firebase account.
-
-    String idToken = (await firebaseUser.getIdToken()).token;
+  Future<bool> _createAccount() async {
+    // Sends a post request to the server with all the needed information for a
+    // new account. If the given userID, email, and/or phone have been taken by
+    // another user, updated the appropriate error messages. Otherwise updated
+    // globals.user with the new user data.
 
     Map<dynamic, dynamic> postBody = {
-      "idToken": idToken,
+      "uid": firebaseUser.uid,
       "userID": username.textEditingController.text,
-      "preferredLanguage": "english",
       "username": name.textEditingController.text,
       "email": email.textEditingController.text,
       "phone": phone.textEditingController.text,
     };
 
-    await postCreateAccount(postBody, username.textEditingController.text);
+    var response = await createAccount(postBody);
+
+    if (response.containsKey('fieldsTaken')) {
+      if (response['fieldsTaken'].contains("userID"))
+        username.errorText = "This username is already taken";
+
+      if (response['fieldsTaken'].contains("email"))
+        email.errorText = "This email is already taken";
+
+      if (response['fieldsTaken'].contains("phone"))
+        phone.errorText = "This phone number is already taken";
+
+      return false;
+    } else if (response != null) {
+      globals.user = User.fromJson(response['user']);
+
+      return true;
+    }
+    return false;
   }
 }
 
@@ -177,6 +175,7 @@ class SignUp extends StatefulWidget {
   // Initializes SignUpProvider() with all the appropraite InputFields. Returns
   // a ListView.builder() with all the InputWidgets. Hides AccountSubmitButton()
   // when the user starts typing in one of the InputFieldWidgets().
+
   @override
   _SignUpState createState() => _SignUpState();
 }
@@ -198,41 +197,44 @@ class _SignUpState extends State<SignUp> {
               confirmPassword:
                   InputField(hintText: "confirm password", obscureText: true),
             ),
-        child: Consumer<SignUpProvider>(
-            builder: (context, provider, child) => Scaffold(
-                  appBar: AccountAppBar(height: titleBarHeight),
-                  body: Center(
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                            padding: EdgeInsets.only(top: 20),
-                            height: (keyboardActivated)
-                                ? height / 2 - titleBarHeight
-                                : height - titleBarHeight - 200,
-                            width: 400,
-                            child: ListView.builder(
-                                itemCount: provider.inputFields.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return InputFieldWidget(
-                                      inputField: provider.inputFields[index]);
-                                })),
-                        if (keyboardActivated == false)
-                          FlatButton(
-                              child: AccountSubmitButton(
-                                buttonName: "Sign Up",
-                              ),
-                              onPressed: () async {
-                                if (await provider.createNewAccount())
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => Home(
-                                                pageLabel: PageLabel.friends,
-                                              )));
-                              }),
-                      ],
-                    ),
-                  ),
-                )));
+        child: Consumer<SignUpProvider>(builder: (context, provider, child) {
+          provider.password.textEditingController.text = 'test12345';
+          provider.confirmPassword.textEditingController.text = 'test12345';
+          return Scaffold(
+            appBar: AccountAppBar(height: titleBarHeight),
+            body: Center(
+              child: Column(
+                children: <Widget>[
+                  Container(
+                      padding: EdgeInsets.only(top: 20),
+                      height: (keyboardActivated)
+                          ? height / 2 - titleBarHeight
+                          : height - titleBarHeight - 200,
+                      width: 400,
+                      child: ListView.builder(
+                          itemCount: provider.inputFields.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return InputFieldWidget(
+                                inputField: provider.inputFields[index]);
+                          })),
+                  if (keyboardActivated == false)
+                    FlatButton(
+                        child: AccountSubmitButton(
+                          buttonName: "Sign Up",
+                        ),
+                        onPressed: () async {
+                          if (await provider.createNewAccount())
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => Home(
+                                          pageLabel: PageLabel.friends,
+                                        )));
+                        }),
+                ],
+              ),
+            ),
+          );
+        }));
   }
 }

@@ -5,8 +5,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 import '../backend_connect.dart';
 import 'post_list.dart';
+import '../API/new_content.dart';
 
-final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
 
 class FollowingPage extends StatelessWidget {
@@ -16,7 +16,7 @@ class FollowingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: getPosts(),
+        future: getFollowingPosts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {

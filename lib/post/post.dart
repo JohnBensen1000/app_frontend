@@ -10,7 +10,6 @@ import '../globals.dart' as globals;
 import '../backend_connect.dart';
 import 'post_view.dart';
 
-final backendConnection = new ServerAPI();
 FirebaseStorage storage = FirebaseStorage.instance;
 
 class PostPage extends StatelessWidget {
@@ -62,7 +61,7 @@ class PostPage extends StatelessWidget {
   Future<void> getVideoPlayerController() async {
     if (!post.isImage) {
       VideoPlayerController videoPlayerController =
-          VideoPlayerController.network((await post.postURL).toString());
+          VideoPlayerController.network(post.downloadURL);
       videoPlayerController.setLooping(true);
       return videoPlayerController;
     } else {

@@ -5,13 +5,15 @@ import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart';
+import '../models/chat.dart';
 
-import '../backend_connect.dart';
+import '../API/posts.dart';
+import '../API/chats.dart';
+
 import 'camera.dart';
 import 'widgets/button.dart';
 import 'widgets/video_preview.dart';
 import 'widgets/profile_pic_outline.dart';
-import 'chat_list.dart';
 
 class PreviewProvider extends ChangeNotifier {
   // Contains state variables used throughout the page. Every widget under this
@@ -24,13 +26,13 @@ class PreviewProvider extends ChangeNotifier {
       @required this.isImage,
       @required this.cameraUsage,
       @required this.filePath,
-      this.friend});
+      this.chat});
 
   final CameraController controller;
   final bool isImage;
   final CameraUsage cameraUsage;
   final String filePath;
-  final User friend;
+  final Chat chat;
 
   bool _playVideo = true;
 
@@ -54,13 +56,13 @@ class Preview extends StatefulWidget {
       @required this.isImage,
       @required this.cameraUsage,
       @required this.filePath,
-      this.friend});
+      this.chat});
 
   final CameraController controller;
   final bool isImage;
   final CameraUsage cameraUsage;
   final String filePath;
-  final User friend;
+  final Chat chat;
 
   @override
   _PreviewState createState() => _PreviewState();
@@ -76,7 +78,7 @@ class _PreviewState extends State<Preview> {
                 isImage: widget.isImage,
                 cameraUsage: widget.cameraUsage,
                 filePath: widget.filePath,
-                friend: widget.friend),
+                chat: widget.chat),
             child: PreviewPage()));
   }
 }
@@ -151,30 +153,29 @@ class PostOptions extends StatelessWidget {
             onTap: () async {
               if (provider.allowNewPost) {
                 provider.allowNewPost = false;
-                await uploadPost(provider.isImage, provider.filePath);
+                await uploadPost(provider.isImage, false, provider.filePath);
                 int count = 0;
                 Navigator.popUntil(context, (route) {
                   return count++ == 2;
                 });
-                ;
               }
             },
           ),
           GestureDetector(
             child:
                 Button(buttonName: "Share", backgroundColor: Colors.grey[100]),
-            onTap: () {
-              if (!provider.isImage) provider.playVideo = false;
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ChatList(
-                            isImage: provider.isImage,
-                            filePath: provider.filePath,
-                          ))).then((value) {
-                if (!provider.isImage) provider.playVideo = true;
-              });
-            },
+            // onTap: () {
+            //   if (!provider.isImage) provider.playVideo = false;
+            //   Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //           builder: (context) => ChatList(
+            //                 isImage: provider.isImage,
+            //                 filePath: provider.filePath,
+            //               ))).then((value) {
+            //     if (!provider.isImage) provider.playVideo = true;
+            //   });
+            // },
           ),
         ],
       ),
@@ -212,8 +213,8 @@ class ChatOptions extends StatelessWidget {
       onTap: () async {
         if (provider.allowNewPost) {
           provider.allowNewPost = false;
-          await sendPostInChat(
-              provider.friend, provider.isImage, provider.filePath);
+          await sendChatPost(
+              provider.isImage, provider.filePath, provider.chat.chatID);
           Navigator.pop(context);
         }
       },

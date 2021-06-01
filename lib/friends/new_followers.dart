@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/relations.dart';
 
 import '../models/user.dart';
 
 import '../profile/profile_pic.dart';
 import '../profile/profile_page.dart';
 import '../backend_connect.dart';
-
-ServerAPI serverAPI = new ServerAPI();
 
 class NewFollowersProvider extends ChangeNotifier {
   // Maintains state of newFollowersList. Whenever an item is removed from this
@@ -176,7 +175,7 @@ class NewFollowerProfile extends StatelessWidget {
           children: <Widget>[
             ProfilePic(
               diameter: size.height,
-              userID: newFollower.userID,
+              user: newFollower,
             ),
             Text(newFollower.username,
                 textAlign: TextAlign.left, style: TextStyle(fontSize: 16)),
@@ -227,8 +226,11 @@ class AcceptDeclineWidget extends StatelessWidget {
     );
   }
 
-  Future<void> _followBack(BuildContext context, bool followBack) async {
-    var response = await postFollowBack(newFollower.userID, followBack);
+  Future<void> _followBack(BuildContext context, bool willFollowBack) async {
+    if (willFollowBack)
+      await followBack(newFollower);
+    else
+      await dontFollowBack(newFollower);
 
     Provider.of<NewFollowersProvider>(context, listen: false)
         .removeNewFollower(newFollower);

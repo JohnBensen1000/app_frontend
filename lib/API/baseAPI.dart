@@ -7,26 +7,82 @@ class BaseAPI {
   String baseURL = "http://192.168.0.180:8000/";
 
   Future<dynamic> get(String url) async {
-    var responseJson;
     try {
-      http.Response response = await http.get(baseURL + url);
-      responseJson = decodeReponse(response);
+      var response = await http.get(baseURL + url);
+      return decodeReponse(response);
     } on SocketException {
-      throw ConnectionFailedException("No internet connection");
+      print(" [ERROR] No Internet Connection");
+    } catch (e) {
+      print(" [ERROR] $e");
     }
-    return responseJson;
+    return null;
   }
 
-  dynamic decodeReponse(http.Response response) {
+  Future<dynamic> post(String url, Map postBody) async {
+    try {
+      var response =
+          await http.post(baseURL + url, body: json.encode(postBody));
+      return decodeReponse(response);
+    } on SocketException {
+      print(" [ERROR] No Internet Connection");
+    } catch (e) {
+      print(" [ERROR] $e");
+    }
+    return null;
+  }
+
+  Future<dynamic> postFile(String url, Map postBody, String filePath) async {
+    try {
+      http.MultipartRequest request =
+          http.MultipartRequest('POST', Uri.parse(baseURL + url));
+
+      request.fields['json'] = json.encode(postBody);
+      request.files.add(await http.MultipartFile.fromPath('media', filePath));
+
+      var response = await request.send();
+      return decodeReponse(response);
+    } on SocketException {
+      print(" [ERROR] No Internet Connection");
+    } catch (e) {
+      print(" [ERROR] $e");
+    }
+    return null;
+  }
+
+  Future<dynamic> delete(String url) async {
+    try {
+      http.Response response = await http.delete(baseURL + url);
+      return decodeReponse(response);
+    } on SocketException {
+      print(" [ERROR] No Internet Connection");
+    } catch (e) {
+      print(" [ERROR] $e");
+    }
+    return null;
+  }
+
+  dynamic decodeReponse(var response) {
     switch (response.statusCode) {
       case 200:
-        return json.decode(response.body);
+        if (response.runtimeType != http.StreamedResponse &&
+            !response.body.isEmpty)
+          return json.decode(response.body);
+        else
+          return true;
+        break;
       case 201:
-        return true;
+        if (response.runtimeType != http.StreamedResponse &&
+            !response.body.isEmpty)
+          return json.decode(response.body);
+        else
+          return true;
+        break;
       case 500:
-        throw ConnectionFailedException("Server error");
+        throw ServerFailedException("Server error");
+        return false;
       default:
-        return null;
+        throw UnknownErrorException();
+        return false;
     }
   }
 }
@@ -42,7 +98,12 @@ class AppException implements Exception {
   }
 }
 
-class ConnectionFailedException extends AppException {
-  ConnectionFailedException([String message])
-      : super(message, "Error During Communication: ");
+class ServerFailedException extends AppException {
+  ServerFailedException([String message])
+      : super(message, "an error occured on the server: ");
+}
+
+class UnknownErrorException extends AppException {
+  UnknownErrorException([String message])
+      : super(message, "an error occured on the server: ");
 }

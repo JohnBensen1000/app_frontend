@@ -2,52 +2,27 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 import 'user.dart';
 import 'chat.dart';
+import 'post.dart';
 
 class Post {
-  //Constructor
-  String userID;
-  String username;
-  User user;
+  User creator;
   String postID;
   bool isImage;
-  var postURL;
+  String downloadURL;
+
+  Post({this.creator, this.postID, this.isImage, this.downloadURL});
 
   Post.fromJson(Map postJson) {
-    this.userID = postJson["userID"];
-    this.username = postJson["username"];
-    this.user =
-        User(userID: postJson["userID"], username: postJson["username"]);
+    this.creator = User.fromJson(postJson["creator"]);
+    this.postID = postJson["postID"];
     this.isImage = postJson["isImage"];
-    this.postID = postJson["postID"].toString();
-
-    String fileExtension = (this.isImage) ? 'png' : 'mp4';
-
-    this.postURL = FirebaseStorage.instance
-        .ref()
-        .child("${postJson["userID"]}")
-        .child("${postJson["postID"].toString()}.$fileExtension")
-        .getDownloadURL();
+    this.downloadURL = postJson["downloadURL"];
   }
 
-  Post.fromChat(Chat chat) {
-    this.userID = chat.sender;
-    this.username = null;
-    this.user = User(userID: chat.sender, username: null);
-    this.postURL = chat.postData["postURL"];
-    this.isImage = chat.postData['isImage'];
-  }
-
-  Post.fromProfile(String profileType, String userID) {
-    if (profileType == "image" || profileType == "video") {
-      this.isImage = (profileType == 'image') ? true : false;
-
-      String fileExtension = (profileType == "image") ? "png" : "mp4";
-
-      this.postURL = FirebaseStorage.instance
-          .ref()
-          .child("$userID")
-          .child("profile.$fileExtension")
-          .getDownloadURL();
-    }
+  Post.fromChatItem(ChatItem chatItem) {
+    this.creator = chatItem.user;
+    this.postID = null;
+    this.isImage = chatItem.post['isImage'];
+    this.downloadURL = chatItem.post["downloadURL"];
   }
 }

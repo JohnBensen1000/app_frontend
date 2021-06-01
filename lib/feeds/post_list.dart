@@ -11,7 +11,7 @@ import '../globals.dart' as globals;
 import '../backend_connect.dart';
 import '../post/post_view.dart';
 
-ServerAPI serverAPI = ServerAPI();
+import '../API/posts.dart';
 
 class PostListTransitionProvider extends ChangeNotifier {
   // Keeps track of the vertical offset of the posts in PostListScroller. Allows
@@ -101,7 +101,7 @@ class PostList extends StatefulWidget {
 
   PostList({@required this.postList});
 
-  final List<dynamic> postList;
+  final List<Post> postList;
 
   @override
   _PostListState createState() => _PostListState();
@@ -163,12 +163,11 @@ class _PostListState extends State<PostList> {
     if (index < 0 || index >= widget.postList.length) {
       return null;
     } else {
-      Post post = Post.fromJson(widget.postList[index]);
+      Post post = widget.postList[index];
       VideoPlayerController videoPlayerController;
 
       if (post.isImage == false) {
-        videoPlayerController =
-            VideoPlayerController.network((await post.postURL).toString());
+        videoPlayerController = VideoPlayerController.network(post.downloadURL);
         videoPlayerController.setLooping(true);
       }
 
@@ -247,7 +246,7 @@ class _PostListState extends State<PostList> {
   Future<void> _recordedWatched() async {
     // Sends a post request to the server to tell it to record that the user
     // has watched the current post.
-    String postID = widget.postList[postListIndex]["postID"].toString();
+    String postID = widget.postList[postListIndex].postID;
 
     var response = await recordWatched(postID, 5);
 

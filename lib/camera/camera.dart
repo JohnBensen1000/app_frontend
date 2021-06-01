@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart';
+import '../models/chat.dart';
 import 'widgets/profile_pic_outline.dart';
 import 'widgets/button.dart';
 import 'preview.dart';
@@ -23,13 +24,13 @@ class CameraProvider extends ChangeNotifier {
      captured a post, whether the post is an image or video, and whether or not
      the user is currently recording a video. Also provides functionality for
      taking an image and starting/stopping a video recording. Deletes the last
-     image/video when a new image/video is being taken. 
+     image/video when a new image/video is being taken.
   */
   CameraProvider(
-      {@required this.cameraUsage, @required this.controller, this.friend});
+      {@required this.cameraUsage, @required this.controller, this.chat});
 
   final CameraUsage cameraUsage;
-  final User friend;
+  final Chat chat;
   final CameraController controller;
 
   int cameraIndex = 0;
@@ -83,10 +84,10 @@ class Camera extends StatefulWidget {
   // exiting from the camera. This widget is rebuilt everytime the user changes
   // the camera (from front camera to back camera or vica versa).
 
-  Camera({@required this.cameraUsage, this.friend});
+  Camera({@required this.cameraUsage, this.chat});
 
   final CameraUsage cameraUsage;
-  final User friend;
+  final Chat chat;
 
   @override
   _CameraState createState() => _CameraState();
@@ -109,7 +110,7 @@ class _CameraState extends State<Camera> {
                     create: (_) => CameraProvider(
                         cameraUsage: widget.cameraUsage,
                         controller: snapshot.data,
-                        friend: widget.friend),
+                        chat: widget.chat),
                     child: Consumer<CameraProvider>(
                         builder: (context, provider, child) => Stack(
                               children: <Widget>[
@@ -249,7 +250,7 @@ class PostButton extends StatelessWidget {
                   isImage: provider.isImage,
                   cameraUsage: provider.cameraUsage,
                   filePath: provider.filePath,
-                  friend: provider.friend,
+                  chat: provider.chat,
                 ))).then((_) => provider.deleteFile());
   }
 }

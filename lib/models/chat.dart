@@ -1,17 +1,42 @@
-class Chat {
-  // Class that holds relevant data about an individual chat. Also has a
-  // constructor that creates a Chat() object from a Firestore Map.
-  bool isPost;
-  String sender;
-  String text;
-  Map postData;
+import '../models/user.dart';
+import '../globals.dart' as globals;
 
-  Chat.fromFirebase(Map chatData) {
-    this.isPost = chatData['isPost'];
-    this.sender = chatData['sender'];
-    if (this.isPost)
-      this.postData = chatData['post'];
+class Chat {
+  String chatID;
+  String chatName;
+  bool isDirectMessage;
+  List<User> members;
+
+  Chat.fromJson(Map chatJson) {
+    this.chatID = chatJson["chatID"];
+    this.isDirectMessage = chatJson["isDirectMessage"];
+    this.members = [
+      for (Map userJson in chatJson['members']) User.fromJson(userJson)
+    ];
+    this.members.removeWhere((item) => item.uid == globals.user.uid);
+
+    if (this.isDirectMessage)
+      this.chatName = this.members[0].username;
     else
-      this.text = chatData["text"];
+      this.chatName = chatJson['chatName'];
+  }
+}
+
+class ChatItem {
+  bool isPost;
+  User user;
+  String text;
+  Map post;
+
+  ChatItem.fromFirebase(Map chatItemJson) {
+    this.isPost = chatItemJson['isPost'];
+    this.user = User.fromJson(chatItemJson['user']);
+    if (this.isPost)
+      this.post = {
+        'isImage': chatItemJson['post']['isImage'],
+        'downloadURL': chatItemJson['post']['downloadURL']
+      };
+    else
+      this.text = chatItemJson["text"];
   }
 }

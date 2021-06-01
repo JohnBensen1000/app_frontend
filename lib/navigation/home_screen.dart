@@ -10,8 +10,9 @@ import '../backend_connect.dart';
 import 'search_page.dart';
 import 'settings_drawer.dart';
 import '../camera/camera.dart';
+import '../globals.dart' as globals;
 
-final serverAPI = new ServerAPI();
+// final serverAPI = new ServerAPI();
 
 enum PageLabel {
   discover,
@@ -194,8 +195,8 @@ class HomeAppBarButtons extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => Camera(
-                            cameraUsage: CameraUsage.post, friend: null)),
+                        builder: (context) =>
+                            Camera(cameraUsage: CameraUsage.post, chat: null)),
                   );
                 },
               ),

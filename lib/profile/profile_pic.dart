@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../backend_connect.dart';
 import '../post/post_view.dart';
+import '../models/user.dart';
 
-ServerAPI serverAPI = ServerAPI();
+import '../API/posts.dart';
 
 class ProfilePic extends StatelessWidget {
   // Gets the profile post from google stroage and returns a stack of two
   // widgets: a circular profile post and a blue cicular outline that goes
   // around the profile post.
 
-  ProfilePic({@required this.diameter, @required this.userID});
+  ProfilePic({@required this.diameter, @required this.user});
 
   final double diameter;
-  final String userID;
+  final User user;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,7 @@ class ProfilePic extends StatelessWidget {
           ClipPath(
               clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
               child: FutureBuilder(
-                  future: getProfileURL(userID),
+                  future: getProfile(user),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done &&
                         snapshot.hasData)

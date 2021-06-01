@@ -42,14 +42,14 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                 padding: const EdgeInsets.only(top: 20, bottom: 20),
                 child: ProfilePic(
                   diameter: 200,
-                  userID: globals.userID,
+                  user: globals.user,
                 )),
             Text(
-              globals.username,
+              globals.user.username,
               style: TextStyle(fontSize: 32),
             ),
             Text(
-              "@${globals.userID}",
+              "@${globals.user.userID}",
               style: TextStyle(fontSize: 12, color: Colors.grey[500]),
             ),
             SettingsButton(
@@ -68,10 +68,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
               onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => ProfilePage(
-                          user: User(
-                              userID: globals.userID,
-                              username: globals.username)))),
+                      builder: (context) => ProfilePage(user: globals.user))),
             ),
           ],
         ),
