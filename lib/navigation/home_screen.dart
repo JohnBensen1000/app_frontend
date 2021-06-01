@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
-import '../feeds/following_page.dart';
+import '../feeds/following.dart';
+import '../feeds/discover.dart';
 import '../friends/friends_page.dart';
-import '../backend_connect.dart';
 import 'search_page.dart';
 import 'settings_drawer.dart';
 import '../camera/camera.dart';
@@ -313,9 +313,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
 
-    Widget discoverPage = Center(
-      child: Text("Coming soon."),
-    );
+    Widget discoverPage = DiscoverPage();
     Widget friendsPage = FriendsPageState();
     Widget followingPage = FollowingPage();
 
