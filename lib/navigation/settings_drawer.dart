@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../models/user.dart';
 
+import '../API/authentication.dart';
 import '../globals.dart' as globals;
 import '../profile/profile_page.dart';
 import '../profile/profile_pic.dart';
 import '../camera/camera.dart';
+
+import '../main.dart';
 
 class SettingsDrawer extends StatefulWidget {
   // The SettingsDrawer pops out from the left side of the screen. It contains
@@ -38,20 +41,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Padding(
-                padding: const EdgeInsets.only(top: 20, bottom: 20),
-                child: ProfilePic(
-                  diameter: 200,
-                  user: globals.user,
-                )),
-            Text(
-              globals.user.username,
-              style: TextStyle(fontSize: 32),
-            ),
-            Text(
-              "@${globals.user.userID}",
-              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-            ),
+            SettingsDrawerProfile(),
             SettingsButton(
               buttonName: "Change Profile Picture",
               onPressed: () => Navigator.push(
@@ -70,10 +60,122 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                   MaterialPageRoute(
                       builder: (context) => ProfilePage(user: globals.user))),
             ),
+            SettingsButton(
+                buttonName: "Sign Out",
+                onPressed: () async {
+                  await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return LogOutAlertDialog();
+                      }).then((confirmLogOut) async {
+                    if (confirmLogOut) {
+                      await signOut();
+                      if (ModalRoute.of(context).isFirst)
+                        RestartWidget.restartApp(context);
+                      else
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                    }
+                  });
+                }),
           ],
         ),
       ),
     );
+  }
+}
+
+class SettingsDrawerProfile extends StatelessWidget {
+  // Displays user's profile, username, and userID on the top of the Settings
+  // Drawer.
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+            padding: const EdgeInsets.only(top: 20, bottom: 20),
+            child: ProfilePic(
+              diameter: 200,
+              user: globals.user,
+            )),
+        Text(
+          globals.user.username,
+          style: TextStyle(fontSize: 32),
+        ),
+        Text(
+          "@${globals.user.userID}",
+          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+        ),
+      ],
+    );
+  }
+}
+
+class LogOutAlertDialog extends StatelessWidget {
+  // Alert dialog that is used to confirm that the user does want to sign out.
+  // Displays two buttons: "yes" or "no". If the user clicks "yes", returns true
+  // (indicating that the user does want to sign out). If the user clicks "no",
+  // then returns false.
+  const LogOutAlertDialog({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.transparent,
+      content: Container(
+        height: 100,
+        width: 300,
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(25))),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+                padding: EdgeInsets.only(bottom: 10),
+                child: Text("Are you sure you want to logout?")),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                GestureDetector(
+                  child:
+                      LougOutAlertDialogButton(color: Colors.red, text: 'Yes'),
+                  onTap: () => Navigator.pop(context, true),
+                ),
+                GestureDetector(
+                  child: LougOutAlertDialogButton(
+                      color: Colors.grey[200], text: 'No'),
+                  onTap: () => Navigator.pop(context, false),
+                )
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class LougOutAlertDialogButton extends StatelessWidget {
+  const LougOutAlertDialogButton({
+    @required this.color,
+    @required this.text,
+    Key key,
+  }) : super(key: key);
+
+  final Color color;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        width: 100,
+        height: 35,
+        decoration: BoxDecoration(
+            color: color, borderRadius: BorderRadius.all(Radius.circular(15))),
+        child: Center(child: Text(text)));
   }
 }
 

@@ -12,8 +12,15 @@ Future<Map> signIn(String uid) async {
       {'signIn': true, 'deviceToken': await firebaseMessaging.getToken()});
 }
 
-Future<Map> signOut(String deviceToken) async {
+Future<Map> signOut() async {
   return await BaseAPI().post(
       "v1/authentication/${globals.user.uid}/signedInStatus/",
       {'signIn': false});
+}
+
+Future<Map> checkIfDeviceSignedInOn() async {
+  FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
+  String deviceToken = await firebaseMessaging.getToken();
+  return await BaseAPI()
+      .get('v1/authentication/deviceSignedInOn/?deviceToken=$deviceToken');
 }
