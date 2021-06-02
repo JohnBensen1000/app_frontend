@@ -193,7 +193,7 @@ class NewFollowerProfile extends StatelessWidget {
   }
 }
 
-class AcceptDeclineWidget extends StatelessWidget {
+class AcceptDeclineWidget extends StatefulWidget {
   const AcceptDeclineWidget(
       {Key key, @required this.newFollower, @required this.size})
       : super(key: key);
@@ -202,21 +202,28 @@ class AcceptDeclineWidget extends StatelessWidget {
   final Size size;
 
   @override
+  _AcceptDeclineWidgetState createState() => _AcceptDeclineWidgetState();
+}
+
+class _AcceptDeclineWidgetState extends State<AcceptDeclineWidget> {
+  bool acceptDeclinePressed = false;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      width: size.width,
+      width: widget.size.width,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           GestureDetector(
               child: AcceptDeclineButton(
-                  size: size,
+                  size: widget.size,
                   name: "Follow Back",
                   color: const Color(0xff22a2ff)),
               onTap: () async => await _followBack(context, true)),
           GestureDetector(
             child: AcceptDeclineButton(
-                size: size,
+                size: widget.size,
                 name: "Don't Follow Back",
                 color: const Color(0xffff0000)),
             onTap: () => _followBack(context, false),
@@ -227,13 +234,18 @@ class AcceptDeclineWidget extends StatelessWidget {
   }
 
   Future<void> _followBack(BuildContext context, bool willFollowBack) async {
-    if (willFollowBack)
-      await followBack(newFollower);
-    else
-      await dontFollowBack(newFollower);
+    if (!acceptDeclinePressed) {
+      setState(() {
+        acceptDeclinePressed = true;
+      });
+      if (willFollowBack)
+        await followBack(widget.newFollower);
+      else
+        await dontFollowBack(widget.newFollower);
 
-    Provider.of<NewFollowersProvider>(context, listen: false)
-        .removeNewFollower(newFollower);
+      Provider.of<NewFollowersProvider>(context, listen: false)
+          .removeNewFollower(widget.newFollower);
+    }
   }
 }
 

@@ -34,6 +34,7 @@ class PostViewProvider extends ChangeNotifier {
       @required this.fromChatPage,
       @required this.fullPage,
       @required this.videoPlayerController,
+      @required this.playWithVolume,
       @required this.isVideoControllerGiven}) {
     this.cornerRadius = height / 19;
   }
@@ -46,6 +47,7 @@ class PostViewProvider extends ChangeNotifier {
   final bool fromChatPage;
   final bool fullPage;
   final bool isVideoControllerGiven;
+  final bool playWithVolume;
   final VideoPlayerController videoPlayerController;
 
   double cornerRadius;
@@ -66,6 +68,7 @@ class PostView extends StatefulWidget {
     this.playOnInit = false,
     this.fromChatPage = false,
     this.fullPage = false,
+    this.playWithVolume = true,
     this.videoPlayerController,
   });
 
@@ -76,6 +79,7 @@ class PostView extends StatefulWidget {
   final bool playOnInit;
   final bool fromChatPage;
   final bool fullPage;
+  final bool playWithVolume;
   VideoPlayerController videoPlayerController;
 
   @override
@@ -104,6 +108,7 @@ class _PostViewState extends State<PostView> {
                     playOnInit: widget.playOnInit,
                     fromChatPage: widget.fromChatPage,
                     fullPage: widget.fullPage,
+                    playWithVolume: widget.playWithVolume,
                     isVideoControllerGiven: isVideoControllerGiven,
                     videoPlayerController: widget.videoPlayerController),
                 child: Consumer<PostViewProvider>(
@@ -155,19 +160,36 @@ class PostViewHeader extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.only(bottom: 10),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             ProfilePic(
                 diameter: provider.height / 7.60, user: provider.post.creator),
             Container(
-              padding: EdgeInsets.only(left: 20),
-              child: Text(
-                provider.post.creator.userID,
-                style: TextStyle(
-                  fontFamily: 'Helvetica Neue',
-                  fontSize: 25,
-                  color: const Color(0xff000000),
-                ),
-                textAlign: TextAlign.left,
+              padding: EdgeInsets.only(left: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    provider.post.creator.username,
+                    style: TextStyle(
+                      fontFamily: 'Helvetica Neue',
+                      fontSize: 26,
+                      color: const Color(0xff000000),
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                  Container(
+                    child: Text(
+                      "@${provider.post.creator.userID}",
+                      style: TextStyle(
+                          fontFamily: 'Helvetica Neue',
+                          fontSize: 12,
+                          color: Colors.grey[500]),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -273,6 +295,8 @@ class VideoContainer extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.done) {
               if (!provider.isVideoControllerGiven && provider.playOnInit)
                 provider.videoPlayerController.play();
+              if (!provider.playWithVolume)
+                provider.videoPlayerController.setVolume(0.0);
               return VisibilityDetector(
                   key: Key("unique key"),
                   child: Container(
@@ -281,9 +305,18 @@ class VideoContainer extends StatelessWidget {
                       child: ClipRRect(
                           borderRadius:
                               BorderRadius.circular(provider.cornerRadius - 1),
-                          child: VideoPlayer(
-                            provider.videoPlayerController,
-                          ))),
+                          child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                  height: provider.videoPlayerController.value
+                                          .size?.height ??
+                                      0,
+                                  width: provider.videoPlayerController.value
+                                          .size?.width ??
+                                      0,
+                                  child: VideoPlayer(
+                                    provider.videoPlayerController,
+                                  ))))),
                   onVisibilityChanged: (VisibilityInfo info) {
                     if (provider.playOnInit && info.visibleFraction == 1.0)
                       provider.videoPlayerController.play();
@@ -312,9 +345,6 @@ class _CommentsButtonState extends State<CommentsButton> {
 
   @override
   Widget build(BuildContext context) {
-    PostViewProvider provider =
-        Provider.of<PostViewProvider>(context, listen: false);
-
     if (showCommentsButton == true)
       return Padding(
           padding: const EdgeInsets.only(top: 10),

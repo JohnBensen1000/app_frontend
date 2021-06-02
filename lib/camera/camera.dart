@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:image/image.dart' as image;
 
 import '../models/chat.dart';
 import 'widgets/profile_pic_outline.dart';
@@ -26,11 +27,15 @@ class CameraProvider extends ChangeNotifier {
   // image/video when a new image/video is being taken.
 
   CameraProvider(
-      {@required this.cameraUsage, @required this.controller, this.chat});
+      {@required this.cameraUsage,
+      @required this.controller,
+      @required this.isFlipped,
+      this.chat});
 
   final CameraUsage cameraUsage;
   final Chat chat;
   final CameraController controller;
+  final bool isFlipped;
 
   int cameraIndex = 0;
   bool isImage = true;
@@ -47,9 +52,19 @@ class CameraProvider extends ChangeNotifier {
   }
 
   Future<void> takeImage() async {
+    // If the image has been taken with the user-facing camera, flips/rotates
+    // the image so that its orientation is correct.
     filePath = join((await getTemporaryDirectory()).path, 'post.png');
     await controller.takePicture(filePath);
 
+    if (isFlipped) {
+      image.Image capturedImage =
+          image.decodeImage(await File(filePath).readAsBytes());
+      capturedImage = image.flip(capturedImage, image.Flip.vertical);
+      capturedImage = image.copyRotate(capturedImage, 90);
+
+      await File(filePath).writeAsBytes(image.encodePng(capturedImage));
+    }
     isImage = true;
     showCapturedPost = true;
 
@@ -109,6 +124,7 @@ class _CameraState extends State<Camera> {
                     create: (_) => CameraProvider(
                         cameraUsage: widget.cameraUsage,
                         controller: cameraController,
+                        isFlipped: cameraIndex == 1,
                         chat: widget.chat),
                     child: Stack(
                       children: <Widget>[

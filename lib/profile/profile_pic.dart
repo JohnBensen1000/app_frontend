@@ -34,6 +34,8 @@ class ProfilePic extends StatelessWidget {
                           post: snapshot.data,
                           height: diameter,
                           aspectRatio: 1,
+                          playOnInit: true,
+                          playWithVolume: false,
                           postStage: PostStage.onlyPost);
                     else
                       return Container(
