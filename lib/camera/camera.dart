@@ -7,7 +7,6 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
-import '../models/user.dart';
 import '../models/chat.dart';
 import 'widgets/profile_pic_outline.dart';
 import 'widgets/button.dart';
@@ -49,7 +48,6 @@ class CameraProvider extends ChangeNotifier {
 
   Future<void> takeImage() async {
     filePath = join((await getTemporaryDirectory()).path, 'post.png');
-    await deleteFile();
     await controller.takePicture(filePath);
 
     isImage = true;
@@ -60,7 +58,6 @@ class CameraProvider extends ChangeNotifier {
 
   Future<void> startRecording() async {
     filePath = join((await getTemporaryDirectory()).path, 'post.mp4');
-    await deleteFile();
     await controller.startVideoRecording(filePath);
 
     isRecording = true;
@@ -106,59 +103,54 @@ class _CameraState extends State<Camera> {
             future: initializeCamera(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
+                CameraController cameraController = snapshot.data;
+
                 return ChangeNotifierProvider(
                     create: (_) => CameraProvider(
                         cameraUsage: widget.cameraUsage,
-                        controller: snapshot.data,
+                        controller: cameraController,
                         chat: widget.chat),
-                    child: Consumer<CameraProvider>(
-                        builder: (context, provider, child) => Stack(
-                              children: <Widget>[
-                                Transform.scale(
-                                    scale:
-                                        provider.controller.value.aspectRatio /
-                                            deviceRatio,
-                                    child: Center(
-                                        child: AspectRatio(
-                                            aspectRatio: provider
-                                                .controller.value.aspectRatio,
-                                            child: CameraPreview(
-                                                provider.controller)))),
-                                if (provider.cameraUsage == CameraUsage.profile)
-                                  ProfilePicOutline(
-                                      size: MediaQuery.of(context).size),
-                                Container(
-                                  alignment: Alignment.bottomLeft,
-                                  padding: EdgeInsets.all(40),
-                                  child: Container(
-                                      width: 105,
-                                      height: 105,
-                                      child: Center(
-                                        child: GestureDetector(
-                                          child: Button(
-                                            backgroundColor: Colors.grey[100],
-                                            buttonName: "Flip Camera",
-                                          ),
-                                          onTap: () => setState(() {
-                                            cameraIndex = (cameraIndex + 1) % 2;
-                                          }),
-                                        ),
-                                      )),
+                    child: Stack(
+                      children: <Widget>[
+                        Transform.scale(
+                            scale: cameraController.value.aspectRatio /
+                                deviceRatio,
+                            child: Center(
+                                child: AspectRatio(
+                                    aspectRatio:
+                                        cameraController.value.aspectRatio,
+                                    child: CameraPreview(cameraController)))),
+                        if (widget.cameraUsage == CameraUsage.profile)
+                          ProfilePicOutline(size: MediaQuery.of(context).size),
+                        Container(
+                          alignment: Alignment.bottomLeft,
+                          padding: EdgeInsets.all(40),
+                          child: Container(
+                              width: 105,
+                              height: 105,
+                              child: Center(
+                                child: GestureDetector(
+                                  child: Button(
+                                    backgroundColor: Colors.grey[100],
+                                    buttonName: "Flip Camera",
+                                  ),
+                                  onTap: () => setState(() {
+                                    cameraIndex = (cameraIndex + 1) % 2;
+                                  }),
                                 ),
-                                PostButton(diameter: 105),
-                                Container(
-                                    alignment: Alignment.topLeft,
-                                    padding: EdgeInsets.only(top: 50, left: 5),
-                                    child: FlatButton(
-                                        child: Button(
-                                            buttonName: "Exit Camera",
-                                            backgroundColor: Colors.white),
-                                        onPressed: () async {
-                                          await provider.deleteFile();
-                                          Navigator.pop(context);
-                                        })),
-                              ],
-                            )));
+                              )),
+                        ),
+                        PostButton(diameter: 105),
+                        Container(
+                            alignment: Alignment.topLeft,
+                            padding: EdgeInsets.only(top: 50, left: 5),
+                            child: FlatButton(
+                                child: Button(
+                                    buttonName: "Exit Camera",
+                                    backgroundColor: Colors.white),
+                                onPressed: () => Navigator.pop(context))),
+                      ],
+                    ));
               } else {
                 return Container(color: Colors.black);
               }
@@ -251,7 +243,7 @@ class PostButton extends StatelessWidget {
                   cameraUsage: provider.cameraUsage,
                   filePath: provider.filePath,
                   chat: provider.chat,
-                ))).then((_) => provider.deleteFile());
+                ))).then((_) async => await provider.deleteFile());
   }
 }
 

@@ -1,6 +1,4 @@
-import '../models/profile.dart';
 import '../models/post.dart';
-import '../models/user.dart';
 
 import '../globals.dart' as globals;
 import 'baseAPI.dart';

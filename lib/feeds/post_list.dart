@@ -173,7 +173,7 @@ class _PostListState extends State<PostList> {
 
       PostView postView = PostView(
         post: post,
-        height: 475,
+        height: 500,
         aspectRatio: globals.goldenRatio,
         postStage: PostStage.fullWidget,
         videoPlayerController: videoPlayerController,
