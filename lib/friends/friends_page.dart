@@ -57,13 +57,27 @@ class FriendsPage extends StatelessWidget {
       children: <Widget>[
         NewFollowersAlert(),
         Container(
-          height: 600,
-          child: ListView.builder(
-              itemCount: chatstList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return FriendWidget(chat: chatstList[index]);
-              }),
-        ),
+            height: 600,
+            child: ListView.builder(
+                itemCount: chatstList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  Chat chat = chatstList[index];
+                  return FlatButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ChatPage(
+                                    chat: chat,
+                                  )),
+                        );
+                      },
+                      child: ChatWidget(
+                        chatName: chat.chatName,
+                        chatProfile:
+                            ProfilePic(diameter: 85, user: chat.members[0]),
+                      ));
+                })),
       ],
     );
   }
@@ -139,61 +153,57 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
   }
 }
 
-class FriendWidget extends StatelessWidget {
-  final Chat chat;
+class ChatWidget extends StatelessWidget {
+  const ChatWidget(
+      {Key key,
+      @required this.chatName,
+      @required this.chatProfile,
+      this.color = Colors.blue})
+      : super(key: key);
 
-  FriendWidget({this.chat});
+  final String chatName;
+  final Widget chatProfile;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return FlatButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ChatPage(
-                    chat: chat,
-                  )),
-        );
-      },
+    return Container(
+      padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
       child: Container(
-        padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
-        child: Container(
-            width: 359.0,
-            height: 118.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(61.0),
-              border: Border.all(width: 2.0, color: const Color(0xff22a2ff)),
-            ),
-            child: Container(
-              padding: EdgeInsets.only(left: 20),
-              child: Row(
-                children: <Widget>[
-                  if (chat.isDirectMessage)
-                    ProfilePic(diameter: 85, user: chat.members[0]),
-                  Container(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          this.chat.chatName,
-                          style: TextStyle(
-                            fontFamily: 'SF Pro Text',
-                            fontSize: 24,
-                            color: const Color(0xff000000),
-                            letterSpacing: -0.36,
-                            height: 1.4666666666666666,
-                          ),
-                          textAlign: TextAlign.left,
+          width: 359.0,
+          height: 118.0,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(61.0),
+            border: Border.all(width: 2.0, color: color),
+            color: Colors.white,
+          ),
+          child: Container(
+            padding: EdgeInsets.only(left: 20),
+            child: Row(
+              children: <Widget>[
+                chatProfile,
+                Container(
+                  padding: EdgeInsets.only(left: 10),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        chatName,
+                        style: TextStyle(
+                          fontFamily: 'SF Pro Text',
+                          fontSize: 24,
+                          color: const Color(0xff000000),
+                          letterSpacing: -0.36,
+                          height: 1.4666666666666666,
                         ),
-                      ],
-                    ),
+                        textAlign: TextAlign.left,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )),
-      ),
+                ),
+              ],
+            ),
+          )),
     );
   }
 }

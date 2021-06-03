@@ -75,7 +75,7 @@ class ProfilePage extends StatelessWidget {
               padding: EdgeInsets.only(top: 50),
               child: Column(
                 children: <Widget>[
-                  ProfilePageHeader(),
+                  ProfilePageHeader(user: user),
                   if (user.uid != globals.user.uid) FollowingButton(),
                   ProfilePostBody(
                       height: .57 * height, sidePadding: 20, betweenPadding: 5),
@@ -130,21 +130,26 @@ class ProfilePageHeader extends StatelessWidget {
   // Also displays a button that lets the user start/stop following this
   // creator.
 
+  ProfilePageHeader({
+    @required this.user,
+    this.color = Colors.blue,
+  });
+
+  final User user;
+  final Color color;
+
   @override
   Widget build(BuildContext context) {
-    ProfilePageProvider provider =
-        Provider.of<ProfilePageProvider>(context, listen: false);
-
     return Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Container(
             height: 15,
           ),
-          ProfilePic(diameter: 148, user: provider.user),
+          ProfilePic(diameter: 148, user: user, color: color),
           Container(
             child: Text(
-              '${provider.user.username}',
+              '${user.username}',
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
                 fontSize: 25,
@@ -155,7 +160,7 @@ class ProfilePageHeader extends StatelessWidget {
           ),
           Container(
             child: Text(
-              '@${provider.user.userID}',
+              '@${user.userID}',
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
                 fontSize: 12,

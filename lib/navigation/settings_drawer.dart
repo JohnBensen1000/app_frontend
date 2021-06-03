@@ -7,6 +7,7 @@ import '../globals.dart' as globals;
 import '../profile/profile_page.dart';
 import '../profile/profile_pic.dart';
 import '../camera/camera.dart';
+import 'choose_color.dart';
 
 import '../main.dart';
 
@@ -77,6 +78,11 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                     }
                   });
                 }),
+            SettingsButton(
+              buttonName: "Choose color",
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ChooseColorPage())),
+            )
           ],
         ),
       ),

@@ -6,11 +6,16 @@ import '../models/user.dart';
 import '../API/users.dart';
 
 import '../profile/profile_page.dart';
+import '../widgets/back_arrow.dart';
+import '../profile/profile_pic.dart';
 
-class CreatorsList extends ChangeNotifier {
+class SearchPageProvider extends ChangeNotifier {
+  // Used to keep track of a the searched creators. Gets a list of all users
+  // who's userID contains the search string. Notifies listeners whenever this
+  // list changes.
   List<User> _creatorsList = [];
 
-  List<User> get getCreatorsList {
+  List<User> get creatorsList {
     return _creatorsList;
   }
 
@@ -30,84 +35,68 @@ class CreatorsList extends ChangeNotifier {
 }
 
 class SearchPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => CreatorsList(),
-      child: SearchResults(),
-    );
-  }
-}
+  // Allows a user to search for creators. Displays a list of all creators that
+  // match the search criteria.
 
-class SearchResults extends StatelessWidget {
   final _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    var creatorsList = Provider.of<CreatorsList>(context).getCreatorsList;
-
-    return Scaffold(
-        body: Container(
-            child: Column(
-      children: <Widget>[
-        Container(
-          padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Container(
-                  height: 50,
-                  width: 260,
-                  child: TextField(
-                    decoration: new InputDecoration(
-                        border: new OutlineInputBorder(
-                          borderRadius: const BorderRadius.all(
-                            const Radius.circular(40.0),
+    return ChangeNotifierProvider(
+        create: (context) => SearchPageProvider(),
+        child: Consumer<SearchPageProvider>(
+            builder: (context, provider, child) => Scaffold(
+                    body: Container(
+                        child: Column(
+                  children: <Widget>[
+                    Container(
+                      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          GestureDetector(
+                            child: BackArrow(),
+                            onTap: () => Navigator.of(context).pop(),
                           ),
-                        ),
-                        hintText: "Search"),
-                    onChanged: (text) =>
-                        Provider.of<CreatorsList>(context, listen: false)
-                            .searchForCreators(_searchController.text),
-                    controller: _searchController,
-                  )),
-              Container(
-                  width: 80,
-                  height: 30,
-                  decoration: new BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    color: Colors.grey[300],
-                  ),
-                  child: FlatButton(
-                    child: Center(
-                      child: Text(
-                        'Exit',
-                        textAlign: TextAlign.center,
+                          Container(
+                              height: 50,
+                              width: 300,
+                              child: TextField(
+                                decoration: new InputDecoration(
+                                    contentPadding: EdgeInsets.all(10),
+                                    border: new OutlineInputBorder(
+                                      borderRadius: const BorderRadius.all(
+                                        const Radius.circular(40.0),
+                                      ),
+                                    ),
+                                    hintText: "Who Are you looking for?"),
+                                onChanged: (text) => provider
+                                    .searchForCreators(_searchController.text),
+                                controller: _searchController,
+                              )),
+                        ],
                       ),
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
-                  )),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: creatorsList.length,
-            itemBuilder: (BuildContext context, int index) {
-              return SearchResult(
-                  creator: creatorsList[index],
-                  searchController: _searchController);
-            },
-          ),
-        ),
-      ],
-    )));
+                    Expanded(
+                      child: ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        itemCount: provider.creatorsList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return SearchResultWidget(
+                              creator: provider.creatorsList[index],
+                              searchController: _searchController);
+                        },
+                      ),
+                    ),
+                  ],
+                )))));
   }
 }
 
-class SearchResult extends StatelessWidget {
-  const SearchResult({
+class SearchResultWidget extends StatelessWidget {
+  // Displays a user's profile, username, and userID. When pressed, takes the
+  // user to the user's profile page.
+  const SearchResultWidget({
     Key key,
     @required this.creator,
     @required TextEditingController searchController,
@@ -121,20 +110,21 @@ class SearchResult extends StatelessWidget {
   Widget build(BuildContext context) {
     return new FlatButton(
       child: Container(
-          width: 200,
-          height: 40,
+          margin: EdgeInsets.only(bottom: 20),
+          width: double.infinity,
+          height: 120,
           decoration: new BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(20)),
-            color: Colors.grey[200],
+            border: Border(
+                top: BorderSide(color: Colors.grey[400]),
+                bottom: BorderSide(color: Colors.grey[400])),
           ),
-          child: Center(
-            child: Text(
-              '${creator.username}',
-              textAlign: TextAlign.center,
-            ),
+          child: Profile(
+            diameter: 80,
+            user: creator,
           )),
       onPressed: () {
-        Provider.of<CreatorsList>(context, listen: false).clearSearchList();
+        Provider.of<SearchPageProvider>(context, listen: false)
+            .clearSearchList();
         _searchController.clear();
         FocusScope.of(context).unfocus();
         Navigator.push(

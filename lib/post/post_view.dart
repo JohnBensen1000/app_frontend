@@ -290,13 +290,9 @@ class VideoContainer extends StatelessWidget {
 
     if (ModalRoute.of(context).isCurrent) {
       return FutureBuilder(
-          future: provider.videoPlayerController.initialize(),
+          future: initializeVideoController(provider),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              if (!provider.isVideoControllerGiven && provider.playOnInit)
-                provider.videoPlayerController.play();
-              if (!provider.playWithVolume)
-                provider.videoPlayerController.setVolume(0.0);
               return VisibilityDetector(
                   key: Key("unique key"),
                   child: Container(
@@ -328,6 +324,16 @@ class VideoContainer extends StatelessWidget {
           });
     } else
       return Container();
+  }
+
+  Future<void> initializeVideoController(PostViewProvider provider) async {
+    await provider.videoPlayerController.initialize();
+    if (!provider.isVideoControllerGiven && provider.playOnInit)
+      await provider.videoPlayerController.play();
+    else
+      await provider.videoPlayerController.seekTo(Duration(microseconds: 0));
+    if (!provider.playWithVolume)
+      await provider.videoPlayerController.setVolume(0.0);
   }
 }
 

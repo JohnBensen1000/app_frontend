@@ -11,38 +11,6 @@ import '../post/post_view.dart';
 
 import '../API/chats.dart';
 
-String breakIntoLines(
-    String origString, int minCharPerLine, int maxCharPerLine) {
-  /* Breaks up a chat string into multiple lines. The number of characters per
-    line will be between minCharPerLine and maxCharPerLine. */
-
-  String newString = origString;
-  int currentChar = 0;
-
-  while (newString.length - currentChar > maxCharPerLine) {
-    int cutoff = currentChar;
-
-    // Counts up until current line has at least minCharPerLine characters.
-    // Continues counting until the end of a word is reached.
-    while (cutoff - currentChar < minCharPerLine) cutoff++;
-    while (cutoff < newString.length && origString[cutoff] != ' ') cutoff++;
-    if (cutoff >= newString.length) break;
-
-    // If the number of characters in the current line is greater than
-    // maxCharPerLine, counts backwards to remove word from current line.
-    if (cutoff - currentChar > maxCharPerLine)
-      do {
-        cutoff--;
-      } while (origString[cutoff] != ' ');
-
-    newString =
-        newString.substring(0, cutoff) + '\n' + newString.substring(cutoff + 1);
-    currentChar = cutoff + 1;
-  }
-
-  return newString;
-}
-
 class ChatPage extends StatelessWidget {
   // Main Widget for a chat. First makes sure that there is a document in google
   // firestore to hold the chat. Then uses a StreamBuilder() to connect to the
@@ -84,7 +52,7 @@ class ChatPage extends StatelessWidget {
                             itemCount: snapshot.data.documents.length,
                             itemBuilder: (context, index) {
                               if (snapshot.data.documents.length > 0) {
-                                return ChatWidget(
+                                return ChatItemWidget(
                                     chatItem: ChatItem.fromFirebase(
                                         snapshot.data.documents[index].data));
                               } else
@@ -185,11 +153,11 @@ class ChatPageFooter extends StatelessWidget {
   }
 }
 
-class ChatWidget extends StatelessWidget {
+class ChatItemWidget extends StatelessWidget {
   // This widget takes a Chat() object as an input and determines who sent the
   // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
 
-  ChatWidget({@required this.chatItem});
+  ChatItemWidget({@required this.chatItem});
 
   final ChatItem chatItem;
 
@@ -207,14 +175,14 @@ class ChatWidget extends StatelessWidget {
     }
 
     if (chatItem.isPost == false) {
-      return ChatWidgetText(
-        senderID: chatItem.user.userID,
-        chat: chatItem.text,
+      return ChatItemWidgetText(
+        sender: chatItem.user,
+        text: chatItem.text,
         mainAxisAlignment: chatAxisAlignment,
         backgroundColor: backgroundColor,
       );
     } else {
-      return ChatWidgetPost(
+      return ChatItemWidgetPost(
         post: Post.fromChatItem(chatItem),
         height: 200,
         mainAxisAlignment: chatAxisAlignment,
@@ -223,21 +191,21 @@ class ChatWidget extends StatelessWidget {
   }
 }
 
-class ChatWidgetText extends StatelessWidget {
+class ChatItemWidgetText extends StatelessWidget {
   // Returns a text field that contains a chat. Adds '\n' characters to the
   // string to break the text up into multiple lines to make it easier to read.
 
-  final String senderID;
-  final String chat;
+  final User sender;
+  final String text;
   final MainAxisAlignment mainAxisAlignment;
   final Color backgroundColor;
 
-  ChatWidgetText(
-      {this.senderID, this.chat, this.mainAxisAlignment, this.backgroundColor});
+  ChatItemWidgetText(
+      {this.sender, this.text, this.mainAxisAlignment, this.backgroundColor});
 
   @override
   Widget build(BuildContext context) {
-    String newChat = breakIntoLines(chat, 28, 20);
+    String newChat = breakIntoLines(text, 28, 20);
     return Container(
       padding: EdgeInsets.only(top: 4, bottom: 4),
       child: Row(
@@ -254,11 +222,44 @@ class ChatWidgetText extends StatelessWidget {
       ),
     );
   }
+
+  String breakIntoLines(
+      String origString, int minCharPerLine, int maxCharPerLine) {
+    /* Breaks up a chat string into multiple lines. The number of characters per
+    line will be between minCharPerLine and maxCharPerLine. */
+
+    String newString = origString;
+    int currentChar = 0;
+
+    while (newString.length - currentChar > maxCharPerLine) {
+      int cutoff = currentChar;
+
+      // Counts up until current line has at least minCharPerLine characters.
+      // Continues counting until the end of a word is reached.
+      while (cutoff - currentChar < minCharPerLine) cutoff++;
+      while (cutoff < newString.length && origString[cutoff] != ' ') cutoff++;
+      if (cutoff >= newString.length) break;
+
+      // If the number of characters in the current line is greater than
+      // maxCharPerLine, counts backwards to remove word from current line.
+      if (cutoff - currentChar > maxCharPerLine)
+        do {
+          cutoff--;
+        } while (origString[cutoff] != ' ');
+
+      newString = newString.substring(0, cutoff) +
+          '\n' +
+          newString.substring(cutoff + 1);
+      currentChar = cutoff + 1;
+    }
+
+    return newString;
+  }
 }
 
-class ChatWidgetPost extends StatelessWidget {
+class ChatItemWidgetPost extends StatelessWidget {
   // A widget that wraps around a PostView() in order to display it correctly.
-  ChatWidgetPost(
+  ChatItemWidgetPost(
       {@required this.post,
       @required this.height,
       @required this.mainAxisAlignment});
