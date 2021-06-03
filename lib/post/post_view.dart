@@ -162,36 +162,8 @@ class PostViewHeader extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            ProfilePic(
+            Profile(
                 diameter: provider.height / 7.60, user: provider.post.creator),
-            Container(
-              padding: EdgeInsets.only(left: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    provider.post.creator.username,
-                    style: TextStyle(
-                      fontFamily: 'Helvetica Neue',
-                      fontSize: 26,
-                      color: const Color(0xff000000),
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                  Container(
-                    child: Text(
-                      "@${provider.post.creator.userID}",
-                      style: TextStyle(
-                          fontFamily: 'Helvetica Neue',
-                          fontSize: 12,
-                          color: Colors.grey[500]),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),

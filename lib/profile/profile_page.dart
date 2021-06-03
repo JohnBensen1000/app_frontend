@@ -12,6 +12,7 @@ import '../API/relations.dart';
 import '../API/posts.dart';
 
 import 'profile_pic.dart';
+import '../widgets/back_arrow.dart';
 
 class ProfilePageProvider extends ChangeNotifier {
   // Keeps track of whether the user is following or not following a creator.
@@ -72,13 +73,15 @@ class ProfilePage extends StatelessWidget {
             create: (context) =>
                 ProfilePageProvider(height: .4 * height, user: user),
             child: Container(
-              padding: EdgeInsets.only(top: 50),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
                   ProfilePageHeader(user: user),
                   if (user.uid != globals.user.uid) FollowingButton(),
                   ProfilePostBody(
-                      height: .57 * height, sidePadding: 20, betweenPadding: 5),
+                      height: .654 * height,
+                      sidePadding: 20,
+                      betweenPadding: 5),
                 ],
               ),
             )));
@@ -97,27 +100,14 @@ class ProfilePageAppBar extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 40, left: 20),
+      padding: EdgeInsets.only(top: 20, left: 20),
       child: Row(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Container(
-                width: 80,
-                height: 25,
-                decoration: new BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Colors.grey[300],
-                ),
-                child: FlatButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Center(
-                      child: Text(
-                        'Exit',
-                        textAlign: TextAlign.center,
-                      ),
-                    ))),
-          ),
+              padding: const EdgeInsets.only(left: 8),
+              child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Center(child: BackArrow()))),
         ],
       ),
     );
@@ -141,7 +131,7 @@ class ProfilePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           Container(
             height: 15,
@@ -274,7 +264,7 @@ class ProfilePostBody extends StatelessWidget {
                   child: new ListView.builder(
                     itemCount: profilePostsList.length,
                     itemBuilder: (BuildContext context, int index) {
-                      return profilePostsList[index];
+                      return PostBodyWidget(child: profilePostsList[index]);
                     },
                   ),
                 ),
@@ -348,6 +338,29 @@ class ProfilePostBody extends StatelessWidget {
       i++;
     }
     return subPostsList;
+  }
+}
+
+class PostBodyWidget extends StatefulWidget {
+  // The entire point of this widget is to keep each element in profile body's
+  // ListView.builder() alive when scrolling down. That way, it doesn't jump to
+  // the top when scrolling up.
+  PostBodyWidget({@required this.child});
+
+  final Widget child;
+
+  @override
+  _PostBodyWidgetState createState() => _PostBodyWidgetState();
+}
+
+class _PostBodyWidgetState extends State<PostBodyWidget>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }
 
