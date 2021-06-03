@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
 import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../models/post.dart';
 
@@ -25,17 +26,17 @@ enum PostStage { onlyPost, fullWidget, userFeedback }
 
 class PostViewProvider extends ChangeNotifier {
   // Contains all state variables used in the app.
-  PostViewProvider(
-      {@required this.post,
-      @required this.height,
-      @required this.aspectRatio,
-      @required this.postStage,
-      @required this.playOnInit,
-      @required this.fromChatPage,
-      @required this.fullPage,
-      @required this.videoPlayerController,
-      @required this.playWithVolume,
-      @required this.isVideoControllerGiven}) {
+  PostViewProvider({
+    @required this.post,
+    @required this.height,
+    @required this.aspectRatio,
+    @required this.postStage,
+    @required this.playOnInit,
+    @required this.fromChatPage,
+    @required this.fullPage,
+    @required this.videoPlayerController,
+    @required this.playWithVolume,
+  }) {
     this.cornerRadius = height / 19;
   }
 
@@ -46,7 +47,6 @@ class PostViewProvider extends ChangeNotifier {
   final bool playOnInit;
   final bool fromChatPage;
   final bool fullPage;
-  final bool isVideoControllerGiven;
   final bool playWithVolume;
   final VideoPlayerController videoPlayerController;
 
@@ -80,7 +80,7 @@ class PostView extends StatefulWidget {
   final bool fromChatPage;
   final bool fullPage;
   final bool playWithVolume;
-  VideoPlayerController videoPlayerController;
+  final VideoPlayerController videoPlayerController;
 
   @override
   _PostViewState createState() => _PostViewState();
@@ -89,8 +89,6 @@ class PostView extends StatefulWidget {
 class _PostViewState extends State<PostView> {
   @override
   Widget build(BuildContext context) {
-    bool isVideoControllerGiven = (widget.videoPlayerController != null);
-
     double postViewHeight = (widget.postStage.index <= PostStage.onlyPost.index)
         ? widget.height
         : widget.height * 1.3333333;
@@ -109,8 +107,7 @@ class _PostViewState extends State<PostView> {
                     fromChatPage: widget.fromChatPage,
                     fullPage: widget.fullPage,
                     playWithVolume: widget.playWithVolume,
-                    isVideoControllerGiven: isVideoControllerGiven,
-                    videoPlayerController: widget.videoPlayerController),
+                    videoPlayerController: snapshot.data),
                 child: Consumer<PostViewProvider>(
                   builder: (context, provider, child) => Container(
                     height: postViewHeight,
@@ -134,11 +131,14 @@ class _PostViewState extends State<PostView> {
         });
   }
 
-  Future<void> getVideoPlayerController() async {
+  Future<VideoPlayerController> getVideoPlayerController() async {
     if (widget.videoPlayerController == null && !widget.post.isImage) {
-      widget.videoPlayerController =
+      VideoPlayerController videoPlayerController =
           VideoPlayerController.network(widget.post.downloadURL);
-      widget.videoPlayerController.setLooping(true);
+      await videoPlayerController.setLooping(true);
+      return videoPlayerController;
+    } else {
+      return widget.videoPlayerController;
     }
   }
 }
@@ -176,34 +176,49 @@ class PostViewHeader extends StatelessWidget {
 }
 
 class PostViewBody extends StatelessWidget {
-  // Decides whether the post is an image or a video and returns the appropriate
-  // widget. Also displays "Video" in the top right corner if the post is a
-  // video and playOnInit is set to false.
+  // Decides whether the post is an image, video thumbnail, or a video and
+  // returns the appropriate widget. Also displays "Video" in the top right
+  // corner if the post is a video and playOnInit is set to false. If this
+  // widget is pressed for a long time, sends the user to a page that shows
+  // the post by itself.
 
   @override
   Widget build(BuildContext context) {
     PostViewProvider provider =
         Provider.of<PostViewProvider>(context, listen: false);
 
+    double height = provider.height;
+    double width = provider.height / provider.aspectRatio;
+
     return GestureDetector(
         child: Stack(alignment: Alignment.topRight, children: <Widget>[
-          Container(
-            height: provider.height,
-            width: provider.height / provider.aspectRatio,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(provider.height / 19),
-              border: Border.all(width: 1.0, color: const Color(0xff707070)),
-            ),
-            child:
-                (provider.post.isImage) ? ImageContainer() : VideoContainer(),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                height: height,
+                width: width,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(provider.height / 19),
+                  border:
+                      Border.all(width: 1.0, color: const Color(0xff707070)),
+                ),
+              ),
+              if (provider.post.isImage)
+                ImageContainer()
+              else if (provider.playOnInit)
+                VideoContainer()
+              else
+                ThumbnailContainer(),
+            ],
           ),
           if (!provider.playOnInit && !provider.post.isImage)
             Container(
-                padding: EdgeInsets.all(provider.height * .03),
+                padding: EdgeInsets.all(.03 * height),
                 child: Text(
                   "Video",
                   style: TextStyle(color: Colors.grey),
-                ))
+                )),
         ]),
         onLongPress: () {
           if (!provider.fullPage)
@@ -219,6 +234,7 @@ class PostViewBody extends StatelessWidget {
 }
 
 class ImageContainer extends StatelessWidget {
+  // Downloads an image from google storage and displays it.
   @override
   Widget build(BuildContext context) {
     PostViewProvider provider =
@@ -254,7 +270,40 @@ class ImageContainer extends StatelessWidget {
   }
 }
 
+class ThumbnailContainer extends StatelessWidget {
+  // Creates a thumbnail of a video and displays it.
+  @override
+  Widget build(BuildContext context) {
+    PostViewProvider provider =
+        Provider.of<PostViewProvider>(context, listen: false);
+
+    double height = provider.height;
+    double width = provider.height / provider.aspectRatio;
+
+    return FutureBuilder(
+        future: VideoThumbnail.thumbnailData(video: provider.post.downloadURL),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done)
+            return Container(
+                height: height - 2,
+                width: width - 2,
+                decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.circular(provider.cornerRadius - 1),
+                  image: DecorationImage(
+                    image: MemoryImage(snapshot.data),
+                    fit: BoxFit.cover,
+                  ),
+                ));
+          else
+            return Container();
+        });
+  }
+}
+
 class VideoContainer extends StatelessWidget {
+  // Downloads and shows a video. Automatically pauses the video when it is
+  // hidden from view, plays the video when it gets back into view.
   @override
   Widget build(BuildContext context) {
     PostViewProvider provider =
@@ -300,10 +349,8 @@ class VideoContainer extends StatelessWidget {
 
   Future<void> initializeVideoController(PostViewProvider provider) async {
     await provider.videoPlayerController.initialize();
-    if (!provider.isVideoControllerGiven && provider.playOnInit)
-      await provider.videoPlayerController.play();
-    else
-      await provider.videoPlayerController.seekTo(Duration(microseconds: 0));
+    await provider.videoPlayerController.play();
+
     if (!provider.playWithVolume)
       await provider.videoPlayerController.setVolume(0.0);
   }

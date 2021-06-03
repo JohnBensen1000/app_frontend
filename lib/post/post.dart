@@ -28,7 +28,6 @@ class PostPage extends StatelessWidget {
   Widget build(BuildContext context) {
     PostStage postStage =
         (fromChatPage) ? PostStage.onlyPost : PostStage.fullWidget;
-    print(globals.goldenRatio);
 
     return FutureBuilder(
       future: getVideoPlayerController(),
