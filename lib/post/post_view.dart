@@ -315,31 +315,32 @@ class VideoContainer extends StatelessWidget {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return VisibilityDetector(
-                  key: Key("unique key"),
-                  child: Container(
-                      width: provider.height / provider.aspectRatio - 2,
-                      height: provider.height - 2,
-                      child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(provider.cornerRadius - 1),
-                          child: FittedBox(
-                              fit: BoxFit.cover,
-                              child: SizedBox(
-                                  height: provider.videoPlayerController.value
-                                          .size?.height ??
-                                      0,
-                                  width: provider.videoPlayerController.value
-                                          .size?.width ??
-                                      0,
-                                  child: VideoPlayer(
-                                    provider.videoPlayerController,
-                                  ))))),
-                  onVisibilityChanged: (VisibilityInfo info) {
-                    if (provider.playOnInit && info.visibleFraction == 1.0)
-                      provider.videoPlayerController.play();
-                    else
-                      provider.videoPlayerController.pause();
-                  });
+                key: Key("unique key"),
+                child: Container(
+                    width: provider.height / provider.aspectRatio - 2,
+                    height: provider.height - 2,
+                    child: ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(provider.cornerRadius - 1),
+                        child: FittedBox(
+                            fit: BoxFit.cover,
+                            child: SizedBox(
+                                height: provider.videoPlayerController.value
+                                        .size?.height ??
+                                    0,
+                                width: provider.videoPlayerController.value.size
+                                        ?.width ??
+                                    0,
+                                child: VideoPlayer(
+                                  provider.videoPlayerController,
+                                ))))),
+                // onVisibilityChanged: (VisibilityInfo info) {
+                //   if (provider.playOnInit && info.visibleFraction == 1.0)
+                //     provider.videoPlayerController.play();
+                //   else
+                //     provider.videoPlayerController.pause();
+                // }
+              );
             } else
               return Container();
           });
@@ -349,7 +350,7 @@ class VideoContainer extends StatelessWidget {
 
   Future<void> initializeVideoController(PostViewProvider provider) async {
     await provider.videoPlayerController.initialize();
-    await provider.videoPlayerController.play();
+    // await provider.videoPlayerController.play();
 
     if (!provider.playWithVolume)
       await provider.videoPlayerController.setVolume(0.0);

@@ -6,6 +6,7 @@ import '../globals.dart' as globals;
 import '../profile/profile_pic.dart';
 import '../friends/friends_page.dart';
 import '../profile/profile_page.dart';
+import '../widgets/back_arrow.dart';
 
 class ColorStruct {
   ColorStruct(
@@ -83,7 +84,9 @@ class ChooseColorHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     ChooseColorProvider provider =
         Provider.of<ChooseColorProvider>(context, listen: false);
-    ColorStruct chosenColor = provider.colorStructs[provider.chosenIndex];
+    ColorStruct chosenColor = (provider.chosenIndex >= 0)
+        ? provider.colorStructs[provider.chosenIndex]
+        : null;
 
     return Container(
       height: height,
@@ -93,7 +96,7 @@ class ChooseColorHeader extends StatelessWidget {
           Row(
             children: <Widget>[
               FlatButton(
-                  child: Text("Back"), onPressed: () => Navigator.pop(context))
+                  child: BackArrow(), onPressed: () => Navigator.pop(context))
             ],
           ),
           Row(
@@ -102,20 +105,21 @@ class ChooseColorHeader extends StatelessWidget {
                 "The chosen color is: ",
                 style: TextStyle(fontSize: 24),
               ),
-              Container(
-                height: 40,
-                width: 100,
-                decoration: BoxDecoration(
-                  color: chosenColor.color,
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-                child: Center(
-                  child: Text(
-                    chosenColor.name,
-                    style: TextStyle(fontSize: 24),
+              if (chosenColor != null)
+                Container(
+                  height: 40,
+                  width: 100,
+                  decoration: BoxDecoration(
+                    color: chosenColor.color,
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
-                ),
-              )
+                  child: Center(
+                    child: Text(
+                      chosenColor.name,
+                      style: TextStyle(fontSize: 24),
+                    ),
+                  ),
+                )
             ],
           )
         ],

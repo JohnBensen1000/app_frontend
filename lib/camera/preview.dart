@@ -9,10 +9,12 @@ import '../models/chat.dart';
 import '../API/posts.dart';
 import '../API/chats.dart';
 
+import '../globals.dart' as globals;
 import 'camera.dart';
 import 'widgets/button.dart';
 import 'widgets/video_preview.dart';
 import 'widgets/profile_pic_outline.dart';
+import '../widgets/back_arrow.dart';
 
 class PreviewProvider extends ChangeNotifier {
   // Contains state variables used throughout the page. Every widget under this
@@ -83,47 +85,35 @@ class _PreviewState extends State<Preview> {
 }
 
 class PreviewPage extends StatelessWidget {
-  // Returns a stack of the image/video preview and possible actions to take
-  // with the image/video. The type of preview (image or video) and whether or
-  // not to play the video is determined by PreviewProvider. If the camera is
-  // being used to take a profile picture, then highlight the portion of the
-  // image that will be used for the profile picture.
+  // Returns a coumn of the image/video preview and possible actions to take
+  // with the image/video. The type of preview (image or video) and is
+  // determined by PreviewProvider. If the camera is being used to take a
+  // profile picture, then highlight the portion of the image that will be used
+  // for the profile picture. Determines what options to give the user based
+  // on what the camera is being used for.
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-    double deviceRatio = size.width / size.height;
+    double height = 600;
+    double width = height / globals.goldenRatio;
+    double cornerRadius = height * globals.cornerRadiusRatio;
+
     return Consumer<PreviewProvider>(
-        builder: (context, provider, child) => Stack(children: <Widget>[
-              Transform.scale(
-                  scale: provider.controller.value.aspectRatio / deviceRatio,
-                  child: Center(
-                      child: AspectRatio(
-                          aspectRatio: provider.controller.value.aspectRatio,
-                          child: (provider.isImage)
-                              ? Image(
-                                  image:
-                                      Image.file(File(provider.filePath)).image)
-                              : (provider.playVideo)
-                                  ? VideoPreview(
-                                      file: File(provider.filePath),
-                                      playVideo: provider.playVideo)
-                                  : Container()))),
-              if (provider.cameraUsage == CameraUsage.profile)
-                ProfilePicOutline(size: MediaQuery.of(context).size),
+        builder: (context, provider, child) =>
+            Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+              Container(
+                  alignment: Alignment.topLeft,
+                  padding: EdgeInsets.only(top: 20, left: 5),
+                  child: FlatButton(
+                      child: BackArrow(),
+                      onPressed: () => Navigator.pop(context))),
+              PreviewView(
+                  height: height, width: width, cornerRadius: cornerRadius),
               Container(
                   padding: EdgeInsets.only(left: 20, top: 40, bottom: 40),
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        Container(
-                          child: GestureDetector(
-                            child: Button(
-                                buttonName: "Redo",
-                                backgroundColor: Colors.grey[100]),
-                            onTap: () => Navigator.pop(context),
-                          ),
-                        ),
                         if (provider.cameraUsage == CameraUsage.post)
                           PostOptions()
                         else if (provider.cameraUsage == CameraUsage.profile)
@@ -132,6 +122,52 @@ class PreviewPage extends StatelessWidget {
                           ChatOptions(),
                       ])),
             ]));
+  }
+}
+
+class PreviewView extends StatelessWidget {
+  // Displays the post preview sees in a rectangular container with rounded
+  // corners.
+
+  const PreviewView({
+    Key key,
+    @required this.height,
+    @required this.width,
+    @required this.cornerRadius,
+  }) : super(key: key);
+
+  final double height;
+  final double width;
+  final double cornerRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    PreviewProvider provider =
+        Provider.of<PreviewProvider>(context, listen: false);
+
+    return Center(
+      child: Stack(alignment: Alignment.center, children: <Widget>[
+        Container(
+          height: height,
+          width: width,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(cornerRadius),
+            border: Border.all(width: 1.0, color: const Color(0xff707070)),
+          ),
+        ),
+        Container(
+            height: height - 2,
+            width: width - 2,
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(cornerRadius - 1),
+                child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: (provider.isImage)
+                        ? Image(
+                            image: Image.file(File(provider.filePath)).image)
+                        : VideoPreview(file: File(provider.filePath))))),
+      ]),
+    );
   }
 }
 
@@ -148,7 +184,7 @@ class PostOptions extends StatelessWidget {
         children: <Widget>[
           GestureDetector(
             child:
-                Button(buttonName: "Post", backgroundColor: Colors.grey[100]),
+                Button(buttonName: "Post", backgroundColor: Colors.grey[200]),
             onTap: () async {
               if (provider.allowNewPost) {
                 provider.allowNewPost = false;
@@ -162,7 +198,7 @@ class PostOptions extends StatelessWidget {
           ),
           GestureDetector(
             child:
-                Button(buttonName: "Share", backgroundColor: Colors.grey[100]),
+                Button(buttonName: "Share", backgroundColor: Colors.grey[200]),
             // onTap: () {
             //   if (!provider.isImage) provider.playVideo = false;
             //   Navigator.push(

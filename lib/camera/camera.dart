@@ -9,9 +9,11 @@ import 'package:provider/provider.dart';
 import 'package:image/image.dart' as image;
 
 import '../models/chat.dart';
+import '../globals.dart' as globals;
 import 'widgets/profile_pic_outline.dart';
 import 'widgets/button.dart';
 import 'preview.dart';
+import '../widgets/back_arrow.dart';
 
 enum CameraUsage {
   post,
@@ -91,15 +93,20 @@ class CameraProvider extends ChangeNotifier {
 }
 
 class Camera extends StatefulWidget {
-  // Main Widget for the Camera Page. Scales the Camera input to fit the entire
-  // screen. Has buttons for taking an image/video, changing the camera, and
-  // exiting from the camera. This widget is rebuilt everytime the user changes
-  // the camera (from front camera to back camera or vica versa).
+  // Main Widget for the Camera Page. Has buttons for taking an image/video,
+  // changing the camera, and exiting from the camera. This widget is rebuilt
+  // everytime the user changes the camera (from front camera to back camera
+  // or vica versa).
 
-  Camera({@required this.cameraUsage, this.chat});
+  Camera({
+    @required this.cameraUsage,
+    this.chat,
+    this.height = 600,
+  });
 
   final CameraUsage cameraUsage;
   final Chat chat;
+  final double height;
 
   @override
   _CameraState createState() => _CameraState();
@@ -110,9 +117,6 @@ class _CameraState extends State<Camera> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-    double deviceRatio = size.width / size.height;
-
     return Scaffold(
         body: FutureBuilder(
             future: initializeCamera(),
@@ -126,45 +130,47 @@ class _CameraState extends State<Camera> {
                         controller: cameraController,
                         isFlipped: cameraIndex == 1,
                         chat: widget.chat),
-                    child: Stack(
-                      children: <Widget>[
-                        Transform.scale(
-                            scale: cameraController.value.aspectRatio /
-                                deviceRatio,
-                            child: Center(
-                                child: AspectRatio(
-                                    aspectRatio:
-                                        cameraController.value.aspectRatio,
-                                    child: CameraPreview(cameraController)))),
-                        if (widget.cameraUsage == CameraUsage.profile)
-                          ProfilePicOutline(size: MediaQuery.of(context).size),
-                        Container(
-                          alignment: Alignment.bottomLeft,
-                          padding: EdgeInsets.all(40),
-                          child: Container(
-                              width: 105,
-                              height: 105,
-                              child: Center(
-                                child: GestureDetector(
-                                  child: Button(
-                                    backgroundColor: Colors.grey[100],
-                                    buttonName: "Flip Camera",
-                                  ),
-                                  onTap: () => setState(() {
-                                    cameraIndex = (cameraIndex + 1) % 2;
-                                  }),
-                                ),
-                              )),
-                        ),
-                        PostButton(diameter: 105),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
                         Container(
                             alignment: Alignment.topLeft,
-                            padding: EdgeInsets.only(top: 50, left: 5),
+                            padding: EdgeInsets.only(top: 20, left: 5),
                             child: FlatButton(
-                                child: Button(
-                                    buttonName: "Exit Camera",
-                                    backgroundColor: Colors.white),
+                                child: BackArrow(),
                                 onPressed: () => Navigator.pop(context))),
+                        CameraView(
+                            height: widget.height,
+                            widget: CameraPreview(cameraController)),
+                        Container(
+                          padding: EdgeInsets.only(top: 5),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                alignment: Alignment.bottomLeft,
+                                child: Container(
+                                    width: 105,
+                                    height: 105,
+                                    child: Center(
+                                      child: GestureDetector(
+                                        child: Button(
+                                          backgroundColor: Colors.grey[100],
+                                          buttonName: "Flip Camera",
+                                        ),
+                                        onTap: () => setState(() {
+                                          cameraIndex = (cameraIndex + 1) % 2;
+                                        }),
+                                      ),
+                                    )),
+                              ),
+                              PostButton(diameter: 105),
+                              Container(
+                                width: 105,
+                              )
+                            ],
+                          ),
+                        ),
                       ],
                     ));
               } else {
@@ -186,6 +192,48 @@ class _CameraState extends State<Camera> {
   }
 }
 
+class CameraView extends StatelessWidget {
+  // Displays what the camera sees in a rectangular container with rounded
+  // corners.
+
+  const CameraView({
+    Key key,
+    @required this.height,
+    @required this.widget,
+  }) : super(key: key);
+
+  final double height;
+  final Widget widget;
+
+  @override
+  Widget build(BuildContext context) {
+    double width = height / globals.goldenRatio;
+    double cornerRadius = height * globals.cornerRadiusRatio;
+
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Container(
+            height: height,
+            width: width,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(cornerRadius),
+              border: Border.all(width: 1.0, color: const Color(0xff707070)),
+            ),
+          ),
+          Container(
+              height: height - 2,
+              width: width - 2,
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(cornerRadius - 1),
+                  child: widget)),
+        ],
+      ),
+    );
+  }
+}
+
 class PostButton extends StatelessWidget {
   // Button that takes an image when tapped, and takes a video when held down.
   // If a video is being recorded, then displays a red CircularProgressIndicator
@@ -204,7 +252,6 @@ class PostButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CameraProvider>(builder: (context, provider, child) {
       return Container(
-        padding: EdgeInsets.all(40),
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: <Widget>[

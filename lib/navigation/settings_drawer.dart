@@ -69,7 +69,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                       builder: (BuildContext context) {
                         return LogOutAlertDialog();
                       }).then((confirmLogOut) async {
-                    if (confirmLogOut) {
+                    if (confirmLogOut != null && confirmLogOut) {
                       await signOut();
                       if (ModalRoute.of(context).isFirst)
                         RestartWidget.restartApp(context);
@@ -131,8 +131,8 @@ class LogOutAlertDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: Colors.transparent,
       content: Container(
-        height: 100,
-        width: 300,
+        height: 120,
+        width: 320,
         decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.all(Radius.circular(25))),
@@ -140,7 +140,7 @@ class LogOutAlertDialog extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-                padding: EdgeInsets.only(bottom: 10),
+                padding: EdgeInsets.only(bottom: 20),
                 child: Text("Are you sure you want to logout?")),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
