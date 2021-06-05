@@ -38,8 +38,7 @@ class ProfilePageProvider extends ChangeNotifier {
   }
 
   Future<void> changeFollowing() async {
-    var response =
-        (isFollowing) ? await stopFollowing(user) : await startFollowing(user);
+    (isFollowing) ? await stopFollowing(user) : await startFollowing(user);
 
     isFollowing = !isFollowing;
     _setFollowingButton();

@@ -1,5 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../models/user.dart';
 import '../models/chat.dart';
@@ -12,11 +15,12 @@ import '../post/post_view.dart';
 import '../API/chats.dart';
 
 class ChatPage extends StatelessWidget {
-  // Main Widget for a chat. First makes sure that there is a document in google
-  // firestore to hold the chat. Then uses a StreamBuilder() to connect to the
-  // document that holds the chats. Returns a ListView.builder() that contains a
-  // list of every individual chat that was sent. This list updates in real
-  // time whenever a new chat is saved in the google firestore document.
+  // Sets up a stream that connects to a google firestore collection that
+  // contains data for this chat. This collection has a list of documents, each
+  // containing information about an individual chat item. Builds a list of chat
+  // item widgets based on these documents. Uses SchedulerBinding to jump to the
+  // bottom of this list (most recently sent chat item) after building this
+  // list.
 
   final Chat chat;
 
@@ -25,6 +29,7 @@ class ChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     CollectionReference chatCollection = Firestore.instance.collection("Chats");
+    ItemScrollController _scrollController = new ItemScrollController();
 
     return Scaffold(
         appBar: ChatPageHeader(
@@ -48,7 +53,12 @@ class ChatPage extends StatelessWidget {
                       if (!snapshot.hasData) {
                         return Text("No Data");
                       } else {
-                        return ListView.builder(
+                        SchedulerBinding.instance.addPostFrameCallback((_) {
+                          _scrollController.jumpTo(
+                              index: snapshot.data.documents.length - 1);
+                        });
+                        return ScrollablePositionedList.builder(
+                            itemScrollController: _scrollController,
                             itemCount: snapshot.data.documents.length,
                             itemBuilder: (context, index) {
                               if (snapshot.data.documents.length > 0) {
@@ -153,8 +163,8 @@ class ChatPageFooter extends StatelessWidget {
   }
 }
 
-class ChatItemWidget extends StatelessWidget {
-  // This widget takes a Chat() object as an input and determines who sent the
+class ChatItemWidget extends StatefulWidget {
+  // This widget takes a Chat object as an input and determines who sent the
   // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
 
   ChatItemWidget({@required this.chatItem});
@@ -162,28 +172,37 @@ class ChatItemWidget extends StatelessWidget {
   final ChatItem chatItem;
 
   @override
+  _ChatItemWidgetState createState() => _ChatItemWidgetState();
+}
+
+class _ChatItemWidgetState extends State<ChatItemWidget>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
     MainAxisAlignment chatAxisAlignment;
     Color backgroundColor;
 
-    if (chatItem.user.uid == globals.user.uid) {
+    if (widget.chatItem.user.uid == globals.user.uid) {
       chatAxisAlignment = MainAxisAlignment.end;
-      backgroundColor = Colors.orange[300];
+      backgroundColor = Colors.grey[100];
     } else {
       chatAxisAlignment = MainAxisAlignment.start;
       backgroundColor = Colors.purple[300];
     }
 
-    if (chatItem.isPost == false) {
+    if (widget.chatItem.isPost == false) {
       return ChatItemWidgetText(
-        sender: chatItem.user,
-        text: chatItem.text,
+        sender: widget.chatItem.user,
+        text: widget.chatItem.text,
         mainAxisAlignment: chatAxisAlignment,
         backgroundColor: backgroundColor,
       );
     } else {
       return ChatItemWidgetPost(
-        post: Post.fromChatItem(chatItem),
+        post: Post.fromChatItem(widget.chatItem),
         height: 200,
         mainAxisAlignment: chatAxisAlignment,
       );
@@ -213,7 +232,7 @@ class ChatItemWidgetText extends StatelessWidget {
         children: [
           Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(13)),
+                borderRadius: BorderRadius.all(Radius.circular(20)),
                 color: backgroundColor,
               ),
               padding: EdgeInsets.all(10),

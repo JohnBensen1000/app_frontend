@@ -38,6 +38,7 @@ dependencies:
   provider: ^4.3.2+3
   firebase_messaging: ^6.0.1
   visibility_detector: ^0.1.5
+  scrollable_positioned_list: ^0.1.10
   flutter:
     sdk: flutter
 
