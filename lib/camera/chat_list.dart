@@ -1,207 +1,214 @@
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-// import '../backend_connect.dart';
-// import '../models/user.dart';
+import '../models/user.dart';
+import '../models/chat.dart';
+import '../API/chats.dart';
+import '../globals.dart' as globals;
 
-// class ChatListProvider extends ChangeNotifier {
-//   // Contains state variables used throughout the page. Creates a hash table
-//   // to keep track of which friends to send the post to.
+class ChatListProvider extends ChangeNotifier {
+  // Given a list of chats that the user is part of, keeps track of which chats
+  // the user wants to share the post in. The hash table, sendingToHashMap,
+  // keeps track of whether each chat will recieve the post or not. When the
+  // user finally decides to share the post, this provider calls the function
+  // 'sendChatPost' for every chat that is selected to recieve the post.
 
-//   ChatListProvider(
-//       {@required this.friendsList,
-//       @required this.isImage,
-//       @required this.filePath}) {
-//     sendingToHashMap =
-//         Map.fromIterable(friendsList, key: (k) => k, value: (_) => false);
-//   }
+  ChatListProvider(
+      {@required this.chatsList,
+      @required this.isImage,
+      @required this.filePath}) {
+    sendingToHashMap =
+        Map.fromIterable(chatsList, key: (k) => k, value: (_) => false);
+    numChatsSelected = 0;
+  }
 
-//   final List<User> friendsList;
-//   final bool isImage;
-//   final String filePath;
+  final List<Chat> chatsList;
+  final bool isImage;
+  final String filePath;
 
-//   Map<User, bool> sendingToHashMap;
+  Map<Chat, bool> sendingToHashMap;
+  int numChatsSelected;
 
-//   void changeSendingTo(User friend) {
-//     sendingToHashMap[friend] = !sendingToHashMap[friend];
-//     notifyListeners();
-//   }
-// }
+  void changeSendingTo(Chat chat) {
+    if (!sendingToHashMap[chat])
+      numChatsSelected++;
+    else
+      numChatsSelected--;
 
-// class ChatList extends StatelessWidget {
-//   // Calls getFriendsList() to get a list of the user's friends. Initializes
-//   // ChatListProvider().
+    sendingToHashMap[chat] = !sendingToHashMap[chat];
+    notifyListeners();
+  }
 
-//   ChatList({@required this.isImage, @required this.filePath});
+  Future<void> sharePostInChats() async {
+    for (Chat chat in chatsList) {
+      if (sendingToHashMap[chat]) {
+        await sendChatPost(isImage, filePath, chat.chatID);
+      }
+    }
+  }
+}
 
-//   final bool isImage;
-//   final String filePath;
+class ChatListSnackBar extends StatelessWidget {
+  // Gets a list of chats from the server. Displays a list of chats that the
+  // user is part of and a button that allows the user to share the post in the
+  // selected chats.
+  ChatListSnackBar({@required this.isImage, @required this.filePath});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     double height = MediaQuery.of(context).size.height;
-//     double appBarHeight = 75;
+  final bool isImage;
+  final String filePath;
 
-//     return Scaffold(
-//         appBar: ChatListAppBar(height: appBarHeight),
-//         body: FutureBuilder(
-//             future: getFriendsList(),
-//             builder: (context, snapshot) {
-//               if (snapshot.connectionState == ConnectionState.done &&
-//                   snapshot.hasData) {
-//                 return ChangeNotifierProvider(
-//                   create: (context) => ChatListProvider(
-//                       friendsList: snapshot.data,
-//                       isImage: isImage,
-//                       filePath: filePath),
-//                   builder: (context, child) =>
-//                       ChatListPage(height: height - appBarHeight),
-//                 );
-//               } else {
-//                 return Center(child: Text("Loading"));
-//               }
-//             }));
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        height: 200,
+        child: FutureBuilder(
+          future: getListOfChats(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done)
+              return ChangeNotifierProvider(
+                create: (context) => ChatListProvider(
+                    chatsList: snapshot.data,
+                    isImage: isImage,
+                    filePath: filePath),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 150,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (context, index) =>
+                            ChatListWidget(chat: snapshot.data[index]),
+                      ),
+                    ),
+                    Center(
+                      child: SharePostButton(),
+                    )
+                  ],
+                ),
+              );
+            else
+              return Container();
+          },
+        ));
+  }
+}
 
-// class ChatListAppBar extends PreferredSize {
-//   final double height;
+class ChatListWidget extends StatelessWidget {
+  // Displays the icon and chat name for an individual chat. When this widget is
+  // tapped, either selects or de-selects the given chat to recieve the post.
 
-//   ChatListAppBar({@required this.height});
+  ChatListWidget({@required this.chat});
 
-//   @override
-//   Size get preferredSize => Size.fromHeight(height);
+  final Chat chat;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//       children: [
-//         Row(
-//           mainAxisAlignment: MainAxisAlignment.start,
-//           children: [
-//             Container(
-//               padding: EdgeInsets.only(left: 40, top: 40),
-//               child: GestureDetector(
-//                 child: Text("Back"),
-//                 onTap: () => Navigator.pop(context, false),
-//               ),
-//             ),
-//           ],
-//         ),
-//         Container(
-//           padding: EdgeInsets.only(bottom: 10),
-//           child: Text(
-//             "Send To:",
-//             style: TextStyle(fontSize: 32),
-//           ),
-//         )
-//       ],
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ChatListProvider>(
+      builder: (context, provider, child) => GestureDetector(
+          child: Container(
+            padding: EdgeInsets.all(10),
+            margin: EdgeInsets.all(5),
+            decoration: BoxDecoration(
+                color: (provider.sendingToHashMap[chat])
+                    ? new Color.fromRGBO(155, 155, 155, 0.5)
+                    : Colors.transparent,
+                border: Border.all(
+                  color: Colors.grey[600],
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            child: Column(
+              children: [
+                chat.chatIcon,
+                Container(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Text(
+                    chat.chatName,
+                    style: TextStyle(color: Colors.black),
+                  ),
+                )
+              ],
+            ),
+          ),
+          onTap: () => provider.changeSendingTo(chat)),
+    );
+  }
+}
 
-// class ChatListPage extends StatefulWidget {
-//   // Returns a ListView.builder() of all of the user's friends. Each friend is
-//   // colored differently based on whether or not they will recieve the post.
-//   // This widget is rebuilt every time the user adds/removes a friend from
-//   // recieving the post.
+class SharePostButton extends StatefulWidget {
+  // When pressed, sends the post to all the selected chats. Displays the number
+  // of chats that have been selected. If no chats are selected, then notifies
+  // the user (via an AlertDialog) that no chats have been selected.
 
-//   const ChatListPage({
-//     @required this.height,
-//     Key key,
-//   }) : super(key: key);
+  const SharePostButton({
+    Key key,
+  }) : super(key: key);
 
-//   final double height;
+  @override
+  _SharePostButtonState createState() => _SharePostButtonState();
+}
 
-//   @override
-//   _ChatListPageState createState() => _ChatListPageState();
-// }
+class _SharePostButtonState extends State<SharePostButton> {
+  bool buttonPressed = false;
 
-// class _ChatListPageState extends State<ChatListPage> {
-//   Color sendButtonColor = Colors.grey[200];
-//   bool allowSend = true;
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ChatListProvider>(
+        builder: (context, provider, child) => GestureDetector(
+            child: Container(
+                width: 200,
+                height: 40,
+                decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey[600],
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(15))),
+                child: Center(
+                    child: Text("Send To ${provider.numChatsSelected} Chats",
+                        style: TextStyle(
+                          color: (provider.numChatsSelected > 0)
+                              ? Colors.black
+                              : Colors.grey[400],
+                          fontSize: 20,
+                        )))),
+            onTap: () async {
+              if (!buttonPressed) {
+                if (provider.numChatsSelected == 0) {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return NoChatsSelectedAlert();
+                      });
+                } else {
+                  setState(() {
+                    buttonPressed = true;
+                  });
+                  await provider.sharePostInChats();
+                  Navigator.pop(context);
+                }
+              }
+            }));
+  }
+}
 
-//   @override
-//   Widget build(BuildContext context) {
-//     double sendButtonHeight = 100;
+class NoChatsSelectedAlert extends StatelessWidget {
+  // An alert dialog that tells the user that no chats have been selected.
 
-//     return Consumer<ChatListProvider>(
-//       builder: (context, provider, child) => Container(
-//         child: Column(
-//           children: [
-//             Container(
-//               height: widget.height - sendButtonHeight - 47,
-//               child: ListView.builder(
-//                   itemCount: provider.friendsList.length,
-//                   itemBuilder: (BuildContext context, int index) {
-//                     return ChatListItem(friend: provider.friendsList[index]);
-//                   }),
-//             ),
-//             GestureDetector(
-//                 child: Container(
-//                   height: sendButtonHeight,
-//                   color: sendButtonColor,
-//                   child: Center(
-//                     child: Text(
-//                       "Send",
-//                       style: TextStyle(fontSize: 32),
-//                     ),
-//                   ),
-//                 ),
-//                 onTapDown: (_) async {
-//                   setState(() {
-//                     sendButtonColor = Colors.grey[400];
-//                   });
-//                 },
-//                 onTapUp: (_) async {
-//                   setState(() {
-//                     sendButtonColor = Colors.grey[200];
-//                   });
-//                   if (allowSend) {
-//                     allowSend = false;
-//                     await sendPostInChats(context);
-//                     Navigator.pop(context);
-//                   }
-//                 }),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   Future<void> sendPostInChats(BuildContext context) async {
-//     ChatListProvider provider =
-//         Provider.of<ChatListProvider>(context, listen: false);
-
-//     for (User friend in provider.friendsList) {
-//       if (provider.sendingToHashMap[friend])
-//         await sendPostInChat(friend, provider.isImage, provider.filePath);
-//     }
-//   }
-// }
-
-// class ChatListItem extends StatelessWidget {
-//   const ChatListItem({@required this.friend, Key key}) : super(key: key);
-
-//   final User friend;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     ChatListProvider provider =
-//         Provider.of<ChatListProvider>(context, listen: false);
-
-//     Color color =
-//         (provider.sendingToHashMap[friend]) ? Colors.red : Colors.grey[100];
-
-//     return GestureDetector(
-//       child: Container(
-//         height: 75,
-//         color: color,
-//         child: Center(child: Text(friend.username)),
-//       ),
-//       onTap: () => Provider.of<ChatListProvider>(context, listen: false)
-//           .changeSendingTo(friend),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        backgroundColor: Colors.transparent,
+        content: Container(
+          height: 75,
+          width: 100,
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(16))),
+          child: Center(
+            child: Text("You have not selected any chats.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black)),
+          ),
+        ));
+  }
+}

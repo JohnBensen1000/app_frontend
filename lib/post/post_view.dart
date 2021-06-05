@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/profile/profile_pic.dart';
+import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +9,6 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 import '../models/post.dart';
 
 import '../profile/profile_page.dart';
-import '../backend_connect.dart';
 import 'post.dart';
 import '../comments/comments.dart';
 
@@ -315,32 +314,31 @@ class VideoContainer extends StatelessWidget {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return VisibilityDetector(
-                key: Key("unique key"),
-                child: Container(
-                    width: provider.height / provider.aspectRatio - 2,
-                    height: provider.height - 2,
-                    child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(provider.cornerRadius - 1),
-                        child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: SizedBox(
-                                height: provider.videoPlayerController.value
-                                        .size?.height ??
-                                    0,
-                                width: provider.videoPlayerController.value.size
-                                        ?.width ??
-                                    0,
-                                child: VideoPlayer(
-                                  provider.videoPlayerController,
-                                ))))),
-                // onVisibilityChanged: (VisibilityInfo info) {
-                //   if (provider.playOnInit && info.visibleFraction == 1.0)
-                //     provider.videoPlayerController.play();
-                //   else
-                //     provider.videoPlayerController.pause();
-                // }
-              );
+                  key: Key("unique key"),
+                  child: Container(
+                      width: provider.height / provider.aspectRatio - 2,
+                      height: provider.height - 2,
+                      child: ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(provider.cornerRadius - 1),
+                          child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                  height: provider.videoPlayerController.value
+                                          .size?.height ??
+                                      0,
+                                  width: provider.videoPlayerController.value
+                                          .size?.width ??
+                                      0,
+                                  child: VideoPlayer(
+                                    provider.videoPlayerController,
+                                  ))))),
+                  onVisibilityChanged: (VisibilityInfo info) {
+                    if (provider.playOnInit && info.visibleFraction == 1.0)
+                      provider.videoPlayerController.play();
+                    else
+                      provider.videoPlayerController.pause();
+                  });
             } else
               return Container();
           });

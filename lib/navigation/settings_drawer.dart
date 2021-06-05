@@ -5,7 +5,7 @@ import '../models/user.dart';
 import '../API/authentication.dart';
 import '../globals.dart' as globals;
 import '../profile/profile_page.dart';
-import '../profile/profile_pic.dart';
+import '../widgets/profile_pic.dart';
 import '../camera/camera.dart';
 import 'choose_color.dart';
 

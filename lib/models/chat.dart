@@ -1,11 +1,14 @@
+import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../globals.dart' as globals;
+import '../widgets/profile_pic.dart';
 
 class Chat {
   String chatID;
   String chatName;
   bool isDirectMessage;
   List<User> members;
+  Widget chatIcon;
 
   Chat.fromJson(Map chatJson) {
     this.chatID = chatJson["chatID"];
@@ -15,10 +18,12 @@ class Chat {
     ];
     this.members.removeWhere((item) => item.uid == globals.user.uid);
 
-    if (this.isDirectMessage)
+    if (this.isDirectMessage) {
       this.chatName = this.members[0].username;
-    else
+      this.chatIcon = ProfilePic(diameter: 85, user: this.members[0]);
+    } else {
       this.chatName = chatJson['chatName'];
+    }
   }
 }
 

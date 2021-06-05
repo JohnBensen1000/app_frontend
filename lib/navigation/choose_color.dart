@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/models/chat.dart';
 
 import '../friends/chat_page.dart';
 import '../globals.dart' as globals;
-import '../profile/profile_pic.dart';
+import '../widgets/profile_pic.dart';
 import '../friends/friends_page.dart';
 import '../profile/profile_page.dart';
 import '../widgets/back_arrow.dart';
@@ -163,13 +164,10 @@ class ChooseColorWidget extends StatelessWidget {
               color: colorStruct.color,
             ),
             ComponentTitleWidget(text: 'How your friends will see you:'),
-            ChatWidget(
-                chatName: globals.user.username,
-                color: colorStruct.color,
-                chatProfile: ProfilePic(
-                    diameter: 85,
-                    user: globals.user,
-                    color: colorStruct.color)),
+            // ChatWidget(
+            //   chat: chat,
+            //   color: colorStruct.color,
+            // ),
             ComponentTitleWidget(text: 'How your texts will look:'),
             ChatItemWidgetText(
               backgroundColor: colorStruct.color,

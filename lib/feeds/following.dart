@@ -3,7 +3,6 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-import '../backend_connect.dart';
 import 'post_list.dart';
 import '../API/new_content.dart';
 

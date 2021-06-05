@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/profile/profile_pic.dart';
+import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 
@@ -63,20 +63,19 @@ class FriendsPage extends StatelessWidget {
                 itemBuilder: (BuildContext context, int index) {
                   Chat chat = chatstList[index];
                   return FlatButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ChatPage(
-                                    chat: chat,
-                                  )),
-                        );
-                      },
-                      child: ChatWidget(
-                        chatName: chat.chatName,
-                        chatProfile:
-                            ProfilePic(diameter: 85, user: chat.members[0]),
-                      ));
+                    child: ChatWidget(
+                      chat: chat,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChatPage(
+                                  chat: chat,
+                                )),
+                      );
+                    },
+                  );
                 })),
       ],
     );
@@ -154,15 +153,10 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
 }
 
 class ChatWidget extends StatelessWidget {
-  const ChatWidget(
-      {Key key,
-      @required this.chatName,
-      @required this.chatProfile,
-      this.color = Colors.blue})
+  const ChatWidget({Key key, @required this.chat, this.color = Colors.blue})
       : super(key: key);
 
-  final String chatName;
-  final Widget chatProfile;
+  final Chat chat;
   final Color color;
 
   @override
@@ -181,14 +175,14 @@ class ChatWidget extends StatelessWidget {
             padding: EdgeInsets.only(left: 20),
             child: Row(
               children: <Widget>[
-                chatProfile,
+                chat.chatIcon,
                 Container(
                   padding: EdgeInsets.only(left: 10),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        chatName,
+                        chat.chatName,
                         style: TextStyle(
                           fontFamily: 'SF Pro Text',
                           fontSize: 24,

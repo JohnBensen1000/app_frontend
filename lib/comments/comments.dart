@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/profile/profile_pic.dart';
+import 'package:test_flutter/widgets/profile_pic.dart';
 
 import '../models/post.dart';
 import '../models/comment.dart';
 
-import '../backend_connect.dart';
 import 'widgets/add_comment_button.dart';
 import 'comments_page.dart';
 import '../API/comments.dart';

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/camera/chat_list.dart';
+import 'package:video_player/video_player.dart';
 
 import '../models/chat.dart';
 
@@ -12,8 +14,6 @@ import '../API/chats.dart';
 import '../globals.dart' as globals;
 import 'camera.dart';
 import 'widgets/button.dart';
-import 'widgets/video_preview.dart';
-import 'widgets/profile_pic_outline.dart';
 import '../widgets/back_arrow.dart';
 
 class PreviewProvider extends ChangeNotifier {
@@ -95,8 +95,6 @@ class PreviewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double height = 600;
-    double width = height / globals.goldenRatio;
-    double cornerRadius = height * globals.cornerRadiusRatio;
 
     return Consumer<PreviewProvider>(
         builder: (context, provider, child) =>
@@ -107,8 +105,7 @@ class PreviewPage extends StatelessWidget {
                   child: FlatButton(
                       child: BackArrow(),
                       onPressed: () => Navigator.pop(context))),
-              PreviewView(
-                  height: height, width: width, cornerRadius: cornerRadius),
+              PreviewView(height: height),
               Container(
                   padding: EdgeInsets.only(left: 20, top: 40, bottom: 40),
                   child: Column(
@@ -126,22 +123,19 @@ class PreviewPage extends StatelessWidget {
 }
 
 class PreviewView extends StatelessWidget {
-  // Displays the post preview sees in a rectangular container with rounded
-  // corners.
+  // Displays the post preview in a rectangular container with rounded corners.
 
   const PreviewView({
     Key key,
     @required this.height,
-    @required this.width,
-    @required this.cornerRadius,
   }) : super(key: key);
 
   final double height;
-  final double width;
-  final double cornerRadius;
 
   @override
   Widget build(BuildContext context) {
+    double width = height / globals.goldenRatio;
+    double cornerRadius = height * globals.cornerRadiusRatio;
     PreviewProvider provider =
         Provider.of<PreviewProvider>(context, listen: false);
 
@@ -160,18 +154,72 @@ class PreviewView extends StatelessWidget {
             width: width - 2,
             child: ClipRRect(
                 borderRadius: BorderRadius.circular(cornerRadius - 1),
-                child: FittedBox(
-                    fit: BoxFit.cover,
-                    child: (provider.isImage)
-                        ? Image(
-                            image: Image.file(File(provider.filePath)).image)
-                        : VideoPreview(file: File(provider.filePath))))),
+                child: (provider.isImage)
+                    ? FittedBox(
+                        fit: BoxFit.cover,
+                        child: Image(
+                            image: Image.file(File(provider.filePath)).image))
+                    : VideoPreview(file: File(provider.filePath)))),
       ]),
     );
   }
 }
 
-class PostOptions extends StatelessWidget {
+class VideoPreview extends StatefulWidget {
+  VideoPreview({Key key, @required this.file}) : super(key: key);
+
+  final File file;
+
+  @override
+  _VideoPreviewState createState() => _VideoPreviewState();
+}
+
+class _VideoPreviewState extends State<VideoPreview> {
+  VideoPlayerController videoController;
+
+  @override
+  void dispose() {
+    videoController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: initializeVideoController(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return VideoPlayer(videoController);
+        } else {
+          return Center(child: Text("Loading..."));
+        }
+      },
+    );
+  }
+
+  Future<void> initializeVideoController() async {
+    print(widget.file);
+    videoController = VideoPlayerController.file(widget.file);
+    await videoController.initialize();
+    await videoController.setLooping(true);
+    await videoController.play();
+  }
+}
+
+class PostOptions extends StatefulWidget {
+  // Displays a list of options for what to do with the post. These options
+  // include posting the post publicly and sharing the post in selected group
+  // chats. If the user decides to share the post, then a SnackBar() is
+  // displayed that allows the user to select which chats to send the post in.
+
+  @override
+  _PostOptionsState createState() => _PostOptionsState();
+}
+
+class _PostOptionsState extends State<PostOptions> {
+  bool showOptions = true;
+
   @override
   Widget build(BuildContext context) {
     PreviewProvider provider =
@@ -182,36 +230,47 @@ class PostOptions extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          GestureDetector(
-            child:
-                Button(buttonName: "Post", backgroundColor: Colors.grey[200]),
-            onTap: () async {
-              if (provider.allowNewPost) {
-                provider.allowNewPost = false;
-                await uploadPost(provider.isImage, false, provider.filePath);
-                int count = 0;
-                Navigator.popUntil(context, (route) {
-                  return count++ == 2;
-                });
-              }
-            },
-          ),
-          GestureDetector(
-            child:
-                Button(buttonName: "Share", backgroundColor: Colors.grey[200]),
-            // onTap: () {
-            //   if (!provider.isImage) provider.playVideo = false;
-            //   Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //           builder: (context) => ChatList(
-            //                 isImage: provider.isImage,
-            //                 filePath: provider.filePath,
-            //               ))).then((value) {
-            //     if (!provider.isImage) provider.playVideo = true;
-            //   });
-            // },
-          ),
+          if (showOptions)
+            GestureDetector(
+              child:
+                  Button(buttonName: "Post", backgroundColor: Colors.grey[200]),
+              onTap: () async {
+                if (provider.allowNewPost) {
+                  provider.allowNewPost = false;
+                  await uploadPost(provider.isImage, false, provider.filePath);
+                  int count = 0;
+                  Navigator.popUntil(context, (route) {
+                    return count++ == 2;
+                  });
+                }
+              },
+            ),
+          if (showOptions)
+            GestureDetector(
+                child: Button(
+                    buttonName: "Share", backgroundColor: Colors.grey[200]),
+                onTap: () {
+                  setState(() {
+                    showOptions = false;
+                  });
+                  Scaffold.of(context)
+                      .showSnackBar(SnackBar(
+                        backgroundColor: Colors.white.withOpacity(.7),
+                        duration: Duration(days: 365),
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(30))),
+                        padding: EdgeInsets.only(left: 5, right: 5),
+                        content: ChatListSnackBar(
+                          isImage: provider.isImage,
+                          filePath: provider.filePath,
+                        ),
+                      ))
+                      .closed
+                      .then((value) => setState(() {
+                            showOptions = true;
+                          }));
+                })
         ],
       ),
     );

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../backend_connect.dart';
 import '../post/post_view.dart';
 import '../models/user.dart';
 

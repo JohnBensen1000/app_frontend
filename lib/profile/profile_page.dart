@@ -11,7 +11,7 @@ import '../globals.dart' as globals;
 import '../API/relations.dart';
 import '../API/posts.dart';
 
-import 'profile_pic.dart';
+import '../widgets/profile_pic.dart';
 import '../widgets/back_arrow.dart';
 
 class ProfilePageProvider extends ChangeNotifier {

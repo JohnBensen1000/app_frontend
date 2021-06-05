@@ -8,11 +8,11 @@ import 'widgets/account_app_bar.dart';
 import 'widgets/input_field.dart';
 import 'widgets/account_submit_button.dart';
 
+import '../globals.dart' as globals;
+import '../API/authentication.dart';
 import '../models/user.dart';
 
 import '../navigation/home_screen.dart';
-import '../API/authentication.dart';
-import '../globals.dart' as globals;
 
 FirebaseAuth auth = FirebaseAuth.instance;
 

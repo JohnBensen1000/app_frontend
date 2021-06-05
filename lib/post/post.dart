@@ -7,7 +7,6 @@ import '../models/post.dart';
 import '../models/user.dart';
 
 import '../globals.dart' as globals;
-import '../backend_connect.dart';
 import 'post_view.dart';
 import '../widgets/back_arrow.dart';
 
