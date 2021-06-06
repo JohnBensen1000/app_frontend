@@ -80,8 +80,12 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                 }),
             SettingsButton(
               buttonName: "Choose color",
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ChooseColorPage())),
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChooseColorPage())).then((value) {
+                setState(() {});
+              }),
             )
           ],
         ),

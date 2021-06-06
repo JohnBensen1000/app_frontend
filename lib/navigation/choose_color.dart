@@ -2,34 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/models/chat.dart';
 
+import '../models/user.dart';
 import '../friends/chat_page.dart';
 import '../globals.dart' as globals;
 import '../widgets/profile_pic.dart';
 import '../friends/friends_page.dart';
-import '../profile/profile_page.dart';
 import '../widgets/back_arrow.dart';
 
-class ColorStruct {
-  ColorStruct(
-      {@required this.color, @required this.softColor, @required this.name});
+import '../API/users.dart';
 
-  final Color color;
-  final Color softColor;
-  final String name;
+class ColorStruct {
+  // Contains information about an individual color, including it's Color
+  // object, a lighter version of the color, and its name.
+
+  Color color;
+  Color softColor;
+  String name;
+
+  ColorStruct({@required this.color, @required this.name}) {
+    this.softColor = Color.fromARGB(
+        this.color.alpha,
+        this.color.red + ((255 - this.color.red) * .9).round(),
+        this.color.green + ((255 - this.color.green) * .9).round(),
+        this.color.blue + ((255 - this.color.blue) * .9).round());
+  }
 }
 
 class ChooseColorProvider extends ChangeNotifier {
+  // Keep a list of ColorStructs, which is created from globals.colorsMap. Also
+  // keeps track of the index of the chosen color.
+
   final List<ColorStruct> colorStructs = [
-    ColorStruct(color: Colors.red, softColor: Colors.red[50], name: 'red'),
-    ColorStruct(color: Colors.blue, softColor: Colors.blue[50], name: 'blue'),
-    ColorStruct(
-        color: Colors.yellow, softColor: Colors.yellow[50], name: 'yellow'),
-    ColorStruct(
-        color: Colors.green, softColor: Colors.green[50], name: 'green'),
-    ColorStruct(
-        color: Colors.purple, softColor: Colors.purple[50], name: 'purple'),
-    ColorStruct(
-        color: Colors.orange, softColor: Colors.orange[50], name: 'orange'),
+    for (String key in globals.colorsMap.keys)
+      ColorStruct(color: globals.colorsMap[key], name: key)
   ];
 
   int _chosenIndex = -1;
@@ -45,9 +50,14 @@ class ChooseColorProvider extends ChangeNotifier {
 }
 
 class ChooseColorPage extends StatelessWidget {
+  // The page is divided into two sections: a header and a listView.builder. The
+  // header displays the chosen color and allows the user to save the chosen
+  // color. The ListView.builder displays how different aspects of a User's
+  // account will look in a given color.
+
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 125;
+    double headerHeight = 150;
 
     return Scaffold(
         body: ChangeNotifierProvider(
@@ -77,6 +87,8 @@ class ChooseColorPage extends StatelessWidget {
 }
 
 class ChooseColorHeader extends StatelessWidget {
+  // Maintains a ColorStruct variable given the chosen color. Allows the user
+  // to save the chosen color and exit the page.
   ChooseColorHeader({@required this.height});
 
   final double height;
@@ -122,7 +134,27 @@ class ChooseColorHeader extends StatelessWidget {
                   ),
                 )
             ],
-          )
+          ),
+          Center(
+              child: GestureDetector(
+                  child: Container(
+                    width: 75,
+                    height: 25,
+                    decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.all(Radius.circular(10))),
+                    child: Center(
+                      child: Text(
+                        "Save",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  onTap: () async {
+                    await updateColor(chosenColor.name);
+                    globals.user.profileColor = chosenColor.color;
+                    Navigator.pop(context);
+                  }))
         ],
       ),
     );
@@ -130,6 +162,10 @@ class ChooseColorHeader extends StatelessWidget {
 }
 
 class ChooseColorWidget extends StatelessWidget {
+  // Creates a tempUser variable so that a User object with the given color
+  // could be passed into different widgets. Shows what the user's profile page
+  // header, direct message chat widget, and text messages will look like with
+  // the given color.
   const ChooseColorWidget({
     Key key,
     @required this.colorStruct,
@@ -144,35 +180,48 @@ class ChooseColorWidget extends StatelessWidget {
     ChooseColorProvider provider =
         Provider.of<ChooseColorProvider>(context, listen: false);
 
-    Color backgroundColor =
-        (index == provider.chosenIndex) ? colorStruct.softColor : Colors.white;
+    User tempUser = User(
+        profileColor: colorStruct.color,
+        username: globals.user.username,
+        userID: globals.user.userID,
+        uid: globals.user.uid);
 
     return GestureDetector(
       child: Container(
         padding: EdgeInsets.all(10),
         margin: EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: backgroundColor,
+          color: (index == provider.chosenIndex)
+              ? colorStruct.softColor
+              : Colors.white,
           border: Border.all(color: Colors.grey[600]),
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
         child: Column(
           children: [
-            ComponentTitleWidget(text: 'How your profile will look:'),
-            ProfilePageHeader(
-              user: globals.user,
-              color: colorStruct.color,
-            ),
-            ComponentTitleWidget(text: 'How your friends will see you:'),
-            // ChatWidget(
-            //   chat: chat,
+            // ComponentTitleWidget(text: 'How your profile will look:'),
+            // ProfilePageHeader(
+            //   user: globals.user,
             //   color: colorStruct.color,
             // ),
+            ComponentTitleWidget(text: 'How your friends will see you:'),
+            ChatWidget(
+              chat: Chat(
+                  'chatID',
+                  tempUser.username,
+                  true,
+                  [tempUser],
+                  ProfilePic(
+                    diameter: 85,
+                    user: tempUser,
+                  ),
+                  colorStruct.color),
+            ),
             ComponentTitleWidget(text: 'How your texts will look:'),
             ChatItemWidgetText(
               backgroundColor: colorStruct.color,
               text: "This is what a text would look like.",
-              sender: globals.user,
+              sender: tempUser,
               mainAxisAlignment: MainAxisAlignment.start,
             )
           ],

@@ -121,11 +121,9 @@ class ProfilePageHeader extends StatelessWidget {
 
   ProfilePageHeader({
     @required this.user,
-    this.color = Colors.blue,
   });
 
   final User user;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +133,7 @@ class ProfilePageHeader extends StatelessWidget {
           Container(
             height: 15,
           ),
-          ProfilePic(diameter: 148, user: user, color: color),
+          ProfilePic(diameter: 148, user: user),
           Container(
             child: Text(
               '${user.username}',

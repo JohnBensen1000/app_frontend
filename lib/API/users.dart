@@ -18,3 +18,9 @@ Future<List<User>> searchUsers(String searchString) async {
 
   return creatorsList;
 }
+
+Future<bool> updateColor(String profileColor) async {
+  Map<String, String> postBody = {'profileColor': profileColor};
+
+  return await BaseAPI().post('v1/users/${globals.user.uid}/', postBody);
+}

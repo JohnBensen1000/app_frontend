@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/scheduler.dart';
@@ -190,7 +189,7 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
       backgroundColor = Colors.grey[100];
     } else {
       chatAxisAlignment = MainAxisAlignment.start;
-      backgroundColor = Colors.purple[300];
+      backgroundColor = widget.chatItem.user.profileColor;
     }
 
     if (widget.chatItem.isPost == false) {

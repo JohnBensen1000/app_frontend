@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/user.dart';
 import '../globals.dart' as globals;
 import '../widgets/profile_pic.dart';
@@ -9,6 +10,10 @@ class Chat {
   bool isDirectMessage;
   List<User> members;
   Widget chatIcon;
+  Color color;
+
+  Chat(this.chatID, this.chatName, this.isDirectMessage, this.members,
+      this.chatIcon, this.color);
 
   Chat.fromJson(Map chatJson) {
     this.chatID = chatJson["chatID"];
@@ -21,8 +26,10 @@ class Chat {
     if (this.isDirectMessage) {
       this.chatName = this.members[0].username;
       this.chatIcon = ProfilePic(diameter: 85, user: this.members[0]);
+      this.color = this.members[0].profileColor;
     } else {
       this.chatName = chatJson['chatName'];
+      this.color = Colors.blue;
     }
   }
 }

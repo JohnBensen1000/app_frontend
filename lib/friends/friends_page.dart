@@ -153,11 +153,9 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
 }
 
 class ChatWidget extends StatelessWidget {
-  const ChatWidget({Key key, @required this.chat, this.color = Colors.blue})
-      : super(key: key);
+  const ChatWidget({Key key, @required this.chat}) : super(key: key);
 
   final Chat chat;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +166,7 @@ class ChatWidget extends StatelessWidget {
           height: 118.0,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(61.0),
-            border: Border.all(width: 2.0, color: color),
+            border: Border.all(width: 2.0, color: chat.color),
             color: Colors.white,
           ),
           child: Container(

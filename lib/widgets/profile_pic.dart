@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter/globals.dart';
 
 import '../post/post_view.dart';
 import '../models/user.dart';
@@ -10,12 +11,10 @@ class Profile extends StatelessWidget {
   // profile image/video is inside of a colored circle. The color of this circle
   // is determined by the user.
 
-  Profile(
-      {@required this.diameter, @required this.user, this.color = Colors.blue});
+  Profile({@required this.diameter, @required this.user});
 
   final double diameter;
   final User user;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +49,10 @@ class ProfilePic extends StatelessWidget {
   // widgets: a circular profile post and a blue cicular outline that goes
   // around the profile post.
 
-  ProfilePic(
-      {@required this.diameter, @required this.user, this.color = Colors.blue});
+  ProfilePic({@required this.diameter, @required this.user});
 
   final double diameter;
   final User user;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -85,8 +82,8 @@ class ProfilePic extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.all(
                               Radius.elliptical(9999.0, 9999.0)),
-                          border:
-                              Border.all(width: .02 * diameter, color: color),
+                          border: Border.all(
+                              width: .02 * diameter, color: user.profileColor),
                         ),
                       );
                   })),
@@ -96,7 +93,8 @@ class ProfilePic extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius:
                     BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                border: Border.all(width: .02 * diameter, color: color),
+                border:
+                    Border.all(width: .02 * diameter, color: user.profileColor),
               )),
         ],
       ),
