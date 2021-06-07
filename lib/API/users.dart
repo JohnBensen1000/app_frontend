@@ -24,3 +24,9 @@ Future<bool> updateColor(String profileColor) async {
 
   return await BaseAPI().post('v1/users/${globals.user.uid}/', postBody);
 }
+
+Future<User> getUserFromUID(String uid) async {
+  var response = await BaseAPI().get('v1/users/$uid/');
+
+  return User.fromJson(response['user']);
+}

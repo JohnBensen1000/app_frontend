@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../API/users.dart';
+
 import '../globals.dart' as globals;
 
 class User {
@@ -14,6 +17,10 @@ class User {
     this.username = userJson['username'];
     this.uid = userJson['uid'];
     this.profileColor = globals.colorsMap[userJson['profileColor']];
+  }
+
+  User.fromUID(String uid) {
+    Future<User> user = getUserFromUID(uid);
   }
 
   Map toDict() {

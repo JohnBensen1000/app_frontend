@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../API/users.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 
@@ -111,14 +112,21 @@ class CommentPageHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              ProfilePic(diameter: 55, user: comment.user),
-              Container(
-                  padding: EdgeInsets.only(left: 5),
-                  child: Text(comment.user.userID)),
-            ],
-          ),
+          FutureBuilder(
+              future: getUserFromUID(comment.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done)
+                  return Row(
+                    children: <Widget>[
+                      ProfilePic(diameter: 55, user: snapshot.data),
+                      Container(
+                          padding: EdgeInsets.only(left: 5),
+                          child: Text(snapshot.data.userID)),
+                    ],
+                  );
+                else
+                  return Container();
+              }),
           Container(
             padding: EdgeInsets.only(left: 10),
             child: Text(

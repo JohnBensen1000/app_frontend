@@ -23,7 +23,7 @@ Future<bool> postComment(
   Map postBody = {
     "path": commentPath,
     "comment": commentText,
-    "user": globals.user.toDict()
+    "uid": globals.user.uid
   };
 
   return await BaseAPI().post('v1/comments/${post.postID}/', postBody);

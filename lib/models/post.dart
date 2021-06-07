@@ -20,7 +20,7 @@ class Post {
   }
 
   Post.fromChatItem(ChatItem chatItem) {
-    this.creator = chatItem.user;
+    this.creator = null;
     this.postID = null;
     this.isImage = chatItem.post['isImage'];
     this.downloadURL = chatItem.post["downloadURL"];

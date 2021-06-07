@@ -36,13 +36,13 @@ class Chat {
 
 class ChatItem {
   bool isPost;
-  User user;
+  String uid;
   String text;
   Map post;
 
   ChatItem.fromFirebase(Map chatItemJson) {
     this.isPost = chatItemJson['isPost'];
-    this.user = User.fromJson(chatItemJson['user']);
+    this.uid = chatItemJson['uid'];
     if (this.isPost)
       this.post = {
         'isImage': chatItemJson['post']['isImage'],

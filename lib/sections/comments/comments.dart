@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/users.dart';
 import 'package:test_flutter/widgets/profile_pic.dart';
 
 import '../../API/comments.dart';
@@ -176,51 +177,59 @@ class CommentWidget extends StatelessWidget {
     double width = MediaQuery.of(context).size.width - leftPadding;
 
     return Container(
-      padding: EdgeInsets.only(top: 5, bottom: 5, left: leftPadding),
-      child: Stack(
-        children: <Widget>[
-          Column(
-            children: <Widget>[
-              Row(
+        padding: EdgeInsets.only(top: 5, bottom: 5, left: leftPadding),
+        child: FutureBuilder(
+          future: getUserFromUID(comment.uid),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done)
+              return Stack(
                 children: <Widget>[
-                  if (showReplyBotton)
-                    ProfilePic(diameter: 45, user: comment.user),
                   Column(
-                    children: [
-                      Text(
-                        comment.user.userID,
-                        style: TextStyle(
-                          fontFamily: 'Helvetica Neue',
-                          fontSize: 15,
-                          color: const Color(0xff707070),
-                        ),
-                        textAlign: TextAlign.left,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          if (showReplyBotton)
+                            ProfilePic(diameter: 45, user: snapshot.data),
+                          Column(
+                            children: [
+                              Text(
+                                snapshot.data.userID,
+                                style: TextStyle(
+                                  fontFamily: 'Helvetica Neue',
+                                  fontSize: 15,
+                                  color: const Color(0xff707070),
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                              if (showReplyBotton)
+                                GestureDetector(
+                                    child: Text("Reply"),
+                                    onTap: () async =>
+                                        await replyToComment(context))
+                            ],
+                          ),
+                        ],
                       ),
-                      if (showReplyBotton)
-                        GestureDetector(
-                            child: Text("Reply"),
-                            onTap: () async => await replyToComment(context))
                     ],
                   ),
+                  Container(
+                    padding: EdgeInsets.only(left: .35 * width),
+                    child: Text(
+                      comment.commentText,
+                      style: TextStyle(
+                        fontFamily: 'Helvetica Neue',
+                        fontSize: 18,
+                        color: const Color(0xff000000),
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
                 ],
-              ),
-            ],
-          ),
-          Container(
-            padding: EdgeInsets.only(left: .35 * width),
-            child: Text(
-              comment.commentText,
-              style: TextStyle(
-                fontFamily: 'Helvetica Neue',
-                fontSize: 18,
-                color: const Color(0xff000000),
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ],
-      ),
-    );
+              );
+            else
+              return Container();
+          },
+        ));
   }
 
   List<Comment> getSubComments(Comment comment) {

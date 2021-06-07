@@ -8,6 +8,15 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 import '../models/post.dart';
 
 class PostRepository {
+  // Responsible for downloading images/videos from google storage. Has three
+  // hash maps, imageProviders, thumbnails, and videoPlayers, that are each
+  // responsible for storing a different data type. This repository is used to
+  // locally store posts so that a seperate call to Google Storage is not needed
+  // for every time a post is used. Each post in the hash maps is a key value
+  // pair, where the key is a post's postID, and the value is the post itself.
+  // Each function has a boolean argument, 'saveInMemory', that determines if a
+  // post is actually stored locally.
+
   HashMap imageProviders = new HashMap<String, ImageProvider>();
   HashMap thumbnails = new HashMap<String, Future<Uint8List>>();
   HashMap videoPlayers = new HashMap<String, VideoPlayerController>();
@@ -22,7 +31,6 @@ class PostRepository {
 
     if (saveInMemory) imageProviders[postID] = imageProvider;
 
-    print(imageProviders.keys);
     return imageProvider;
   }
 

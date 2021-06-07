@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:test_flutter/API/users.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/chats.dart';
@@ -48,9 +49,7 @@ class ChatPage extends StatelessWidget {
                         .orderBy('time')
                         .snapshots(),
                     builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return Text("No Data");
-                      } else {
+                      if (snapshot.hasData) {
                         SchedulerBinding.instance.addPostFrameCallback((_) {
                           _scrollController.jumpTo(
                               index: snapshot.data.documents.length - 1);
@@ -66,6 +65,8 @@ class ChatPage extends StatelessWidget {
                               } else
                                 return Container();
                             });
+                      } else {
+                        return Container();
                       }
                     }),
               ),
@@ -183,28 +184,36 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
     MainAxisAlignment chatAxisAlignment;
     Color backgroundColor;
 
-    if (widget.chatItem.user.uid == globals.user.uid) {
-      chatAxisAlignment = MainAxisAlignment.end;
-      backgroundColor = Colors.grey[100];
-    } else {
-      chatAxisAlignment = MainAxisAlignment.start;
-      backgroundColor = widget.chatItem.user.profileColor;
-    }
+    return FutureBuilder(
+        future: getUserFromUID(widget.chatItem.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.data.uid == globals.user.uid) {
+              chatAxisAlignment = MainAxisAlignment.end;
+              backgroundColor = Colors.grey[100];
+            } else {
+              chatAxisAlignment = MainAxisAlignment.start;
+              backgroundColor = snapshot.data.profileColor;
+            }
 
-    if (widget.chatItem.isPost == false) {
-      return ChatItemWidgetText(
-        sender: widget.chatItem.user,
-        text: widget.chatItem.text,
-        mainAxisAlignment: chatAxisAlignment,
-        backgroundColor: backgroundColor,
-      );
-    } else {
-      return ChatItemWidgetPost(
-        post: Post.fromChatItem(widget.chatItem),
-        height: 200,
-        mainAxisAlignment: chatAxisAlignment,
-      );
-    }
+            if (widget.chatItem.isPost == false) {
+              return ChatItemWidgetText(
+                sender: snapshot.data,
+                text: widget.chatItem.text,
+                mainAxisAlignment: chatAxisAlignment,
+                backgroundColor: backgroundColor,
+              );
+            } else {
+              return ChatItemWidgetPost(
+                post: Post.fromChatItem(widget.chatItem),
+                height: 200,
+                mainAxisAlignment: chatAxisAlignment,
+              );
+            }
+          } else {
+            return Container();
+          }
+        });
   }
 }
 
