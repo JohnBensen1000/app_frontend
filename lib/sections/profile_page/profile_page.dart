@@ -19,38 +19,23 @@ class ProfilePageProvider extends ChangeNotifier {
   // creator, and a http delete to server if the user decides to stops following
   // the creator.
 
-  final double height;
   final User user;
 
-  Color followingColor;
-  String followingText;
   bool isFollowing;
 
-  ProfilePageProvider({this.height, this.user}) {
-    followingText = "Loading...";
+  ProfilePageProvider({this.user}) {
     _checkIfFollowing();
   }
 
   Future<void> _checkIfFollowing() async {
     isFollowing = await checkIfFollowing(user);
-    _setFollowingButton();
+    notifyListeners();
   }
 
   Future<void> changeFollowing() async {
     (isFollowing) ? await stopFollowing(user) : await startFollowing(user);
 
     isFollowing = !isFollowing;
-    _setFollowingButton();
-  }
-
-  void _setFollowingButton() {
-    if (isFollowing) {
-      followingColor = Colors.grey[300];
-      followingText = "Following";
-    } else {
-      followingColor = Colors.white;
-      followingText = "Follow";
-    }
     notifyListeners();
   }
 }
@@ -62,53 +47,25 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double appBarHeight = 50;
-    double height = MediaQuery.of(context).size.height - appBarHeight;
+    double headerHeight = 350;
+    double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return Scaffold(
-        appBar: ProfilePageAppBar(height: appBarHeight),
         body: ChangeNotifierProvider(
-            create: (context) =>
-                ProfilePageProvider(height: .4 * height, user: user),
+            create: (context) => ProfilePageProvider(user: user),
             child: Container(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
-                  ProfilePageHeader(user: user),
-                  if (user.uid != globals.user.uid) FollowingButton(),
+                  ProfilePageHeader(
+                    user: user,
+                    height: headerHeight,
+                  ),
                   ProfilePostBody(
-                      height: .654 * height,
-                      sidePadding: 20,
-                      betweenPadding: 5),
+                      height: bodyHeight, sidePadding: 20, betweenPadding: 5),
                 ],
               ),
             )));
-  }
-}
-
-class ProfilePageAppBar extends PreferredSize {
-  // Top of profile page. Lets the user access their exit the profile page.
-
-  ProfilePageAppBar({this.height});
-  final double height;
-
-  @override
-  Size get preferredSize => Size.fromHeight(height);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(top: 20, left: 20),
-      child: Row(
-        children: <Widget>[
-          Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Center(child: BackArrow()))),
-        ],
-      ),
-    );
   }
 }
 
@@ -120,49 +77,69 @@ class ProfilePageHeader extends StatelessWidget {
 
   ProfilePageHeader({
     @required this.user,
+    @required this.height,
   });
 
   final User user;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
+    return Container(
+      height: height,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
           Container(
-            height: 15,
-          ),
-          ProfilePic(diameter: 148, user: user),
-          Container(
-            child: Text(
-              '${user.username}',
-              style: TextStyle(
-                fontFamily: 'Helvetica Neue',
-                fontSize: 25,
-                color: const Color(0xff000000),
-              ),
-              textAlign: TextAlign.left,
+            padding: EdgeInsets.only(top: 40, left: 20, bottom: 20),
+            child: Row(
+              children: <Widget>[
+                Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: Center(child: BackArrow()))),
+              ],
             ),
           ),
-          Container(
-            child: Text(
-              '@${user.userID}',
-              style: TextStyle(
-                fontFamily: 'Helvetica Neue',
-                fontSize: 12,
-                color: Colors.grey[400],
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-          Container(
-            height: 20,
-            child: SvgPicture.string(
-              _svg_jmyh3o,
-              allowDrawingOutsideViewBox: true,
-            ),
-          ),
-        ]);
+          Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ProfilePic(diameter: 148, user: user),
+                Container(
+                  child: Text(
+                    '${user.username}',
+                    style: TextStyle(
+                      fontFamily: 'Helvetica Neue',
+                      fontSize: 25,
+                      color: const Color(0xff000000),
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                Container(
+                  child: Text(
+                    '@${user.userID}',
+                    style: TextStyle(
+                      fontFamily: 'Helvetica Neue',
+                      fontSize: 12,
+                      color: Colors.grey[400],
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                Container(
+                  height: 20,
+                  child: SvgPicture.string(
+                    _svg_jmyh3o,
+                    allowDrawingOutsideViewBox: true,
+                  ),
+                ),
+                if (user.uid != globals.user.uid) FollowingButton(),
+              ]),
+        ],
+      ),
+    );
   }
 }
 
@@ -191,15 +168,16 @@ class _FollowingButtonState extends State<FollowingButton> {
           highlightColor: Colors.transparent,
           child: Container(
             width: 125.0,
-            height: 31.0,
+            height: 28.0,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.0),
-              color: provider.followingColor,
-              border: Border.all(width: 1.0, color: const Color(0xff707070)),
-            ),
+                border: Border.all(color: Colors.red[500], width: 2.0),
+                color: (provider.isFollowing)
+                    ? Colors.white
+                    : provider.user.profileColor,
+                borderRadius: BorderRadius.all(Radius.circular(10))),
             child: Center(
               child: Text(
-                provider.followingText,
+                (provider.isFollowing) ? "Following" : "Follow",
                 style: TextStyle(
                   fontFamily: 'Helvetica Neue',
                   fontSize: 20,
@@ -230,14 +208,17 @@ class ProfilePostBody extends StatelessWidget {
   // The rest of the list is a series of Rows(), each row is made of up 3
   // ProfilePostWidget().
 
-  ProfilePostBody(
-      {@required this.height,
-      @required this.sidePadding,
-      @required this.betweenPadding});
+  ProfilePostBody({
+    @required this.height,
+    @required this.sidePadding,
+    @required this.betweenPadding,
+    this.rowSize = 3,
+  });
 
   final double height;
   final double sidePadding;
   final double betweenPadding;
+  final int rowSize;
 
   @override
   Widget build(BuildContext context) {
@@ -258,6 +239,7 @@ class ProfilePostBody extends StatelessWidget {
                 child: SizedBox(
                   height: height,
                   child: new ListView.builder(
+                    padding: EdgeInsets.only(top: 20),
                     itemCount: profilePostsList.length,
                     itemBuilder: (BuildContext context, int index) {
                       return PostBodyWidget(child: profilePostsList[index]);
@@ -275,12 +257,13 @@ class ProfilePostBody extends StatelessWidget {
   List<Widget> _getProfilePostsList(BuildContext context, List<Post> postList) {
     // Determines width and height for every post on the profile page. The first
     // widget in the return list is a large ProfilePostWidget(). The remaining
-    // posts are broken up into rows of 3 ProfilePostWidget().
+    // posts are broken up into rows of rowSize (int) ProfilePostWidget().
 
     double width = MediaQuery.of(context).size.width;
     double mainPostHeight = (width - 2 * sidePadding) / globals.goldenRatio;
-    double bodyPostHeight = (((width - 2 * sidePadding) / 3) - betweenPadding) *
-        globals.goldenRatio;
+    double bodyPostHeight =
+        (((width - 2 * sidePadding) / rowSize) - betweenPadding) *
+            globals.goldenRatio;
 
     List<Widget> profilePosts = [
       Padding(
@@ -295,12 +278,12 @@ class ProfilePostBody extends StatelessWidget {
 
     List<Widget> subPostsList = _getSubPostsList(postList, bodyPostHeight);
 
-    for (int i = 0; i < subPostsList.length; i += 3) {
+    for (int i = 0; i < subPostsList.length; i += rowSize) {
       profilePosts.add(Padding(
         padding: EdgeInsets.only(bottom: betweenPadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: subPostsList.sublist(i, i + 3),
+          children: subPostsList.sublist(i, i + rowSize),
         ),
       ));
     }
@@ -309,12 +292,12 @@ class ProfilePostBody extends StatelessWidget {
 
   List<Widget> _getSubPostsList(List<dynamic> postList, double postHeight) {
     // Creates a list of the remaining posts (not the main post). Adds empty
-    // containers so that the return list is evenly divisible by 3.
+    // containers so that the return list is evenly divisible by rowSize (int).
 
     List<Widget> subPostsList = [];
     int i = 1;
 
-    while ((i < postList.length) || ((i - 1) % 3 != 0)) {
+    while ((i < postList.length) || ((i - 1) % rowSize != 0)) {
       if (i < postList.length) {
         subPostsList.add(
           PostView(
