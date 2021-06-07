@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/user.dart';
+import 'repository/post_repository.dart';
 
 User user;
 double goldenRatio = 1.61803398875;
@@ -17,3 +18,5 @@ Map<String, Color> colorsMap = {
   'blue': Colors.blueAccent,
   'purple': Colors.purpleAccent
 };
+
+PostRepository postRepository = new PostRepository();

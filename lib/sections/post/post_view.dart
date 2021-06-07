@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
+import '../../globals.dart' as globals;
 import '../../models/post.dart';
 
 import '../profile_page/profile_page.dart';
@@ -35,6 +36,7 @@ class PostViewProvider extends ChangeNotifier {
     @required this.fromChatPage,
     @required this.fullPage,
     @required this.videoPlayerController,
+    @required this.saveInMemory,
     @required this.playWithVolume,
   }) {
     this.cornerRadius = height / 19;
@@ -48,12 +50,13 @@ class PostViewProvider extends ChangeNotifier {
   final bool fromChatPage;
   final bool fullPage;
   final bool playWithVolume;
+  final bool saveInMemory;
   final VideoPlayerController videoPlayerController;
 
   double cornerRadius;
 }
 
-class PostView extends StatefulWidget {
+class PostView extends StatelessWidget {
   // Initializes PostViewProvider and determines what to return based on the
   // given postStage. Also initializes the videoPlayerController if one is not
   // passed into this widget. the VideoPlayerController used in the
@@ -69,6 +72,7 @@ class PostView extends StatefulWidget {
     this.fromChatPage = false,
     this.fullPage = false,
     this.playWithVolume = true,
+    this.saveInMemory = false,
     this.videoPlayerController,
   });
 
@@ -80,18 +84,14 @@ class PostView extends StatefulWidget {
   final bool fromChatPage;
   final bool fullPage;
   final bool playWithVolume;
+  final bool saveInMemory;
   final VideoPlayerController videoPlayerController;
 
   @override
-  _PostViewState createState() => _PostViewState();
-}
-
-class _PostViewState extends State<PostView> {
-  @override
   Widget build(BuildContext context) {
-    double postViewHeight = (widget.postStage.index <= PostStage.onlyPost.index)
-        ? widget.height
-        : widget.height * 1.3333333;
+    double postViewHeight = (postStage.index <= PostStage.onlyPost.index)
+        ? height
+        : height * 1.3333333;
 
     return FutureBuilder(
         future: getVideoPlayerController(),
@@ -99,14 +99,15 @@ class _PostViewState extends State<PostView> {
           if (snapshot.connectionState == ConnectionState.done) {
             return ChangeNotifierProvider(
                 create: (context) => PostViewProvider(
-                    post: widget.post,
-                    height: widget.height,
-                    aspectRatio: widget.aspectRatio,
-                    postStage: widget.postStage,
-                    playOnInit: widget.playOnInit,
-                    fromChatPage: widget.fromChatPage,
-                    fullPage: widget.fullPage,
-                    playWithVolume: widget.playWithVolume,
+                    post: post,
+                    height: height,
+                    aspectRatio: aspectRatio,
+                    postStage: postStage,
+                    playOnInit: playOnInit,
+                    fromChatPage: fromChatPage,
+                    fullPage: fullPage,
+                    playWithVolume: playWithVolume,
+                    saveInMemory: saveInMemory,
                     videoPlayerController: snapshot.data),
                 child: Consumer<PostViewProvider>(
                   builder: (context, provider, child) => Container(
@@ -132,13 +133,13 @@ class _PostViewState extends State<PostView> {
   }
 
   Future<VideoPlayerController> getVideoPlayerController() async {
-    if (widget.videoPlayerController == null && !widget.post.isImage) {
+    if (videoPlayerController == null && !post.isImage) {
       VideoPlayerController videoPlayerController =
-          VideoPlayerController.network(widget.post.downloadURL);
+          globals.postRepository.getVideoPlayer(post, saveInMemory);
       await videoPlayerController.setLooping(true);
       return videoPlayerController;
     } else {
-      return widget.videoPlayerController;
+      return videoPlayerController;
     }
   }
 }
@@ -243,30 +244,17 @@ class ImageContainer extends StatelessWidget {
     double height = provider.height;
     double width = provider.height / provider.aspectRatio;
 
-    return FutureBuilder(
-      future: getImage(provider.post),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData) {
-          return Container(
-              height: height - 2,
-              width: width - 2,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(provider.cornerRadius - 1),
-                image: DecorationImage(
-                  image: snapshot.data,
-                  fit: BoxFit.cover,
-                ),
-              ));
-        } else {
-          return Container();
-        }
-      },
-    );
-  }
-
-  Future<ImageProvider> getImage(Post post) async {
-    return Image.network(post.downloadURL).image;
+    return Container(
+        height: height - 2,
+        width: width - 2,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(provider.cornerRadius - 1),
+          image: DecorationImage(
+            image: globals.postRepository
+                .getImage(provider.post, provider.saveInMemory),
+            fit: BoxFit.cover,
+          ),
+        ));
   }
 }
 
@@ -281,7 +269,8 @@ class ThumbnailContainer extends StatelessWidget {
     double width = provider.height / provider.aspectRatio;
 
     return FutureBuilder(
-        future: VideoThumbnail.thumbnailData(video: provider.post.downloadURL),
+        future: globals.postRepository
+            .getThumbnail(provider.post, provider.saveInMemory),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done)
             return Container(
