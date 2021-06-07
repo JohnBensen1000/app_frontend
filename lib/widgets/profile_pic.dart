@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/globals.dart';
 
-import '../post/post_view.dart';
+import '../sections/post/post_view.dart';
 import '../models/user.dart';
-
 import '../API/posts.dart';
 
 class Profile extends StatelessWidget {

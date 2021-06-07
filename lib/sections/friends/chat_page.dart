@@ -3,15 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-import '../models/user.dart';
-import '../models/chat.dart';
-import '../models/post.dart';
+import '../../globals.dart' as globals;
+import '../../API/chats.dart';
+import '../../models/user.dart';
+import '../../models/chat.dart';
+import '../../models/post.dart';
 
-import '../globals.dart' as globals;
 import '../camera/camera.dart';
 import '../post/post_view.dart';
-
-import '../API/chats.dart';
 
 class ChatPage extends StatelessWidget {
   // Sets up a stream that connects to a google firestore collection that

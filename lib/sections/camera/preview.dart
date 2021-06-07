@@ -3,18 +3,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/camera/chat_list.dart';
 import 'package:video_player/video_player.dart';
 
-import '../models/chat.dart';
+import '../../globals.dart' as globals;
+import '../../API/posts.dart';
+import '../../API/chats.dart';
+import '../../models/chat.dart';
+import '../../widgets/back_arrow.dart';
 
-import '../API/posts.dart';
-import '../API/chats.dart';
-
-import '../globals.dart' as globals;
-import 'camera.dart';
 import 'widgets/button.dart';
-import '../widgets/back_arrow.dart';
+
+import 'camera.dart';
+import 'chat_list.dart';
 
 class PreviewProvider extends ChangeNotifier {
   // Contains state variables used throughout the page. Every widget under this

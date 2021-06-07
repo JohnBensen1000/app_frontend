@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/relations.dart';
 
-import '../models/user.dart';
+import '../../models/user.dart';
+import '../../widgets/profile_pic.dart';
 
-import '../widgets/profile_pic.dart';
-import '../profile/profile_page.dart';
+import '../profile_page/profile_page.dart';
 
 class NewFollowersProvider extends ChangeNotifier {
   // Maintains state of newFollowersList. Whenever an item is removed from this

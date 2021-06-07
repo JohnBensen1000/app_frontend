@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../models/user.dart';
+import '../../globals.dart' as globals;
+import '../../API/authentication.dart';
+import '../../widgets/profile_pic.dart';
+import '../../main.dart';
 
-import '../API/authentication.dart';
-import '../globals.dart' as globals;
-import '../profile/profile_page.dart';
-import '../widgets/profile_pic.dart';
+import '../profile_page/profile_page.dart';
 import '../camera/camera.dart';
-import 'choose_color.dart';
 
-import '../main.dart';
+import 'choose_color.dart';
 
 class SettingsDrawer extends StatefulWidget {
   // The SettingsDrawer pops out from the left side of the screen. It contains

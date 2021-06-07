@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'account/welcome.dart';
+import 'sections/account/welcome.dart';
 
 main() => runApp(MyApp());
 

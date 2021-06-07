@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import 'enter_account.dart';
+import '../../globals.dart' as globals;
+import '../../API/authentication.dart';
+import '../../models/user.dart';
 
-import '../API/authentication.dart';
-import '../globals.dart' as globals;
-import '../models/user.dart';
 import '../navigation/home_screen.dart';
+
+import 'enter_account.dart';
 
 class Welcome extends StatelessWidget {
   // Checks to see if the current device is signed in on. If it is, then saves

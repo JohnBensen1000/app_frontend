@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../models/user.dart';
+import '../../globals.dart' as globals;
+
+import '../../API/authentication.dart';
+import '../../API/users.dart';
+import '../../models/user.dart';
 
 import '../navigation/home_screen.dart';
-import '../API/authentication.dart';
-import '../API/users.dart';
-import '../globals.dart' as globals;
 
 import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';

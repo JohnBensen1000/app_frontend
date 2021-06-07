@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 
-import '../models/user.dart';
-import '../models/chat.dart';
-
-import '../globals.dart' as globals;
-
-import '../API/chats.dart';
-import '../API/relations.dart';
+import '../../globals.dart' as globals;
+import '../../API/chats.dart';
+import '../../API/relations.dart';
+import '../../models/chat.dart';
 
 import 'chat_page.dart';
 import 'new_followers.dart';

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/models/chat.dart';
 
-import '../models/user.dart';
-import '../friends/chat_page.dart';
-import '../globals.dart' as globals;
-import '../widgets/profile_pic.dart';
-import '../friends/friends_page.dart';
-import '../widgets/back_arrow.dart';
+import '../../globals.dart' as globals;
+import '../../API/users.dart';
+import '../../models/user.dart';
+import '../../widgets/profile_pic.dart';
+import '../../widgets/back_arrow.dart';
 
-import '../API/users.dart';
+import '../friends/chat_page.dart';
+import '../friends/friends_page.dart';
 
 class ColorStruct {
   // Contains information about an individual color, including it's Color

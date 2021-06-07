@@ -8,12 +8,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:image/image.dart' as image;
 
-import '../models/chat.dart';
-import '../globals.dart' as globals;
-import 'widgets/profile_pic_outline.dart';
-import 'widgets/button.dart';
+import '../../globals.dart' as globals;
+import '../../models/chat.dart';
+import '../../widgets/back_arrow.dart';
+
 import 'preview.dart';
-import '../widgets/back_arrow.dart';
+
+import 'widgets/button.dart';
 
 enum CameraUsage {
   post,

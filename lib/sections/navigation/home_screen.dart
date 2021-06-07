@@ -7,12 +7,10 @@ import 'package:provider/provider.dart';
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
 import '../friends/friends_page.dart';
+import '../camera/camera.dart';
+
 import 'search_page.dart';
 import 'settings_drawer.dart';
-import '../camera/camera.dart';
-import '../globals.dart' as globals;
-
-// final serverAPI = new ServerAPI();
 
 enum PageLabel {
   discover,

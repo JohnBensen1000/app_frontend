@@ -6,11 +6,12 @@ import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
-import '../models/post.dart';
+import '../../models/post.dart';
 
-import '../profile/profile_page.dart';
-import 'post.dart';
+import '../profile_page/profile_page.dart';
 import '../comments/comments.dart';
+
+import 'post.dart';
 
 FirebaseStorage storage = FirebaseStorage.instance;
 

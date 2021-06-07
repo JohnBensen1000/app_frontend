@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,10 +6,9 @@ import 'widgets/account_app_bar.dart';
 import 'widgets/input_field.dart';
 import 'widgets/account_submit_button.dart';
 
-import '../globals.dart' as globals;
-import '../API/authentication.dart';
-import '../models/user.dart';
-
+import '../../globals.dart' as globals;
+import '../../API/authentication.dart';
+import '../../models/user.dart';
 import '../navigation/home_screen.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;

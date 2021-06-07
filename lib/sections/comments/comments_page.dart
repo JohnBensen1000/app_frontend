@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:test_flutter/post/post_view.dart';
 import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:video_player/video_player.dart';
 
-import '../models/post.dart';
-import '../models/comment.dart';
+import '../../models/post.dart';
+import '../../models/comment.dart';
+
+import '../post/post_view.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'comments.dart';

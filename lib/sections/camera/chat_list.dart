@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/user.dart';
-import '../models/chat.dart';
-import '../API/chats.dart';
-import '../globals.dart' as globals;
+import '../../API/chats.dart';
+
+import '../../models/chat.dart';
 
 class ChatListProvider extends ChangeNotifier {
   // Given a list of chats that the user is part of, keeps track of which chats

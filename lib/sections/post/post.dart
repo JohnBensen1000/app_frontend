@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
 
-import '../models/post.dart';
-import '../models/user.dart';
+import '../../globals.dart' as globals;
+import '../../models/post.dart';
+import '../../widgets/back_arrow.dart';
 
-import '../globals.dart' as globals;
 import 'post_view.dart';
-import '../widgets/back_arrow.dart';
 
 FirebaseStorage storage = FirebaseStorage.instance;
 

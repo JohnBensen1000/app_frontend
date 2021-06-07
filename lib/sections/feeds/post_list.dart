@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
-import '../models/post.dart';
+import '../../globals.dart' as globals;
+import '../../API/posts.dart';
+import '../../models/post.dart';
 
-import '../globals.dart' as globals;
 import '../post/post_view.dart';
-
-import '../API/posts.dart';
 
 class PostListTransitionProvider extends ChangeNotifier {
   // Keeps track of the vertical offset of the posts in PostListScroller. Allows

@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../models/user.dart';
-import '../models/post.dart';
+import '../../globals.dart' as globals;
+import '../../API/relations.dart';
+import '../../API/posts.dart';
+import '../../models/user.dart';
+import '../../models/post.dart';
+
+import '../../widgets/profile_pic.dart';
+import '../../widgets/back_arrow.dart';
 
 import '../post/post_view.dart';
-import '../globals.dart' as globals;
-
-import '../API/relations.dart';
-import '../API/posts.dart';
-
-import '../widgets/profile_pic.dart';
-import '../widgets/back_arrow.dart';
 
 class ProfilePageProvider extends ChangeNotifier {
   // Keeps track of whether the user is following or not following a creator.
