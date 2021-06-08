@@ -8,7 +8,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
 
-import '../profile_page/profile_page.dart';
+import '../profile/profile_page.dart';
 import '../comments/comments.dart';
 
 import 'post.dart';
@@ -271,7 +271,8 @@ class ThumbnailContainer extends StatelessWidget {
         future: globals.postRepository
             .getThumbnail(provider.post, provider.saveInMemory),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done)
+          if (snapshot.connectionState == ConnectionState.done) if (snapshot
+              .hasData)
             return Container(
                 height: height - 2,
                 width: width - 2,
@@ -283,6 +284,13 @@ class ThumbnailContainer extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 ));
+          else
+            return Container(
+              child: Center(
+                child: Text("We are unable to load the video preview.",
+                    style: TextStyle(fontSize: height / 20)),
+              ),
+            );
           else
             return Container();
         });

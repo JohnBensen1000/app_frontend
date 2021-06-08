@@ -2,9 +2,11 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:test_flutter/API/posts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
+import '../globals.dart' as globals;
 import '../models/post.dart';
 
 class PostRepository {
@@ -52,5 +54,20 @@ class PostRepository {
     if (saveInMemory) videoPlayers[post.postID] = videoPlayer;
 
     return videoPlayer;
+  }
+
+  Future<void> postProfile(bool isImage, String filePath) async {
+    // When a user posts a new profile, the currently cached profile has to be
+    // deleted.
+    String postID = globals.user.uid + 'profile';
+
+    if (isImage)
+      imageProviders.removeWhere((key, value) => key == postID);
+    else
+      videoPlayers.removeWhere((key, value) => key == postID);
+
+    print(imageProviders.keys);
+
+    await uploadProfilePic(isImage, filePath);
   }
 }

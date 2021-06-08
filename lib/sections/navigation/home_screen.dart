@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/sections/navigation/settings_drawer.dart';
 
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
@@ -10,7 +11,6 @@ import '../friends/friends_page.dart';
 import '../camera/camera.dart';
 
 import 'search_page.dart';
-import 'settings_drawer.dart';
 
 enum PageLabel {
   discover,

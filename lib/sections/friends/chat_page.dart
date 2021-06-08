@@ -46,8 +46,8 @@ class ChatPage extends StatelessWidget {
   // Main widget for the chat page's UI. Returns a column of the chat's header,
   // body, and footer. The header displays the name and profile of the chat. The
   // footer allows the user to send a new chat. The body is a scrollable list of
-  // each individaul chat item. Uses SchedulerBinding() to scroll to the bottom
-  // of this list after it is built.
+  // each individaul chat item. Uses SchedulerBinding() to automatically scroll
+  // to the bottom of this list after it is built.
 
   ChatPage({@required this.chat, @required this.snapshot});
 

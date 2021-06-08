@@ -11,6 +11,7 @@ import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
 
 import '../post/post_view.dart';
+import '../navigation/settings_drawer.dart';
 
 class ProfilePage extends StatelessWidget {
   ProfilePage({@required this.user});
@@ -23,22 +24,26 @@ class ProfilePage extends StatelessWidget {
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return Scaffold(
-        body: Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          ProfilePageHeader(
-            user: user,
-            height: headerHeight,
-          ),
-          ProfilePostBody(
+      body: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            ProfilePageHeader(
               user: user,
-              height: bodyHeight,
-              sidePadding: 20,
-              betweenPadding: 5),
-        ],
+              height: headerHeight,
+            ),
+            ProfilePostBody(
+                user: user,
+                height: bodyHeight,
+                sidePadding: 20,
+                betweenPadding: 5),
+          ],
+        ),
       ),
-    ));
+      drawer: SettingsDrawer(
+        width: 250,
+      ),
+    );
   }
 }
 

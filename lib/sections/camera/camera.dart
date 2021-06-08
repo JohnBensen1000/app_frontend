@@ -156,7 +156,6 @@ class _CameraState extends State<Camera> {
                                     child: Center(
                                       child: GestureDetector(
                                         child: Button(
-                                          backgroundColor: Colors.grey[100],
                                           buttonName: "Flip Camera",
                                         ),
                                         onTap: () => setState(() {
@@ -220,7 +219,7 @@ class CameraView extends StatelessWidget {
             width: width,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(cornerRadius),
-              border: Border.all(width: 1.0, color: const Color(0xff707070)),
+              border: Border.all(width: 1.0, color: globals.user.profileColor),
             ),
           ),
           Container(
@@ -245,9 +244,11 @@ class PostButton extends StatelessWidget {
   const PostButton({
     Key key,
     @required this.diameter,
+    this.strokeWidth = 2,
   }) : super(key: key);
 
   final double diameter;
+  final double strokeWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -263,18 +264,22 @@ class PostButton extends StatelessWidget {
                       ? StreamBuilder(
                           stream: PostButtonVideoTimer().stream,
                           builder: (context, snapshot) {
-                            return Stack(children: [
-                              PostButtonCircle(diameter: diameter),
-                              SizedBox(
-                                child: CircularProgressIndicator(
-                                  value: snapshot.data,
-                                  valueColor: new AlwaysStoppedAnimation<Color>(
-                                      Colors.red),
-                                ),
-                                height: diameter,
-                                width: diameter,
-                              ),
-                            ]);
+                            return Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  PostButtonCircle(diameter: diameter),
+                                  SizedBox(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: strokeWidth,
+                                      value: snapshot.data,
+                                      valueColor:
+                                          new AlwaysStoppedAnimation<Color>(
+                                              globals.user.profileColor),
+                                    ),
+                                    height: diameter + strokeWidth,
+                                    width: diameter + strokeWidth,
+                                  ),
+                                ]);
                           },
                         )
                       : PostButtonCircle(diameter: diameter),

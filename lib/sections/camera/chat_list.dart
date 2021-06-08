@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../API/chats.dart';
-
 import '../../models/chat.dart';
+
+import 'widgets/loading_icon.dart';
+
+import 'preview.dart';
 
 class ChatListProvider extends ChangeNotifier {
   // Given a list of chats that the user is part of, keeps track of which chats
-  // the user wants to share the post in. The hash table, sendingToHashMap,
-  // keeps track of whether each chat will recieve the post or not. When the
-  // user finally decides to share the post, this provider calls the function
+  // the user wants to share the post in. The hash table, isSendingTo, keeps
+  // track of whether each chat will recieve the post or not. When the user
+  // finally decides to share the post, this provider calls the function
   // 'sendChatPost' for every chat that is selected to recieve the post.
 
   ChatListProvider(
       {@required this.chatsList,
       @required this.isImage,
       @required this.filePath}) {
-    sendingToHashMap =
+    isSendingTo =
         Map.fromIterable(chatsList, key: (k) => k, value: (_) => false);
     numChatsSelected = 0;
   }
@@ -25,22 +29,22 @@ class ChatListProvider extends ChangeNotifier {
   final bool isImage;
   final String filePath;
 
-  Map<Chat, bool> sendingToHashMap;
+  Map<Chat, bool> isSendingTo;
   int numChatsSelected;
 
   void changeSendingTo(Chat chat) {
-    if (!sendingToHashMap[chat])
+    if (!isSendingTo[chat])
       numChatsSelected++;
     else
       numChatsSelected--;
 
-    sendingToHashMap[chat] = !sendingToHashMap[chat];
+    isSendingTo[chat] = !isSendingTo[chat];
     notifyListeners();
   }
 
   Future<void> sharePostInChats() async {
     for (Chat chat in chatsList) {
-      if (sendingToHashMap[chat]) {
+      if (isSendingTo[chat]) {
         await sendChatPost(isImage, filePath, chat.chatID);
       }
     }
@@ -51,6 +55,7 @@ class ChatListSnackBar extends StatelessWidget {
   // Gets a list of chats from the server. Displays a list of chats that the
   // user is part of and a button that allows the user to share the post in the
   // selected chats.
+
   ChatListSnackBar({@required this.isImage, @required this.filePath});
 
   final bool isImage;
@@ -109,11 +114,13 @@ class ChatListWidget extends StatelessWidget {
             padding: EdgeInsets.all(10),
             margin: EdgeInsets.all(5),
             decoration: BoxDecoration(
-                color: (provider.sendingToHashMap[chat])
+                color: (provider.isSendingTo[chat])
                     ? new Color.fromRGBO(155, 155, 155, 0.5)
                     : Colors.transparent,
                 border: Border.all(
-                  color: Colors.grey[600],
+                  color: (provider.isSendingTo[chat])
+                      ? Colors.grey[600]
+                      : Colors.grey[400],
                 ),
                 borderRadius: BorderRadius.all(Radius.circular(20))),
             child: Column(
@@ -137,7 +144,9 @@ class ChatListWidget extends StatelessWidget {
 class SharePostButton extends StatefulWidget {
   // When pressed, sends the post to all the selected chats. Displays the number
   // of chats that have been selected. If no chats are selected, then notifies
-  // the user (via an AlertDialog) that no chats have been selected.
+  // the user (via an AlertDialog) that no chats have been selected. Displays
+  // a loading screen (LoadingIcon()) while waiting for the post to be uploaded
+  // to all the chats.
 
   const SharePostButton({
     Key key,
@@ -152,6 +161,16 @@ class _SharePostButtonState extends State<SharePostButton> {
 
   @override
   Widget build(BuildContext context) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (buttonPressed)
+        showDialog(
+          context: context,
+          builder: (context) {
+            return LoadingIcon();
+          },
+        );
+    });
+
     return Consumer<ChatListProvider>(
         builder: (context, provider, child) => GestureDetector(
             child: Container(
@@ -183,7 +202,10 @@ class _SharePostButtonState extends State<SharePostButton> {
                     buttonPressed = true;
                   });
                   await provider.sharePostInChats();
-                  Navigator.pop(context);
+                  int count = 0;
+                  Navigator.popUntil(context, (route) {
+                    return count++ == 2;
+                  });
                 }
               }
             }));
