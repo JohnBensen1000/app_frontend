@@ -221,7 +221,6 @@ class ChooseColorWidget extends StatelessWidget {
             ChatItemWidgetText(
               backgroundColor: colorStruct.color,
               text: "This is what a text would look like.",
-              sender: tempUser,
               mainAxisAlignment: MainAxisAlignment.start,
             )
           ],

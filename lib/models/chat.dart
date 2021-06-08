@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:collection';
 
 import '../models/user.dart';
 import '../globals.dart' as globals;
@@ -12,6 +13,8 @@ class Chat {
   Widget chatIcon;
   Color color;
 
+  HashMap membersMap = new HashMap<String, User>();
+
   Chat(this.chatID, this.chatName, this.isDirectMessage, this.members,
       this.chatIcon, this.color);
 
@@ -21,6 +24,10 @@ class Chat {
     this.members = [
       for (Map userJson in chatJson['members']) User.fromJson(userJson)
     ];
+
+    for (User user in this.members) {
+      this.membersMap[user.uid] = user;
+    }
     this.members.removeWhere((item) => item.uid == globals.user.uid);
 
     if (this.isDirectMessage) {

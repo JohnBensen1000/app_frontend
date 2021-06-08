@@ -4,7 +4,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
 import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/post.dart';

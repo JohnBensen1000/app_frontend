@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../globals.dart' as globals;
@@ -13,33 +12,6 @@ import '../../widgets/back_arrow.dart';
 
 import '../post/post_view.dart';
 
-class ProfilePageProvider extends ChangeNotifier {
-  // Keeps track of whether the user is following or not following a creator.
-  // Sends http post to server if the user decideds to start following the
-  // creator, and a http delete to server if the user decides to stops following
-  // the creator.
-
-  final User user;
-
-  bool isFollowing;
-
-  ProfilePageProvider({this.user}) {
-    _checkIfFollowing();
-  }
-
-  Future<void> _checkIfFollowing() async {
-    isFollowing = await checkIfFollowing(user);
-    notifyListeners();
-  }
-
-  Future<void> changeFollowing() async {
-    (isFollowing) ? await stopFollowing(user) : await startFollowing(user);
-
-    isFollowing = !isFollowing;
-    notifyListeners();
-  }
-}
-
 class ProfilePage extends StatelessWidget {
   ProfilePage({@required this.user});
 
@@ -51,21 +23,22 @@ class ProfilePage extends StatelessWidget {
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return Scaffold(
-        body: ChangeNotifierProvider(
-            create: (context) => ProfilePageProvider(user: user),
-            child: Container(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  ProfilePageHeader(
-                    user: user,
-                    height: headerHeight,
-                  ),
-                  ProfilePostBody(
-                      height: bodyHeight, sidePadding: 20, betweenPadding: 5),
-                ],
-              ),
-            )));
+        body: Container(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          ProfilePageHeader(
+            user: user,
+            height: headerHeight,
+          ),
+          ProfilePostBody(
+              user: user,
+              height: bodyHeight,
+              sidePadding: 20,
+              betweenPadding: 5),
+        ],
+      ),
+    ));
   }
 }
 
@@ -88,7 +61,7 @@ class ProfilePageHeader extends StatelessWidget {
     return Container(
       height: height,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.only(top: 40, left: 20, bottom: 20),
@@ -135,7 +108,7 @@ class ProfilePageHeader extends StatelessWidget {
                     allowDrawingOutsideViewBox: true,
                   ),
                 ),
-                if (user.uid != globals.user.uid) FollowingButton(),
+                if (user.uid != globals.user.uid) FollowingButton(user: user),
               ]),
         ],
       ),
@@ -144,13 +117,16 @@ class ProfilePageHeader extends StatelessWidget {
 }
 
 class FollowingButton extends StatefulWidget {
-  // Button that lets you follow/unfollow someone else. The color/text of this
-  // button is determined by the ProfilePageProvider. This widget is rebuilt
-  // every time the user starts/stops following the other person.
+  // Button that lets you follow/unfollow someone else. The color/text of the
+  // button is different for if a user is following or not following the
+  // creator.
 
   const FollowingButton({
+    @required this.user,
     Key key,
   }) : super(key: key);
+
+  final User user;
 
   @override
   _FollowingButtonState createState() => _FollowingButtonState();
@@ -158,46 +134,67 @@ class FollowingButton extends StatefulWidget {
 
 class _FollowingButtonState extends State<FollowingButton> {
   bool allowChangeFollow = true;
+  bool isFollowing;
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProfilePageProvider>(
-      builder: (context, provider, child) {
-        return FlatButton(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          child: Container(
-            width: 125.0,
-            height: 28.0,
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.red[500], width: 2.0),
-                color: (provider.isFollowing)
-                    ? Colors.white
-                    : provider.user.profileColor,
-                borderRadius: BorderRadius.all(Radius.circular(10))),
-            child: Center(
-              child: Text(
-                (provider.isFollowing) ? "Following" : "Follow",
-                style: TextStyle(
-                  fontFamily: 'Helvetica Neue',
-                  fontSize: 20,
-                  color: const Color(0xff000000),
+    double height = 28.0;
+    double width = 125.0;
+
+    return FutureBuilder(
+        future: checkIfFollowing(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done)
+            return GestureDetector(
+              child: Container(
+                height: height,
+                width: width,
+                decoration: BoxDecoration(
+                    border:
+                        Border.all(color: widget.user.profileColor, width: 2.0),
+                    color:
+                        (isFollowing) ? Colors.white : widget.user.profileColor,
+                    borderRadius: BorderRadius.all(Radius.circular(10))),
+                child: Center(
+                  child: Text(
+                    (isFollowing) ? "Following" : "Follow",
+                    style: TextStyle(
+                      fontFamily: 'Helvetica Neue',
+                      fontSize: 20,
+                      color: const Color(0xff000000),
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
                 ),
-                textAlign: TextAlign.left,
               ),
-            ),
-          ),
-          onPressed: () async {
-            if (allowChangeFollow) {
-              allowChangeFollow = false;
-              await Provider.of<ProfilePageProvider>(context, listen: false)
-                  .changeFollowing();
-              allowChangeFollow = true;
-            }
-          },
-        );
-      },
-    );
+              onTap: () async {
+                if (allowChangeFollow) {
+                  allowChangeFollow = false;
+                  await changeFollowing();
+                  allowChangeFollow = true;
+                }
+              },
+            );
+          else
+            return Container(
+              height: height,
+              width: width,
+            );
+        });
+  }
+
+  Future<void> checkIfFollowing() async {
+    isFollowing = await getIfFollowing(widget.user);
+  }
+
+  Future<void> changeFollowing() async {
+    (isFollowing)
+        ? await stopFollowing(widget.user)
+        : await startFollowing(widget.user);
+
+    isFollowing = !isFollowing;
+
+    setState(() {});
   }
 }
 
@@ -209,12 +206,14 @@ class ProfilePostBody extends StatelessWidget {
   // ProfilePostWidget().
 
   ProfilePostBody({
+    @required this.user,
     @required this.height,
     @required this.sidePadding,
     @required this.betweenPadding,
     this.rowSize = 3,
   });
 
+  final User user;
   final double height;
   final double sidePadding;
   final double betweenPadding;
@@ -222,14 +221,12 @@ class ProfilePostBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ProfilePageProvider provider =
-        Provider.of<ProfilePageProvider>(context, listen: false);
     return FutureBuilder(
-        future: getUsersPosts(provider.user),
+        future: getUsersPosts(user),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.data.length == 0)
-              return Container();
+              return Center(child: Text("Nothing to display"));
             else {
               List<Widget> profilePostsList =
                   _getProfilePostsList(context, snapshot.data);
@@ -239,7 +236,7 @@ class ProfilePostBody extends StatelessWidget {
                 child: SizedBox(
                   height: height,
                   child: new ListView.builder(
-                    padding: EdgeInsets.only(top: 20),
+                    padding: EdgeInsets.only(top: 0),
                     itemCount: profilePostsList.length,
                     itemBuilder: (BuildContext context, int index) {
                       return PostBodyWidget(child: profilePostsList[index]);
@@ -249,7 +246,7 @@ class ProfilePostBody extends StatelessWidget {
               );
             }
           } else {
-            return Center(child: Text("Nothing to display"));
+            return Container();
           }
         });
   }

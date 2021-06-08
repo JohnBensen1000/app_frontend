@@ -3,7 +3,7 @@ import 'baseAPI.dart';
 import '../models/user.dart';
 import '../globals.dart' as globals;
 
-Future<bool> checkIfFollowing(User user) async {
+Future<bool> getIfFollowing(User user) async {
   var response = await BaseAPI()
       .get('v1/relationships/${globals.user.uid}/following/${user.uid}/');
   return response['isFollowing'];

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:test_flutter/API/users.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/chats.dart';
@@ -13,22 +12,56 @@ import '../../models/post.dart';
 import '../camera/camera.dart';
 import '../post/post_view.dart';
 
-class ChatPage extends StatelessWidget {
-  // Sets up a stream that connects to a google firestore collection that
-  // contains data for this chat. This collection has a list of documents, each
-  // containing information about an individual chat item. Builds a list of chat
-  // item widgets based on these documents. Uses SchedulerBinding to jump to the
-  // bottom of this list (most recently sent chat item) after building this
-  // list.
+class ChatPageState extends StatelessWidget {
+  // Responsible for setting a stream that listens to a firebase collection.
+  // This collection has a list of documents, each containing information about
+  // an individual chat item. When a stream is set up, builds ChatPage().
 
   final Chat chat;
 
-  ChatPage({this.chat});
+  ChatPageState({this.chat});
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference chatCollection = Firestore.instance.collection("Chats");
+    return StreamBuilder(
+        stream: Firestore.instance
+            .collection(globals.chatCollection)
+            .document(chat.chatID)
+            .collection('chats')
+            .orderBy('time')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return ChatPage(chat: chat, snapshot: snapshot.data);
+          } else {
+            return Scaffold(
+              body: Container(),
+            );
+          }
+        });
+  }
+}
+
+class ChatPage extends StatelessWidget {
+  // Main widget for the chat page's UI. Returns a column of the chat's header,
+  // body, and footer. The header displays the name and profile of the chat. The
+  // footer allows the user to send a new chat. The body is a scrollable list of
+  // each individaul chat item. Uses SchedulerBinding() to scroll to the bottom
+  // of this list after it is built.
+
+  ChatPage({@required this.chat, @required this.snapshot});
+
+  final Chat chat;
+  final QuerySnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
     ItemScrollController _scrollController = new ItemScrollController();
+    CollectionReference chatCollection = Firestore.instance.collection("Chats");
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _scrollController.jumpTo(index: snapshot.documents.length - 1);
+    });
 
     return Scaffold(
         appBar: ChatPageHeader(
@@ -41,33 +74,18 @@ class ChatPage extends StatelessWidget {
             Expanded(
               child: Container(
                 padding: EdgeInsets.all(20.0),
-                child: StreamBuilder(
-                    stream: Firestore.instance
-                        .collection(globals.chatCollection)
-                        .document(chat.chatID)
-                        .collection('chats')
-                        .orderBy('time')
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        SchedulerBinding.instance.addPostFrameCallback((_) {
-                          _scrollController.jumpTo(
-                              index: snapshot.data.documents.length - 1);
-                        });
-                        return ScrollablePositionedList.builder(
-                            itemScrollController: _scrollController,
-                            itemCount: snapshot.data.documents.length,
-                            itemBuilder: (context, index) {
-                              if (snapshot.data.documents.length > 0) {
-                                return ChatItemWidget(
-                                    chatItem: ChatItem.fromFirebase(
-                                        snapshot.data.documents[index].data));
-                              } else
-                                return Container();
-                            });
-                      } else {
+                child: ScrollablePositionedList.builder(
+                    itemScrollController: _scrollController,
+                    itemCount: snapshot.documents.length,
+                    itemBuilder: (context, index) {
+                      if (snapshot.documents.length > 0) {
+                        ChatItem chatItem = ChatItem.fromFirebase(
+                            snapshot.documents[index].data);
+                        User user = chat.membersMap[chatItem.uid];
+
+                        return ChatItemWidget(chatItem: chatItem, user: user);
+                      } else
                         return Container();
-                      }
                     }),
               ),
             ),
@@ -107,68 +125,14 @@ class ChatPageHeader extends PreferredSize {
   }
 }
 
-class ChatPageFooter extends StatelessWidget {
-  // Widget that allows the user to input text or take a post and send it as
-  // a new chat.
-
-  ChatPageFooter({@required this.chat, @required this.chatCollection});
-
-  final Chat chat;
-  final CollectionReference chatCollection;
-  final _chatController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: <Widget>[
-      Container(
-        width: 350.0,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(23.0),
-          color: const Color(0xffffffff),
-          border: Border.all(width: 1.0, color: const Color(0xff707070)),
-        ),
-        child: Container(
-          padding: EdgeInsets.only(left: 10.0, right: 10.0),
-          child: TextField(
-            controller: _chatController,
-            decoration: InputDecoration(
-              hintText: "Chat",
-              border: InputBorder.none,
-            ),
-          ),
-        ),
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          FlatButton(
-            child: Text("Send Post"),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      Camera(cameraUsage: CameraUsage.chat, chat: chat),
-                )),
-          ),
-          FlatButton(
-              child: Text("Send Chat"),
-              onPressed: () async {
-                await sendChatText(_chatController.text, chat.chatID);
-                _chatController.clear();
-              }),
-        ],
-      )
-    ]);
-  }
-}
-
 class ChatItemWidget extends StatefulWidget {
-  // This widget takes a Chat object as an input and determines who sent the
+  // This widget takes a ChatItem object as an input and determines who sent the
   // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
 
-  ChatItemWidget({@required this.chatItem});
+  ChatItemWidget({@required this.chatItem, @required this.user});
 
   final ChatItem chatItem;
+  final User user;
 
   @override
   _ChatItemWidgetState createState() => _ChatItemWidgetState();
@@ -184,36 +148,27 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
     MainAxisAlignment chatAxisAlignment;
     Color backgroundColor;
 
-    return FutureBuilder(
-        future: getUserFromUID(widget.chatItem.uid),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.data.uid == globals.user.uid) {
-              chatAxisAlignment = MainAxisAlignment.end;
-              backgroundColor = Colors.grey[100];
-            } else {
-              chatAxisAlignment = MainAxisAlignment.start;
-              backgroundColor = snapshot.data.profileColor;
-            }
+    if (widget.user.uid == globals.user.uid) {
+      chatAxisAlignment = MainAxisAlignment.end;
+      backgroundColor = Colors.grey[100];
+    } else {
+      chatAxisAlignment = MainAxisAlignment.start;
+      backgroundColor = widget.user.profileColor;
+    }
 
-            if (widget.chatItem.isPost == false) {
-              return ChatItemWidgetText(
-                sender: snapshot.data,
-                text: widget.chatItem.text,
-                mainAxisAlignment: chatAxisAlignment,
-                backgroundColor: backgroundColor,
-              );
-            } else {
-              return ChatItemWidgetPost(
-                post: Post.fromChatItem(widget.chatItem),
-                height: 200,
-                mainAxisAlignment: chatAxisAlignment,
-              );
-            }
-          } else {
-            return Container();
-          }
-        });
+    if (widget.chatItem.isPost == false) {
+      return ChatItemWidgetText(
+        text: widget.chatItem.text,
+        mainAxisAlignment: chatAxisAlignment,
+        backgroundColor: backgroundColor,
+      );
+    } else {
+      return ChatItemWidgetPost(
+        post: Post.fromChatItem(widget.chatItem),
+        height: 200,
+        mainAxisAlignment: chatAxisAlignment,
+      );
+    }
   }
 }
 
@@ -221,13 +176,11 @@ class ChatItemWidgetText extends StatelessWidget {
   // Returns a text field that contains a chat. Adds '\n' characters to the
   // string to break the text up into multiple lines to make it easier to read.
 
-  final User sender;
   final String text;
   final MainAxisAlignment mainAxisAlignment;
   final Color backgroundColor;
 
-  ChatItemWidgetText(
-      {this.sender, this.text, this.mainAxisAlignment, this.backgroundColor});
+  ChatItemWidgetText({this.text, this.mainAxisAlignment, this.backgroundColor});
 
   @override
   Widget build(BuildContext context) {
@@ -303,6 +256,61 @@ class ChatItemWidgetPost extends StatelessWidget {
         aspectRatio: globals.goldenRatio,
         postStage: PostStage.onlyPost,
         fromChatPage: true,
+      )
+    ]);
+  }
+}
+
+class ChatPageFooter extends StatelessWidget {
+  // Widget that allows the user to input text or take a post and send it as
+  // a new chat.
+
+  ChatPageFooter({@required this.chat, @required this.chatCollection});
+
+  final Chat chat;
+  final CollectionReference chatCollection;
+  final _chatController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: <Widget>[
+      Container(
+        width: 350.0,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(23.0),
+          color: const Color(0xffffffff),
+          border: Border.all(width: 1.0, color: const Color(0xff707070)),
+        ),
+        child: Container(
+          padding: EdgeInsets.only(left: 10.0, right: 10.0),
+          child: TextField(
+            controller: _chatController,
+            decoration: InputDecoration(
+              hintText: "Chat",
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          FlatButton(
+            child: Text("Send Post"),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      Camera(cameraUsage: CameraUsage.chat, chat: chat),
+                )),
+          ),
+          FlatButton(
+              child: Text("Send Chat"),
+              onPressed: () async {
+                await sendChatText(_chatController.text, chat.chatID);
+                _chatController.clear();
+              }),
+        ],
       )
     ]);
   }

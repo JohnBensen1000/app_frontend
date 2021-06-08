@@ -18,6 +18,16 @@ enum PageLabel {
   following,
 }
 
+class ResetStateProvider extends ChangeNotifier {
+  // Provider used to tell other widgets to rebuild. This is called when the
+  // user returns to the home page and the Discover, Friends, and Following
+  // pages have to be rebuilt.
+
+  void resetState() {
+    notifyListeners();
+  }
+}
+
 class HomeScreenProvider extends ChangeNotifier {
   // Responsible for keeping track of which page user is on. Also responsible
   // for smooth transitions between pages. As the user drags horizontally, this
@@ -93,8 +103,15 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) => HomeScreenProvider(),
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) => ResetStateProvider(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => HomeScreenProvider(),
+          )
+        ],
         child: Scaffold(
           backgroundColor: const Color(0xffffffff),
           appBar: HomeAppBar(
@@ -112,6 +129,7 @@ class HomeAppBar extends PreferredSize {
   // Divided into two parts: HomeAppBarButtons() and HomeAppBarNavigation().
   // both of these widgets allow the user to navigate to different parts of the
   // app.
+
   final double height;
 
   HomeAppBar({this.height});
@@ -141,12 +159,19 @@ class HomeAppBar extends PreferredSize {
 }
 
 class HomeAppBarButtons extends StatelessWidget {
+  // Has buttons for nagivating to the settings, search, and camera pages. When
+  // the user returns from the search and camera pages, provider.resetState() is
+  // called.
+
   const HomeAppBarButtons({
     Key key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    ResetStateProvider provider =
+        Provider.of<ResetStateProvider>(context, listen: false);
+
     return Container(
       padding: const EdgeInsets.only(left: 30, top: 10),
       child: Row(
@@ -178,7 +203,7 @@ class HomeAppBarButtons extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => SearchPage()),
-                    );
+                    ).then((value) => provider.resetState());
                   },
                 )),
             ButtonTheme(
@@ -195,7 +220,7 @@ class HomeAppBarButtons extends StatelessWidget {
                     MaterialPageRoute(
                         builder: (context) =>
                             Camera(cameraUsage: CameraUsage.post, chat: null)),
-                  );
+                  ).then((value) => provider.resetState());
                 },
               ),
             ),
@@ -207,6 +232,11 @@ class HomeAppBarButtons extends StatelessWidget {
 }
 
 class HomeAppBarNavigation extends StatelessWidget {
+  // A row of three buttons that allow the user to navigate between the
+  // discover, friends, and following pages. Also shows which page the user is
+  // currently on. Has a bar that slides horizontally as the user swipes left
+  // or right.
+
   const HomeAppBarNavigation({
     Key key,
   }) : super(key: key);
@@ -301,7 +331,8 @@ class HomePage extends StatelessWidget {
   // continuously as the user swipes horizontally. Each widget is wrapped with
   // a Container() that takes up the entire page. This is done so that
   // the GestureDetector() could respond to the user's swipes regardless of
-  // where on the page they swipe.
+  // where on the page they swipe. This widget is rebuilt any time the user
+  // returns to the home page after leaving another page.
 
   HomePage({@required this.height});
 
@@ -311,42 +342,44 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
 
-    Widget discoverPage = DiscoverPage();
-    Widget friendsPage = FriendsPageState();
-    Widget followingPage = FollowingPage();
+    return Consumer<ResetStateProvider>(builder: (context, _, child) {
+      Widget discoverPage = DiscoverPage();
+      Widget friendsPage = FriendsPageState();
+      Widget followingPage = FollowingPage();
 
-    return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
-      return GestureDetector(
-        child: Stack(children: [
-          Transform.translate(
-              offset: Offset(width * (provider.offset - 1), 0),
-              child: Container(
-                  width: width,
-                  height: height,
-                  color: Colors.white,
-                  child: discoverPage)),
-          Transform.translate(
-              offset: Offset(width * (provider.offset), 0),
-              child: Container(
-                  width: width,
-                  height: height,
-                  color: Colors.white,
-                  child: friendsPage)),
-          Transform.translate(
-              offset: Offset(width * (provider.offset + 1), 0),
-              child: Container(
-                  width: width,
-                  height: height,
-                  color: Colors.white,
-                  child: followingPage)),
-        ]),
-        onHorizontalDragUpdate: (value) =>
-            Provider.of<HomeScreenProvider>(context, listen: false).offset +=
-                2.0 * (value.delta.dx / width),
-        onHorizontalDragEnd: (_) =>
-            Provider.of<HomeScreenProvider>(context, listen: false)
-                .handleHorizontalDragEnd(),
-      );
+      return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
+        return GestureDetector(
+          child: Stack(children: [
+            Transform.translate(
+                offset: Offset(width * (provider.offset - 1), 0),
+                child: Container(
+                    width: width,
+                    height: height,
+                    color: Colors.white,
+                    child: discoverPage)),
+            Transform.translate(
+                offset: Offset(width * (provider.offset), 0),
+                child: Container(
+                    width: width,
+                    height: height,
+                    color: Colors.white,
+                    child: friendsPage)),
+            Transform.translate(
+                offset: Offset(width * (provider.offset + 1), 0),
+                child: Container(
+                    width: width,
+                    height: height,
+                    color: Colors.white,
+                    child: followingPage)),
+          ]),
+          onHorizontalDragUpdate: (value) =>
+              Provider.of<HomeScreenProvider>(context, listen: false).offset +=
+                  2.0 * (value.delta.dx / width),
+          onHorizontalDragEnd: (_) =>
+              Provider.of<HomeScreenProvider>(context, listen: false)
+                  .handleHorizontalDragEnd(),
+        );
+      });
     });
   }
 }
