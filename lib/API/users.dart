@@ -30,3 +30,16 @@ Future<User> getUserFromUID(String uid) async {
 
   return User.fromJson(response['user']);
 }
+
+Future<List<String>> getPreferenceFields() async {
+  var response = await BaseAPI().get('v1/users/preferences/');
+
+  return [for (var field in response['fields']) field.toString()];
+}
+
+Future<bool> updateUserPreferences(List<String> updatePreferences) async {
+  Map<String, List<String>> postBody = {'preferences': updatePreferences};
+
+  return await BaseAPI()
+      .post('v1/users/${globals.user.uid}/preferences/', postBody);
+}

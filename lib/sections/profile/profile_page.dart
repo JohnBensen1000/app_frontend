@@ -113,7 +113,7 @@ class ProfilePageHeader extends StatelessWidget {
                     allowDrawingOutsideViewBox: true,
                   ),
                 ),
-                if (user.uid != globals.user.uid) FollowingButton(user: user),
+                if (user.uid != globals.user.uid) FollowingButton(user: user)
               ]),
         ],
       ),

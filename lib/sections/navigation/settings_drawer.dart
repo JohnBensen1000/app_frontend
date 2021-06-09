@@ -8,7 +8,8 @@ import '../../main.dart';
 import '../profile/profile_page.dart';
 import '../camera/camera.dart';
 
-import 'choose_color.dart';
+import '../personalization/choose_color.dart';
+import '../personalization/preferences.dart';
 
 class SettingsDrawer extends StatefulWidget {
   // The SettingsDrawer pops out from the left side of the screen. It contains
@@ -83,6 +84,15 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ChooseColorPage())).then((value) {
+                setState(() {});
+              }),
+            ),
+            SettingsButton(
+              buttonName: "Set preferences",
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PreferencesPage())).then((value) {
                 setState(() {});
               }),
             )

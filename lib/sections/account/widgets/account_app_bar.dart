@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../widgets/back_arrow.dart';
+
 class AccountAppBar extends PreferredSize {
   final double height;
 
@@ -11,15 +13,12 @@ class AccountAppBar extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-      Row(
-        children: <Widget>[
-          Container(
-            child: FlatButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Back"),
-            ),
-          ),
-        ],
+      Container(
+        width: double.infinity,
+        alignment: Alignment.topLeft,
+        margin: EdgeInsets.only(top: 20, left: 40),
+        child: GestureDetector(
+            child: BackArrow(), onTap: () => Navigator.pop(context)),
       ),
       SizedBox(
         width: 161.0,
