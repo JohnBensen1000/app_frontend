@@ -65,6 +65,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                 buttonName: "Sign Out",
                 onPressed: () async {
                   await showDialog(
+                      barrierColor: null,
                       context: context,
                       builder: (BuildContext context) {
                         return LogOutAlertDialog();
@@ -142,9 +143,10 @@ class LogOutAlertDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      elevation: 0,
       backgroundColor: Colors.transparent,
       content: Container(
-        height: 120,
+        height: 160,
         width: 320,
         decoration: BoxDecoration(
             color: Colors.white,
@@ -153,15 +155,22 @@ class LogOutAlertDialog extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-                padding: EdgeInsets.only(bottom: 20),
-                child: Text("Are you sure you want to logout?")),
+                padding: EdgeInsets.only(bottom: 20, left: 25, right: 25),
+                child: Text(
+                  "Are you sure you want to logout?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20),
+                )),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
                   child:
                       LougOutAlertDialogButton(color: Colors.red, text: 'Yes'),
                   onTap: () => Navigator.pop(context, true),
+                ),
+                Container(
+                  width: 20,
                 ),
                 GestureDetector(
                   child: LougOutAlertDialogButton(
@@ -190,10 +199,10 @@ class LougOutAlertDialogButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: 100,
-        height: 35,
+        width: 95,
+        height: 36,
         decoration: BoxDecoration(
-            color: color, borderRadius: BorderRadius.all(Radius.circular(15))),
+            color: color, borderRadius: BorderRadius.all(Radius.circular(14))),
         child: Center(child: Text(text)));
   }
 }

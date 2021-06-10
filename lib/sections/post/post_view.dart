@@ -220,7 +220,7 @@ class PostViewBody extends StatelessWidget {
                   style: TextStyle(color: Colors.grey),
                 )),
         ]),
-        onLongPress: () {
+        onTap: () {
           if (!provider.fullPage)
             Navigator.push(
                 context,
