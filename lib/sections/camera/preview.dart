@@ -313,23 +313,25 @@ class ShareButton extends StatelessWidget {
         Provider.of<PreviewProvider>(context, listen: false);
 
     return GestureDetector(
-      child: Button(
-        buttonName: name,
-      ),
-      onTap: () => Scaffold.of(context)
-          .showSnackBar(SnackBar(
-            backgroundColor: Colors.white.withOpacity(.7),
-            duration: Duration(days: 365),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(30))),
-            padding: EdgeInsets.only(left: 5, right: 5),
-            content: ChatListSnackBar(
-              isImage: provider.isImage,
-              filePath: provider.filePath,
-            ),
-          ))
-          .closed
-          .then((value) => provider.showOptions = true),
-    );
+        child: Button(
+          buttonName: name,
+        ),
+        onTap: () {
+          provider.showOptions = false;
+          Scaffold.of(context)
+              .showSnackBar(SnackBar(
+                backgroundColor: Colors.white.withOpacity(.7),
+                duration: Duration(days: 365),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30))),
+                padding: EdgeInsets.only(left: 5, right: 5),
+                content: ChatListSnackBar(
+                  isImage: provider.isImage,
+                  filePath: provider.filePath,
+                ),
+              ))
+              .closed
+              .then((value) => provider.showOptions = true);
+        });
   }
 }
