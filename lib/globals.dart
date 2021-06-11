@@ -15,12 +15,12 @@ String serverName = "DEVELOP";
 String chatCollection = serverName + "_chats";
 
 Map<String, Color> colorsMap = {
-  'red': Colors.redAccent,
-  'orange': Colors.orangeAccent,
-  'yellow': Colors.yellowAccent,
-  'green': Colors.greenAccent,
-  'blue': Colors.blueAccent,
-  'purple': Colors.purpleAccent
+  '1': Color.fromRGBO(255, 72, 0, 1.0),
+  '2': Color.fromRGBO(0, 248, 253, 1.0),
+  '3': Color.fromRGBO(255, 173, 191, 1.0),
+  '4': Color.fromRGBO(19, 100, 208, 1.0),
+  '5': Color.fromRGBO(255, 199, 0, 1.0),
+  '6': Color.fromRGBO(247, 0, 16, 1.0),
 };
 
 PostRepository postRepository = new PostRepository();

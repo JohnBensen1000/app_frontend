@@ -1,253 +1,233 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/models/chat.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/users.dart';
-import '../../models/user.dart';
-import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
 
-import '../friends/chat_page.dart';
-import '../friends/friends_page.dart';
+class ColorsProvider extends ChangeNotifier {
+  // Keeps track of the chosen color. If the user selects a color that is
+  // currently chosen, then sets chosen color to null.
 
-class ColorStruct {
-  // Contains information about an individual color, including it's Color
-  // object, a lighter version of the color, and its name.
+  String _chosenColorKey;
 
-  Color color;
-  Color softColor;
-  String name;
+  String get chosenColorKey => _chosenColorKey;
 
-  ColorStruct({@required this.color, @required this.name}) {
-    this.softColor = Color.fromARGB(
-        this.color.alpha,
-        this.color.red + ((255 - this.color.red) * .9).round(),
-        this.color.green + ((255 - this.color.green) * .9).round(),
-        this.color.blue + ((255 - this.color.blue) * .9).round());
-  }
-}
+  set chosenColorKey(String newColorKey) {
+    if (newColorKey == _chosenColorKey)
+      _chosenColorKey = null;
+    else
+      _chosenColorKey = newColorKey;
 
-class ChooseColorProvider extends ChangeNotifier {
-  // Keep a list of ColorStructs, which is created from globals.colorsMap. Also
-  // keeps track of the index of the chosen color.
-
-  final List<ColorStruct> colorStructs = [
-    for (String key in globals.colorsMap.keys)
-      ColorStruct(color: globals.colorsMap[key], name: key)
-  ];
-
-  int _chosenIndex = -1;
-
-  int get chosenIndex {
-    return _chosenIndex;
-  }
-
-  set chosenIndex(int newChosenIndex) {
-    _chosenIndex = newChosenIndex;
     notifyListeners();
   }
 }
 
-class ChooseColorPage extends StatelessWidget {
-  // The page is divided into two sections: a header and a listView.builder. The
-  // header displays the chosen color and allows the user to save the chosen
-  // color. The ListView.builder displays how different aspects of a User's
-  // account will look in a given color.
+class ColorsPage extends StatelessWidget {
+  // Determines layout of colors page. The colors page is divided into three
+  // sections: header, body, and footer. The header contains text saying what
+  // the user should do. The body contains a set of colors for the user to
+  // choose from. The footer contains a button that lets the user save the
+  // chosen color as their profile color.
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 150;
+    double headerHeight = 180;
+    double footerHeight = 340;
+    double bodyHeight =
+        MediaQuery.of(context).size.height - headerHeight - footerHeight;
 
-    return Scaffold(
-        body: ChangeNotifierProvider(
-            create: (_) => ChooseColorProvider(),
-            child: Consumer<ChooseColorProvider>(
-                builder: (context, provider, child) {
-              return Column(
-                children: [
-                  ChooseColorHeader(
-                    height: headerHeight,
-                  ),
-                  Container(
-                      height: MediaQuery.of(context).size.height - headerHeight,
-                      child: ListView.builder(
-                        itemCount: provider.colorStructs.length,
-                        itemBuilder: (context, index) {
-                          return ChooseColorWidget(
-                            colorStruct: provider.colorStructs[index],
-                            index: index,
-                          );
-                        },
-                      )),
-                ],
-              );
-            })));
+    return ChangeNotifierProvider(
+        create: (context) => ColorsProvider(),
+        child: Scaffold(
+            body: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: double.infinity,
+            ),
+            ChooseColorHeader(height: headerHeight),
+            ChooseColorBody(height: bodyHeight),
+            ChooseColorFooter(
+              height: footerHeight,
+            ),
+          ],
+        )));
   }
 }
 
 class ChooseColorHeader extends StatelessWidget {
-  // Maintains a ColorStruct variable given the chosen color. Allows the user
-  // to save the chosen color and exit the page.
-  ChooseColorHeader({@required this.height});
+  const ChooseColorHeader({
+    @required this.height,
+    Key key,
+  }) : super(key: key);
 
   final double height;
 
   @override
   Widget build(BuildContext context) {
-    ChooseColorProvider provider =
-        Provider.of<ChooseColorProvider>(context, listen: false);
-    ColorStruct chosenColor = (provider.chosenIndex >= 0)
-        ? provider.colorStructs[provider.chosenIndex]
-        : null;
-
     return Container(
       height: height,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: <Widget>[
-              FlatButton(
-                  child: BackArrow(), onPressed: () => Navigator.pop(context))
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              Text(
-                "The chosen color is: ",
-                style: TextStyle(fontSize: 24),
-              ),
-              if (chosenColor != null)
-                Container(
-                  height: 40,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    color: chosenColor.color,
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                  ),
-                  child: Center(
-                    child: Text(
-                      chosenColor.name,
-                      style: TextStyle(fontSize: 24),
-                    ),
-                  ),
-                )
-            ],
-          ),
-          Center(
+      child:
+          Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.only(top: 30, left: 40),
               child: GestureDetector(
-                  child: Container(
-                    width: 75,
-                    height: 25,
-                    decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                    child: Center(
-                      child: Text(
-                        "Save",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                  onTap: () async {
-                    await updateColor(chosenColor.name);
-                    globals.user.profileColor = chosenColor.color;
-                    Navigator.pop(context);
-                  }))
-        ],
-      ),
+                child: BackArrow(),
+                onTap: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+        Text(
+          'Pick your style',
+          style: TextStyle(
+            fontFamily: 'Helvetica Neue',
+            fontSize: 49,
+            color: const Color(0xff000000),
+          ),
+          textAlign: TextAlign.left,
+        ),
+      ]),
     );
+  }
+}
+
+class ChooseColorBody extends StatelessWidget {
+  ChooseColorBody({@required this.height});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    List<ChooseColorWidget> chooseColorWidgets = new List<ChooseColorWidget>();
+
+    globals.colorsMap
+        .forEach((key, value) => chooseColorWidgets.add(ChooseColorWidget(
+              colorKey: key,
+              color: value,
+              height: 110,
+            )));
+
+    return Container(
+        height: height,
+        child: ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: (chooseColorWidgets.length % 3 > 0)
+              ? chooseColorWidgets.length ~/ 3 + 1
+              : chooseColorWidgets.length ~/ 3,
+          itemBuilder: (context, index) =>
+              buildWidgetRow(chooseColorWidgets, 3 * index),
+        ));
+  }
+
+  Row buildWidgetRow(List<ChooseColorWidget> list, int index) {
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      for (ChooseColorWidget widget
+          in list.sublist(index, min(index + 3, list.length)))
+        widget
+    ]);
   }
 }
 
 class ChooseColorWidget extends StatelessWidget {
-  // Creates a tempUser variable so that a User object with the given color
-  // could be passed into different widgets. Shows what the user's profile page
-  // header, direct message chat widget, and text messages will look like with
-  // the given color.
-  const ChooseColorWidget({
-    Key key,
-    @required this.colorStruct,
-    @required this.index,
-  }) : super(key: key);
+  ChooseColorWidget(
+      {@required this.colorKey, @required this.color, @required this.height});
 
-  final ColorStruct colorStruct;
-  final int index;
+  final String colorKey;
+  final Color color;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    ChooseColorProvider provider =
-        Provider.of<ChooseColorProvider>(context, listen: false);
+    double deltaHeight = .15 * height;
 
-    User tempUser = User(
-        profileColor: colorStruct.color,
-        username: globals.user.username,
-        userID: globals.user.userID,
-        uid: globals.user.uid);
+    return Consumer<ColorsProvider>(
+      builder: (context, provider, child) {
+        bool isChosen = provider.chosenColorKey == colorKey;
+        double adjustedHeight = (isChosen) ? height - deltaHeight : height;
+        double adjustedMargin = (isChosen) ? 5 + .5 * deltaHeight : 5;
 
-    return GestureDetector(
-      child: Container(
-        padding: EdgeInsets.all(10),
-        margin: EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: (index == provider.chosenIndex)
-              ? colorStruct.softColor
-              : Colors.white,
-          border: Border.all(color: Colors.grey[600]),
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            // ComponentTitleWidget(text: 'How your profile will look:'),
-            // ProfilePageHeader(
-            //   user: globals.user,
-            //   color: colorStruct.color,
-            // ),
-            ComponentTitleWidget(text: 'How your friends will see you:'),
-            ChatWidget(
-              chat: Chat(
-                  'chatID',
-                  tempUser.username,
-                  true,
-                  [tempUser],
-                  ProfilePic(
-                    diameter: 85,
-                    user: tempUser,
-                  ),
-                  colorStruct.color),
+        return GestureDetector(
+            child: Container(
+              margin: EdgeInsets.all(adjustedMargin),
+              width: adjustedHeight,
+              height: adjustedHeight,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(.25 * adjustedHeight),
+                color: color,
+                border: Border.all(width: 1.0, color: const Color(0xff707070)),
+              ),
             ),
-            ComponentTitleWidget(text: 'How your texts will look:'),
-            ChatItemWidgetText(
-              backgroundColor: colorStruct.color,
-              text: "This is what a text would look like.",
-              mainAxisAlignment: MainAxisAlignment.start,
-            )
-          ],
-        ),
-      ),
-      onTap: () => provider.chosenIndex = index,
+            onTap: () => provider.chosenColorKey = colorKey);
+      },
     );
   }
 }
 
-class ComponentTitleWidget extends StatelessWidget {
-  const ComponentTitleWidget({
-    @required this.text,
+class ChooseColorFooter extends StatelessWidget {
+  const ChooseColorFooter({
+    @required this.height,
     Key key,
   }) : super(key: key);
 
-  final String text;
+  final double height;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(top: 10, bottom: 10),
-      child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-        Text(
-          text,
-          style: TextStyle(fontSize: 24),
-        )
-      ]),
-    );
+    return Consumer<ColorsProvider>(
+        builder: (context, provider, child) => Container(
+              padding: EdgeInsets.only(bottom: 40),
+              height: height,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      'The color you select will be used throughout your entire profile.',
+                      style: TextStyle(
+                        fontFamily: 'Helvetica Neue',
+                        fontSize: 15,
+                        color: const Color(0xff000000),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  GestureDetector(
+                      child: Container(
+                        height: 35,
+                        width: 105,
+                        margin: EdgeInsets.all(40),
+                        decoration: BoxDecoration(
+                            border: Border.all(
+                                color: (provider.chosenColorKey != null)
+                                    ? globals.colorsMap[provider.chosenColorKey]
+                                    : Colors.grey[400],
+                                width: 2),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(20))),
+                        child: Center(
+                          child: Text("Set Color"),
+                        ),
+                      ),
+                      onTap: () async {
+                        await updateColor(provider.chosenColorKey);
+                        globals.user.profileColor =
+                            globals.colorsMap[provider.chosenColorKey];
+                        Navigator.pop(context);
+                      }),
+                  Container(
+                      height: 100,
+                      child: Image.asset('assets/images/Entropy.PNG'))
+                ],
+              ),
+            ));
   }
 }
