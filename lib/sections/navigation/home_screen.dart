@@ -5,10 +5,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/sections/navigation/settings_drawer.dart';
 
+import '../../globals.dart' as globals;
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
 import '../friends/friends_page.dart';
 import '../camera/camera.dart';
+import '../profile/profile_page.dart';
 
 import 'search_page.dart';
 
@@ -35,8 +37,8 @@ class HomeScreenProvider extends ChangeNotifier {
   // sliding horizontally, this provider decides if the user swiped far enough
   // to display a new page.
 
-  PageLabel pageLabel = PageLabel.following;
-  double _offset = -1;
+  PageLabel pageLabel = PageLabel.friends;
+  double _offset = 0;
 
   double get offset {
     return _offset;
@@ -115,9 +117,11 @@ class _HomeState extends State<Home> {
         child: Scaffold(
           backgroundColor: const Color(0xffffffff),
           appBar: HomeAppBar(
-            height: 150,
+            height: 100,
           ),
-          body: HomePage(height: MediaQuery.of(context).size.height - 150),
+          body: Container(
+              child:
+                  HomePage(height: MediaQuery.of(context).size.height - 150)),
           drawer: SettingsDrawer(
             width: 250,
           ),
@@ -140,16 +144,15 @@ class HomeAppBar extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(color: Colors.white, boxShadow: [
+        BoxShadow(
+            color: Colors.black.withOpacity(.05),
+            blurRadius: 10,
+            offset: Offset(0, 5)),
+      ]),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          Container(
-            padding: EdgeInsets.only(top: 70),
-            child: SvgPicture.string(
-              _svg_rfs5b5,
-              allowDrawingOutsideViewBox: true,
-            ),
-          ),
           HomeAppBarButtons(),
           HomeAppBarNavigation(),
         ],
@@ -159,7 +162,7 @@ class HomeAppBar extends PreferredSize {
 }
 
 class HomeAppBarButtons extends StatelessWidget {
-  // Has buttons for nagivating to the settings, search, and camera pages. When
+  // Has buttons for nagivating to the profile search, and camera pages. When
   // the user returns from the search and camera pages, provider.resetState() is
   // called.
 
@@ -173,61 +176,62 @@ class HomeAppBarButtons extends StatelessWidget {
         Provider.of<ResetStateProvider>(context, listen: false);
 
     return Container(
-      padding: const EdgeInsets.only(left: 30, top: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Container(
-            width: 24.0,
-            height: 24.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(width: 1.0, color: const Color(0xff707070)),
-            ),
-            child: FlatButton(
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              child: null,
-            ),
-          ),
-          Row(children: <Widget>[
-            Container(
-                width: 100,
-                height: 30,
-                decoration: new BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Colors.grey[300],
-                ),
-                child: FlatButton(
-                  child: Text("Search", textAlign: TextAlign.center),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SearchPage()),
-                    ).then((value) => provider.resetState());
-                  },
-                )),
-            ButtonTheme(
-              minWidth: 40,
-              child: FlatButton(
-                child: SvgPicture.string(
-                  _svg_n49k6t,
-                  allowDrawingOutsideViewBox: true,
-                  fit: BoxFit.fill,
-                ),
-                onPressed: () {
-                  Navigator.push(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            GestureDetector(
+                child: Container(
+                    height: 40,
+                    child: Image.asset('assets/images/Entropy.PNG')),
+                onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            Camera(cameraUsage: CameraUsage.post, chat: null)),
-                  ).then((value) => provider.resetState());
-                },
+                            ProfilePage(user: globals.user)))),
+            Container(
+              width: 80,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  GestureDetector(
+                    child: Container(
+                      width: 24.0,
+                      height: 24.0,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                            width: 1.0, color: const Color(0xff707070)),
+                      ),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SearchPage()),
+                    ).then((value) => provider.resetState()),
+                  ),
+                  GestureDetector(
+                    child: Container(
+                      width: 24.0,
+                      height: 24.0,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                            width: 1.0, color: const Color(0xff707070)),
+                      ),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Camera(
+                                cameraUsage: CameraUsage.post,
+                              )),
+                    ).then((value) => provider.resetState()),
+                  ),
+                ],
               ),
-            ),
-          ]),
-        ],
-      ),
-    );
+            )
+          ],
+        ));
   }
 }
 

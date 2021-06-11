@@ -113,7 +113,10 @@ class ProfilePageHeader extends StatelessWidget {
                     allowDrawingOutsideViewBox: true,
                   ),
                 ),
-                if (user.uid != globals.user.uid) FollowingButton(user: user)
+                if (user.uid != globals.user.uid)
+                  FollowingButton(user: user)
+                else
+                  OpenSettingsButton(),
               ]),
         ],
       ),
@@ -151,27 +154,11 @@ class _FollowingButtonState extends State<FollowingButton> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done)
             return GestureDetector(
-              child: Container(
-                height: height,
-                width: width,
-                decoration: BoxDecoration(
-                    border:
-                        Border.all(color: widget.user.profileColor, width: 2.0),
-                    color:
-                        (isFollowing) ? Colors.white : widget.user.profileColor,
-                    borderRadius: BorderRadius.all(Radius.circular(10))),
-                child: Center(
-                  child: Text(
-                    (isFollowing) ? "Following" : "Follow",
-                    style: TextStyle(
-                      fontFamily: 'Helvetica Neue',
-                      fontSize: 20,
-                      color: const Color(0xff000000),
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                ),
-              ),
+              child: ProfilePageHeaderButton(
+                  name: (isFollowing) ? "Following" : "Follow",
+                  color:
+                      (isFollowing) ? Colors.white : widget.user.profileColor,
+                  borderColor: widget.user.profileColor),
               onTap: () async {
                 if (allowChangeFollow) {
                   allowChangeFollow = false;
@@ -200,6 +187,55 @@ class _FollowingButtonState extends State<FollowingButton> {
     isFollowing = !isFollowing;
 
     setState(() {});
+  }
+}
+
+class OpenSettingsButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      child: ProfilePageHeaderButton(
+        name: "Settings",
+        color: Colors.grey[200],
+        borderColor: Colors.grey[200],
+      ),
+      onTap: () => Scaffold.of(context).openDrawer(),
+    );
+  }
+}
+
+class ProfilePageHeaderButton extends StatelessWidget {
+  const ProfilePageHeaderButton(
+      {Key key,
+      @required this.name,
+      @required this.color,
+      @required this.borderColor})
+      : super(key: key);
+
+  final String name;
+  final Color color;
+  final Color borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 28.0,
+      width: 125.0,
+      decoration: BoxDecoration(
+          border: Border.all(color: borderColor, width: 2.0),
+          color: color,
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      child: Center(
+        child: Text(
+          name,
+          style: TextStyle(
+            fontFamily: 'Helvetica Neue',
+            fontSize: 20,
+            color: const Color(0xff000000),
+          ),
+        ),
+      ),
+    );
   }
 }
 
