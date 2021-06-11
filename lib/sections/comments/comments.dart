@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/users.dart';
-import 'package:test_flutter/widgets/profile_pic.dart';
 
 import '../../API/comments.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
+import '../../Widgets/loading_icon.dart';
 
 import 'widgets/add_comment_button.dart';
+import 'widgets/comment_widget.dart';
 import 'comments_page.dart';
 
 FirebaseStorage storage = FirebaseStorage.instance;
 
 class CommentsProvider extends ChangeNotifier {
-  // resetState() acts like "setState()", it forces all widgets below this to
-  // rebuild. The variable, commentsList, is used to store the current list
-  // of comments as a FutureBuilder() waits for an updated list of comments.
-
-  List<Comment> commentsList = [];
+  // The only point of this provider is to let widgets below this reset the
+  // entire state of this SnackBar.
 
   void resetState() {
     notifyListeners();
@@ -26,11 +23,9 @@ class CommentsProvider extends ChangeNotifier {
 }
 
 class Comments extends StatelessWidget {
-  // Initializes CommentsProvider(). Gets a list of comments from backend. When
-  // the user adds a new comment, this widget is rebuilt and a new list of
-  // comments is recieved from the server. As the FutureBuilder() waits for the
-  // new list of comments, the previous list of comments (stored in the
-  // provider) is shown.
+  // Initializes CommentsProvider. Gets a list of comments for this post from
+  // the backend. Displays a circular progress bar as it waits for the comments
+  // list. This widget is rebuilt every time the user posts a new comment.
 
   Comments({
     @required this.height,
@@ -42,236 +37,170 @@ class Comments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) => CommentsProvider(),
-        child: Consumer<CommentsProvider>(
-          builder: (context, provider, child) => Container(
-            height: height,
-            child: FutureBuilder(
+    return Container(
+        height: height,
+        child: ChangeNotifierProvider(
+            create: (context) => CommentsProvider(),
+            child: Consumer<CommentsProvider>(
+              builder: (context, value, child) => FutureBuilder(
                 future: getAllComments(post),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
-                    provider.commentsList = snapshot.data;
                     return CommentsSnackBar(
                         height: height,
-                        post: post,
-                        commentsList: snapshot.data);
-                  } else
-                    return CommentsSnackBar(
-                      height: height,
-                      post: post,
-                      commentsList: provider.commentsList,
-                    );
-                }),
-          ),
-        ));
+                        commentsList: snapshot.data,
+                        post: post);
+                  } else {
+                    return Center(
+                        child: StreamBuilder(
+                            stream: LoadingIconTimer().stream,
+                            builder: (context, snapshot) {
+                              return CircularProgressIndicator(
+                                strokeWidth: 3,
+                                value: snapshot.data,
+                              );
+                            }));
+                  }
+                },
+              ),
+            )));
   }
 }
 
 class CommentsSnackBar extends StatelessWidget {
-  // Displays the list of comments as a SnackBar.
+  // Simply determines the layout of the comments snack bar. The layout is a
+  // column of the comments and an add-comment button.
 
   const CommentsSnackBar({
     Key key,
     @required this.height,
-    @required this.post,
     @required this.commentsList,
+    @required this.post,
   }) : super(key: key);
 
   final double height;
-  final Post post;
   final List<Comment> commentsList;
+  final Post post;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
         CommentsSection(
-            commentsList: commentsList,
-            height: .85 * height,
-            showReplyBotton: true,
-            post: post),
+            height: .85 * height, commentsList: commentsList, post: post),
         AddComment(
-          post: post,
-          commentsList: commentsList,
-        ),
+            height: .15 * height, commentsList: commentsList, post: post),
       ],
     );
   }
 }
 
 class CommentsSection extends StatelessWidget {
-  // Returns a ListVew.builder() of every comment in commentsList. If this list
-  // is empty or null, returns an empty container with the same height.
+  // Creates a list view of every comment in comments list. Each item in this
+  // list is a Column of one CommentWidget and a row of buttons. The
+  // CommentWidget displays the user's profile, username, and comment. The row
+  // of buttons currently only lets the user reply to the comment. When the
+  // user returns to this page from CommentsPage, calls provider.resetState().
 
   const CommentsSection({
-    @required this.commentsList,
     @required this.height,
-    @required this.showReplyBotton,
+    @required this.commentsList,
     @required this.post,
-    this.levelOffset = 0,
-    this.indent = 40,
     Key key,
   }) : super(key: key);
 
-  final List<Comment> commentsList;
   final double height;
-  final bool showReplyBotton;
-  final Post post;
-  final int levelOffset;
-  final double indent;
-
-  @override
-  Widget build(BuildContext context) {
-    if (commentsList == null)
-      return Container(
-        height: height,
-      );
-    else
-      return Container(
-        height: height,
-        child: Container(
-          child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: ListView.builder(
-              itemCount: commentsList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return CommentWidget(
-                  comment: commentsList[index],
-                  indent: indent,
-                  levelOffset: levelOffset,
-                  showReplyBotton: showReplyBotton,
-                  commentsList: commentsList,
-                  post: post,
-                );
-              },
-            ),
-          ),
-        ),
-      );
-  }
-}
-
-class CommentWidget extends StatelessWidget {
-  // Widget for an individual comment.
-  CommentWidget({
-    @required this.comment,
-    @required this.indent,
-    @required this.levelOffset,
-    @required this.showReplyBotton,
-    @required this.commentsList,
-    @required this.post,
-  });
-
-  final Comment comment;
-  final double indent;
-  final int levelOffset;
-  final bool showReplyBotton;
   final List<Comment> commentsList;
   final Post post;
-
-  @override
-  Widget build(BuildContext context) {
-    double leftPadding = indent * (comment.level - levelOffset);
-    double width = MediaQuery.of(context).size.width - leftPadding;
-
-    return Container(
-        padding: EdgeInsets.only(top: 5, bottom: 5, left: leftPadding),
-        child: FutureBuilder(
-          future: getUserFromUID(comment.uid),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done)
-              return Stack(
-                children: <Widget>[
-                  Column(
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          if (showReplyBotton)
-                            ProfilePic(diameter: 45, user: snapshot.data),
-                          Column(
-                            children: [
-                              Text(
-                                snapshot.data.userID,
-                                style: TextStyle(
-                                  fontFamily: 'Helvetica Neue',
-                                  fontSize: 15,
-                                  color: const Color(0xff707070),
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
-                              if (showReplyBotton)
-                                GestureDetector(
-                                    child: Text("Reply"),
-                                    onTap: () async =>
-                                        await replyToComment(context))
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(left: .35 * width),
-                    child: Text(
-                      comment.commentText,
-                      style: TextStyle(
-                        fontFamily: 'Helvetica Neue',
-                        fontSize: 18,
-                        color: const Color(0xff000000),
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                ],
-              );
-            else
-              return Container();
-          },
-        ));
-  }
-
-  List<Comment> getSubComments(Comment comment) {
-    int startIndex = commentsList.indexOf(comment) + 1;
-    int endIndex = startIndex + comment.numSubComments;
-    return commentsList.sublist(startIndex, endIndex);
-  }
-
-  Future<void> replyToComment(BuildContext context) async {
-    await Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => CommentsPage(
-                  post: post,
-                  commentsList: (comment == null)
-                      ? commentsList
-                      : getSubComments(comment),
-                  parentComment: comment,
-                ))).then((commentText) async {
-      if (commentText != null) await postComment(post, comment, commentText);
-      if (commentText != null)
-        Provider.of<CommentsProvider>(context, listen: false).resetState();
-    });
-  }
-}
-
-class AddComment extends StatelessWidget {
-  const AddComment({
-    Key key,
-    @required this.post,
-    @required this.commentsList,
-  }) : super(key: key);
-
-  final Post post;
-  final List<Comment> commentsList;
 
   @override
   Widget build(BuildContext context) {
     CommentsProvider provider =
         Provider.of<CommentsProvider>(context, listen: false);
 
-    return GestureDetector(
+    double paddingPerLevel = 40;
+
+    return Container(
+      height: height,
+      child: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: ListView.builder(
+            itemCount: commentsList.length,
+            itemBuilder: (BuildContext context, int index) {
+              Comment comment = commentsList[index];
+              double leftPadding = paddingPerLevel * comment.level;
+
+              return Container(
+                margin: EdgeInsets.only(bottom: 5),
+                child: Column(
+                  children: <Widget>[
+                    CommentWidget(comment: comment, leftPadding: leftPadding),
+                    Container(
+                      padding: EdgeInsets.only(left: 20 + leftPadding),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            child: GestureDetector(
+                              child: Center(
+                                child: Text("Reply"),
+                              ),
+                              onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => CommentsPage(
+                                                post: post,
+                                                commentsList: getSubComments(
+                                                    commentsList, comment),
+                                                parentComment: comment,
+                                              )))
+                                  .then((value) => provider.resetState()),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              );
+            }),
+      ),
+    );
+  }
+
+  List<Comment> getSubComments(List<Comment> commentsList, Comment comment) {
+    int startIndex = commentsList.indexOf(comment) + 1;
+    int endIndex = startIndex + comment.numSubComments;
+    return commentsList.sublist(startIndex, endIndex);
+  }
+}
+
+class AddComment extends StatelessWidget {
+  // A button that lets the user post a comment. This button, when pressed,
+  // takes the user to CommentsPage(). When the user returns to this page from
+  // CommentsPage, calls provider.resetState().
+
+  const AddComment({
+    Key key,
+    @required this.height,
+    @required this.commentsList,
+    @required this.post,
+  }) : super(key: key);
+
+  final double height;
+  final List<Comment> commentsList;
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    CommentsProvider provider =
+        Provider.of<CommentsProvider>(context, listen: false);
+
+    return Container(
+      height: height,
+      alignment: Alignment.center,
+      child: GestureDetector(
         child: AddCommentButton(
           child: Text(
             'Add a comment',
@@ -285,15 +214,14 @@ class AddComment extends StatelessWidget {
           ),
         ),
         onTap: () async => await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => CommentsPage(
-                          post: post,
-                          commentsList: commentsList,
-                          parentComment: null,
-                        ))).then((commentText) async {
-              await postComment(post, null, commentText);
-              if (commentText != null) provider.resetState();
-            }));
+            context,
+            MaterialPageRoute(
+                builder: (_) => CommentsPage(
+                      post: post,
+                      commentsList: commentsList,
+                      parentComment: null,
+                    ))).then((value) => provider.resetState()),
+      ),
+    );
   }
 }

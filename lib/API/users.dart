@@ -6,11 +6,11 @@ import '../globals.dart' as globals;
 import 'baseAPI.dart';
 
 Future<Map> createAccount(Map postBody) async {
-  return await BaseAPI().post("v1/users/new/", postBody);
+  return await globals.baseAPI.post("v1/users/new/", postBody);
 }
 
 Future<List<User>> searchUsers(String searchString) async {
-  var response = await BaseAPI().get("v1/users/?contains=$searchString");
+  var response = await globals.baseAPI.get("v1/users/?contains=$searchString");
 
   List<User> creatorsList = [
     for (var userJson in response["creatorsList"]) User.fromJson(userJson)
@@ -22,17 +22,17 @@ Future<List<User>> searchUsers(String searchString) async {
 Future<bool> updateColor(String profileColor) async {
   Map<String, String> postBody = {'profileColor': profileColor};
 
-  return await BaseAPI().post('v1/users/${globals.user.uid}/', postBody);
+  return await globals.baseAPI.post('v1/users/${globals.user.uid}/', postBody);
 }
 
 Future<User> getUserFromUID(String uid) async {
-  var response = await BaseAPI().get('v1/users/$uid/');
+  var response = await globals.baseAPI.get('v1/users/$uid/');
 
   return User.fromJson(response['user']);
 }
 
 Future<List<String>> getPreferenceFields() async {
-  var response = await BaseAPI().get('v1/users/preferences/');
+  var response = await globals.baseAPI.get('v1/users/preferences/');
 
   return [for (var field in response['fields']) field.toString()];
 }
@@ -40,6 +40,6 @@ Future<List<String>> getPreferenceFields() async {
 Future<bool> updateUserPreferences(List<String> updatePreferences) async {
   Map<String, List<String>> postBody = {'preferences': updatePreferences};
 
-  return await BaseAPI()
+  return await globals.baseAPI
       .post('v1/users/${globals.user.uid}/preferences/', postBody);
 }

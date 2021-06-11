@@ -1,3 +1,5 @@
+import 'user.dart';
+
 class Comment {
   // Data structure that holds all important information about an individual
   // comment Provides multiple constructors for creating a Comment.
@@ -8,6 +10,8 @@ class Comment {
   String path;
   int level;
   int numSubComments;
+
+  User user;
 
   Comment.fromServer(Map commentJson) {
     // Used to construct comments from a json that was recieved from the server.

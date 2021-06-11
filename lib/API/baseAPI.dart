@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class BaseAPI {
-  String baseURL = "http://192.168.0.180:8000/";
+  String baseURL = "http://192.168.1.16:8000/";
 
   Future<dynamic> get(String url) async {
     try {
@@ -53,6 +53,9 @@ class BaseAPI {
     try {
       http.Response response = await http.delete(baseURL + url);
       return decodeReponse(response);
+    } on HttpException {
+      await Future.delayed(Duration(milliseconds: 100));
+      return get(url);
     } on SocketException {
       print(" [ERROR] No Internet Connection");
     } catch (e) {

@@ -35,8 +35,8 @@ class HomeScreenProvider extends ChangeNotifier {
   // sliding horizontally, this provider decides if the user swiped far enough
   // to display a new page.
 
-  PageLabel pageLabel = PageLabel.friends;
-  double _offset = 0;
+  PageLabel pageLabel = PageLabel.following;
+  double _offset = -1;
 
   double get offset {
     return _offset;
@@ -325,7 +325,7 @@ class NavigationButton extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   // Contains three widgets. These widgets are horizontally translated so that
   // only one widget is seen at a time. These translation offsets are updated
   // continuously as the user swipes horizontally. Each widget is wrapped with
@@ -338,6 +338,11 @@ class HomePage extends StatelessWidget {
 
   final double height;
 
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -354,21 +359,21 @@ class HomePage extends StatelessWidget {
                 offset: Offset(width * (provider.offset - 1), 0),
                 child: Container(
                     width: width,
-                    height: height,
+                    height: widget.height,
                     color: Colors.white,
                     child: discoverPage)),
             Transform.translate(
                 offset: Offset(width * (provider.offset), 0),
                 child: Container(
                     width: width,
-                    height: height,
+                    height: widget.height,
                     color: Colors.white,
                     child: friendsPage)),
             Transform.translate(
                 offset: Offset(width * (provider.offset + 1), 0),
                 child: Container(
                     width: width,
-                    height: height,
+                    height: widget.height,
                     color: Colors.white,
                     child: followingPage)),
           ]),

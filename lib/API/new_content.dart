@@ -4,8 +4,8 @@ import '../globals.dart' as globals;
 import 'baseAPI.dart';
 
 Future<List<Post>> getFollowingPosts() async {
-  var response =
-      await BaseAPI().get('v1/new_content/${globals.user.uid}/following/');
+  var response = await globals.baseAPI
+      .get('v1/new_content/${globals.user.uid}/following/');
 
   List<Post> postList = [
     for (var postJson in response["posts"]) Post.fromJson(postJson)
@@ -14,7 +14,7 @@ Future<List<Post>> getFollowingPosts() async {
 }
 
 Future<List<Post>> getRecommendations() async {
-  var response = await BaseAPI()
+  var response = await globals.baseAPI
       .get('v1/new_content/${globals.user.uid}/recommendations/');
 
   List<Post> postList = [

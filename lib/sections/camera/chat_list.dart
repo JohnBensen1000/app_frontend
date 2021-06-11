@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 import '../../API/chats.dart';
 import '../../models/chat.dart';
 
-import 'widgets/loading_icon.dart';
+import '../../widgets/loading_icon.dart';
 
 import 'preview.dart';
 

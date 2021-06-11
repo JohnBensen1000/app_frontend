@@ -14,7 +14,7 @@ import '../../API/chats.dart';
 import '../../models/chat.dart';
 import '../../widgets/back_arrow.dart';
 
-import 'widgets/loading_icon.dart';
+import '../../widgets/loading_icon.dart';
 
 import 'camera.dart';
 import 'chat_list.dart';

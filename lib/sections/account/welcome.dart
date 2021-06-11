@@ -29,14 +29,15 @@ class Welcome extends StatelessWidget {
                 if (response['signedIn']) {
                   globals.user = User.fromJson(response['user']);
                   return Home(
-                    pageLabel: PageLabel.friends,
+                    pageLabel: PageLabel.following,
                   );
                 } else {
                   return WelcomePage();
                 }
               } else {
                 return Center(
-                  child: Text("Entropy"),
+                  child: Container(
+                      child: Image.asset('assets/images/Entropy.jpg')),
                 );
               }
             }));

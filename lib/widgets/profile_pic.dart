@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../sections/post/post_view.dart';
 import '../models/user.dart';
 import '../API/posts.dart';
+import '../globals.dart' as globals;
 
 class Profile extends StatelessWidget {
   // Displays the user's profile image/video, username, and userID. The user's
@@ -28,11 +29,11 @@ class Profile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(user.username, style: TextStyle(fontSize: diameter / 4)),
+              Text(user.username, style: TextStyle(fontSize: diameter / 3)),
               Text(
                 "@${user.userID}",
                 style:
-                    TextStyle(fontSize: diameter / 8, color: Colors.grey[500]),
+                    TextStyle(fontSize: diameter / 6, color: Colors.grey[500]),
               ),
             ],
           ),
@@ -62,7 +63,7 @@ class ProfilePic extends StatelessWidget {
           ClipPath(
               clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
               child: FutureBuilder(
-                  future: getProfile(user),
+                  future: globals.profileRepository.getProfilePost(user),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done &&
                         snapshot.hasData)

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter/repository/profile_repository.dart';
+
+import 'API/baseAPI.dart';
 
 import 'models/user.dart';
 import 'repository/post_repository.dart';
+import 'repository/user_repository.dart';
 
 User user;
 double goldenRatio = 1.61803398875;
@@ -20,3 +24,7 @@ Map<String, Color> colorsMap = {
 };
 
 PostRepository postRepository = new PostRepository();
+UserRepository userRepository = new UserRepository();
+ProfileRepository profileRepository = new ProfileRepository();
+
+BaseAPI baseAPI = new BaseAPI();
