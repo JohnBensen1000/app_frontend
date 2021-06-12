@@ -3,9 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/sections/navigation/settings_drawer.dart';
 
 import '../../globals.dart' as globals;
+import '../../widgets/profile_pic.dart';
+
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
 import '../friends/friends_page.dart';
@@ -105,6 +106,9 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    double appBarHeight = 110;
+    double bodyHeight = MediaQuery.of(context).size.height - appBarHeight;
+
     return MultiProvider(
         providers: [
           ChangeNotifierProvider(
@@ -117,14 +121,9 @@ class _HomeState extends State<Home> {
         child: Scaffold(
           backgroundColor: const Color(0xffffffff),
           appBar: HomeAppBar(
-            height: 100,
+            height: appBarHeight,
           ),
-          body: Container(
-              child:
-                  HomePage(height: MediaQuery.of(context).size.height - 150)),
-          drawer: SettingsDrawer(
-            width: 250,
-          ),
+          body: Container(child: HomePage(height: bodyHeight)),
         ));
   }
 }
@@ -174,15 +173,19 @@ class HomeAppBarButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     ResetStateProvider provider =
         Provider.of<ResetStateProvider>(context, listen: false);
+    double buttonsWidth = 50;
 
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
+            Container(
+              width: buttonsWidth,
+            ),
             GestureDetector(
                 child: Container(
-                    height: 40,
+                    height: 58,
                     child: Image.asset('assets/images/Entropy.PNG')),
                 onTap: () => Navigator.push(
                     context,
@@ -190,19 +193,14 @@ class HomeAppBarButtons extends StatelessWidget {
                         builder: (context) =>
                             ProfilePage(user: globals.user)))),
             Container(
-              width: 80,
-              child: Row(
+              height: 55,
+              width: buttonsWidth,
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
                   GestureDetector(
-                    child: Container(
-                      width: 24.0,
-                      height: 24.0,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        border: Border.all(
-                            width: 1.0, color: const Color(0xff707070)),
-                      ),
+                    child: IconContainer(
+                      image: Image.asset('assets/images/search_icon.png'),
                     ),
                     onTap: () => Navigator.push(
                       context,
@@ -210,15 +208,8 @@ class HomeAppBarButtons extends StatelessWidget {
                     ).then((value) => provider.resetState()),
                   ),
                   GestureDetector(
-                    child: Container(
-                      width: 24.0,
-                      height: 24.0,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        border: Border.all(
-                            width: 1.0, color: const Color(0xff707070)),
-                      ),
-                    ),
+                    child: IconContainer(
+                        image: Image.asset('assets/images/camera_icon.png')),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -232,6 +223,29 @@ class HomeAppBarButtons extends StatelessWidget {
             )
           ],
         ));
+  }
+}
+
+class IconContainer extends StatelessWidget {
+  const IconContainer({
+    @required this.image,
+    Key key,
+  }) : super(key: key);
+
+  final Image image;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44.0,
+      height: 23.0,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.0),
+        color: const Color(0xffffffff),
+        border: Border.all(width: 1.0, color: const Color(0xff000000)),
+      ),
+      child: image,
+    );
   }
 }
 
@@ -352,9 +366,13 @@ class _HomePageState extends State<HomePage> {
     double width = MediaQuery.of(context).size.width;
 
     return Consumer<ResetStateProvider>(builder: (context, _, child) {
-      Widget discoverPage = DiscoverPage();
+      Widget discoverPage = DiscoverPage(
+        height: widget.height,
+      );
       Widget friendsPage = FriendsPageState();
-      Widget followingPage = FollowingPage();
+      Widget followingPage = FollowingPage(
+        height: widget.height,
+      );
 
       return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
         return GestureDetector(

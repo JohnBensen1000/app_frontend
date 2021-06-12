@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'sections/account/welcome.dart';
+import 'iPhone12ProMax1.dart';
 
 main() => runApp(MyApp());
 

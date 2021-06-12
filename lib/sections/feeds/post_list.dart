@@ -10,7 +10,7 @@ import '../../models/post.dart';
 
 import '../post/post_view.dart';
 
-class PostListTransitionProvider extends ChangeNotifier {
+class PostListProvider extends ChangeNotifier {
   // Keeps track of the vertical offset of the posts in PostListScroller. Allows
   // for smooth sliding up and down of the posts. swipeUp(), swipeDown(), and
   // moveBack() all slowly change the vertical offsets to create a smooth
@@ -21,7 +21,7 @@ class PostListTransitionProvider extends ChangeNotifier {
 
   List<double> offsets;
 
-  PostListTransitionProvider({@required this.postVerticalOffset}) {
+  PostListProvider({@required this.postVerticalOffset}) {
     offsets = [-postVerticalOffset, 0, postVerticalOffset];
   }
 
@@ -96,9 +96,10 @@ class PostList extends StatefulWidget {
     continuously update the position of each widget.
   */
 
-  PostList({@required this.postList});
+  PostList({@required this.postList, @required this.height});
 
   final List<Post> postList;
+  final double height;
 
   @override
   _PostListState createState() => _PostListState();
@@ -106,13 +107,15 @@ class PostList extends StatefulWidget {
 
 class _PostListState extends State<PostList> {
   int postListIndex = 0;
-  double postVerticalOffset = 650;
+  double postVerticalOffset;
 
   List<Future<PostView>> postViews;
   List<bool> alreadyWatched;
 
   @override
   Widget build(BuildContext context) {
+    postVerticalOffset = widget.height;
+
     if (widget.postList.length == 0)
       return Center(
         child: Text("Sorry, we ran out of content."),
@@ -127,9 +130,8 @@ class _PostListState extends State<PostList> {
 
     return ChangeNotifierProvider(
       create: (context) =>
-          PostListTransitionProvider(postVerticalOffset: postVerticalOffset),
-      child: Consumer<PostListTransitionProvider>(
-          builder: (context, provider, child) {
+          PostListProvider(postVerticalOffset: postVerticalOffset),
+      child: Consumer<PostListProvider>(builder: (context, provider, child) {
         alreadyWatched[postListIndex] = true;
 
         return Stack(children: [
@@ -170,7 +172,7 @@ class _PostListState extends State<PostList> {
 
       PostView postView = PostView(
         post: post,
-        height: 500,
+        height: .75 * postVerticalOffset,
         aspectRatio: globals.goldenRatio,
         postStage: PostStage.fullWidget,
         videoPlayerController: videoPlayerController,
@@ -182,13 +184,13 @@ class _PostListState extends State<PostList> {
   }
 
   GestureDetector _buildGestureDetector(
-      PostListTransitionProvider provider, Future<PostView> PostView) {
+      PostListProvider provider, Future<PostView> postView) {
     // Returns a GestureDetector that contains a post widget and updates the
     // provider whenever it detects a vertical drag.
 
     return GestureDetector(
       child: FutureBuilder(
-          future: PostView,
+          future: postView,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return Center(child: snapshot.data);
@@ -204,8 +206,7 @@ class _PostListState extends State<PostList> {
     );
   }
 
-  Future<void> _handleVerticalDragStop(
-      PostListTransitionProvider provider) async {
+  Future<void> _handleVerticalDragStop(PostListProvider provider) async {
     // Responsible for determine what post widget to display whenever a vertical
     // drag is detected. If the user swipes down, then both the current and next
     // post widget are shifted up. The previous post widget is replaced with the

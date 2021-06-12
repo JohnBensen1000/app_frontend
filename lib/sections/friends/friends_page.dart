@@ -55,6 +55,7 @@ class FriendsPage extends StatelessWidget {
         Container(
             height: 600,
             child: ListView.builder(
+                padding: EdgeInsets.only(top: 20),
                 itemCount: chatstList.length,
                 itemBuilder: (BuildContext context, int index) {
                   Chat chat = chatstList[index];
