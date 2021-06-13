@@ -67,7 +67,7 @@ class FriendsPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => ChatPageState(
+                            builder: (context) => ChatPage(
                                   chat: chat,
                                 )),
                       );

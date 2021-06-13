@@ -72,9 +72,10 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                       }).then((confirmLogOut) async {
                     if (confirmLogOut != null && confirmLogOut) {
                       await signOut();
-                      if (ModalRoute.of(context).isFirst)
+                      if (ModalRoute.of(context).isFirst) {
+                        Navigator.pop(context);
                         RestartWidget.restartApp(context);
-                      else
+                      } else
                         Navigator.popUntil(context, (route) => route.isFirst);
                     }
                   });

@@ -1,45 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/chats.dart';
 import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
+import '../../widgets/back_arrow.dart';
 
 import '../camera/camera.dart';
 import '../post/post_view.dart';
 
-class ChatPageState extends StatelessWidget {
-  // Responsible for setting a stream that listens to a firebase collection.
-  // This collection has a list of documents, each containing information about
-  // an individual chat item. When a stream is set up, builds ChatPage().
+class ChatPageProvider extends ChangeNotifier {
+  // Contains variables used throughout the entire page.
 
-  final Chat chat;
+  ChatPageProvider({
+    @required this.chatCollection,
+    @required this.chat,
+  });
 
-  ChatPageState({this.chat});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: Firestore.instance
-            .collection(globals.chatCollection)
-            .document(chat.chatID)
-            .collection('chats')
-            .orderBy('time')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return ChatPage(chat: chat, snapshot: snapshot.data);
-          } else {
-            return Scaffold(
-              body: Container(),
-            );
-          }
-        });
-  }
+  CollectionReference chatCollection;
+  Chat chat;
 }
 
 class ChatPage extends StatelessWidget {
@@ -49,49 +31,30 @@ class ChatPage extends StatelessWidget {
   // each individaul chat item. Uses SchedulerBinding() to automatically scroll
   // to the bottom of this list after it is built.
 
-  ChatPage({@required this.chat, @required this.snapshot});
+  ChatPage({@required this.chat});
 
   final Chat chat;
-  final QuerySnapshot snapshot;
 
   @override
   Widget build(BuildContext context) {
-    ItemScrollController _scrollController = new ItemScrollController();
-    CollectionReference chatCollection = Firestore.instance.collection("Chats");
+    double headerHeight = 170;
+    double footerHeight = 100;
 
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _scrollController.jumpTo(index: snapshot.documents.length - 1);
-    });
-
-    return Scaffold(
-        appBar: ChatPageHeader(
-          chat: chat,
-          height: 50,
-        ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return ChangeNotifierProvider(
+        create: (context) => ChatPageProvider(
+            chatCollection: Firestore.instance.collection("Chats"), chat: chat),
+        child: Scaffold(
+            body: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.all(20.0),
-                child: ScrollablePositionedList.builder(
-                    itemScrollController: _scrollController,
-                    itemCount: snapshot.documents.length,
-                    itemBuilder: (context, index) {
-                      if (snapshot.documents.length > 0) {
-                        ChatItem chatItem = ChatItem.fromFirebase(
-                            snapshot.documents[index].data);
-                        User user = chat.membersMap[chatItem.uid];
-
-                        return ChatItemWidget(chatItem: chatItem, user: user);
-                      } else
-                        return Container();
-                    }),
-              ),
+            ChatPageHeader(
+              chat: chat,
+              height: headerHeight,
             ),
-            ChatPageFooter(chat: chat, chatCollection: chatCollection),
+            ChatPageBody(),
+            ChatPageFooter(height: footerHeight),
           ],
-        ));
+        )));
   }
 }
 
@@ -99,29 +62,90 @@ class ChatPageHeader extends PreferredSize {
   // Header widget that displays the name of the chat and a button that, when
   // pressed, returns the user to the FriendsPage().
 
-  ChatPageHeader({this.height, this.chat});
+  ChatPageHeader({
+    @required this.height,
+    @required this.chat,
+  });
 
   final double height;
   final Chat chat;
 
   @override
-  Size get preferredSize => Size.fromHeight(height);
+  Widget build(BuildContext context) {
+    return Container(
+        padding: EdgeInsets.only(top: 30, left: 30),
+        height: height,
+        decoration: BoxDecoration(color: Colors.white, boxShadow: [
+          BoxShadow(
+              color: Colors.grey.withOpacity(.25),
+              spreadRadius: 3,
+              blurRadius: 6,
+              offset: Offset(0, 3))
+        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  child: BackArrow(),
+                  onTap: () => Navigator.pop(context),
+                )
+              ],
+            ),
+            Container(child: chat.chatIcon),
+            Text(
+              chat.chatName,
+              style: TextStyle(fontSize: 20),
+            )
+          ],
+        ));
+  }
+}
+
+class ChatPageBody extends StatelessWidget {
+  // Sets up a streambuilder that listens to the Firestore collection that holds
+  // this chat. Updates whenever a new chat item is upload to firestore. Returns
+  // a list view of all chat items in order.
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        Container(
-          alignment: Alignment.bottomCenter,
-          child: Text(chat.chatName, style: TextStyle(fontSize: 20)),
-        ),
-        Container(
-            alignment: Alignment.bottomLeft,
-            child: FlatButton(
-                child: Text("Back"),
-                onPressed: () => Navigator.of(context).pop())),
-      ],
-    );
+    ChatPageProvider provider =
+        Provider.of<ChatPageProvider>(context, listen: false);
+
+    return Expanded(
+        child: StreamBuilder(
+            stream: Firestore.instance
+                .collection(globals.chatCollection)
+                .document(provider.chat.chatID)
+                .collection('chats')
+                .orderBy('time', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: ListView.builder(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      reverse: true,
+                      itemCount: snapshot.data.documents.length,
+                      itemBuilder: (context, index) {
+                        if (snapshot.data.documents.length > 0) {
+                          ChatItem chatItem = ChatItem.fromFirebase(
+                              snapshot.data.documents[index].data);
+                          User user = provider.chat.membersMap[chatItem.uid];
+
+                          return ChatItemWidget(chatItem: chatItem, user: user);
+                        } else {
+                          return Container();
+                        }
+                      }),
+                );
+              } else {
+                return Container();
+              }
+            }));
   }
 }
 
@@ -156,19 +180,19 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
       backgroundColor = widget.user.profileColor;
     }
 
-    if (widget.chatItem.isPost == false) {
-      return ChatItemWidgetText(
-        text: widget.chatItem.text,
-        mainAxisAlignment: chatAxisAlignment,
-        backgroundColor: backgroundColor,
-      );
-    } else {
-      return ChatItemWidgetPost(
-        post: Post.fromChatItem(widget.chatItem),
-        height: 200,
-        mainAxisAlignment: chatAxisAlignment,
-      );
-    }
+    return Container(
+        padding: EdgeInsets.only(top: 4, bottom: 4),
+        child: (widget.chatItem.isPost == false)
+            ? ChatItemWidgetText(
+                text: widget.chatItem.text,
+                mainAxisAlignment: chatAxisAlignment,
+                backgroundColor: backgroundColor,
+              )
+            : ChatItemWidgetPost(
+                post: Post.fromChatItem(widget.chatItem),
+                height: 200,
+                mainAxisAlignment: chatAxisAlignment,
+              ));
   }
 }
 
@@ -184,9 +208,8 @@ class ChatItemWidgetText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String newChat = breakIntoLines(text, 28, 20);
+    String newChat = breakIntoLines(text, 34, 30);
     return Container(
-      padding: EdgeInsets.only(top: 4, bottom: 4),
       child: Row(
         mainAxisAlignment: mainAxisAlignment,
         children: [
@@ -238,6 +261,7 @@ class ChatItemWidgetText extends StatelessWidget {
 
 class ChatItemWidgetPost extends StatelessWidget {
   // A widget that wraps around a PostView() in order to display it correctly.
+
   ChatItemWidgetPost(
       {@required this.post,
       @required this.height,
@@ -261,57 +285,98 @@ class ChatItemWidgetPost extends StatelessWidget {
   }
 }
 
-class ChatPageFooter extends StatelessWidget {
+class ChatPageFooter extends StatefulWidget {
   // Widget that allows the user to input text or take a post and send it as
-  // a new chat.
+  // a new chat. Only allows the user to press the "send chat" button if there
+  // is text in the text field. If the user presses on the "Send Post" button,
+  // then the user is taken to the camera page, where they could take a post to
+  // send in the chat.
 
-  ChatPageFooter({@required this.chat, @required this.chatCollection});
+  ChatPageFooter({
+    @required this.height,
+  });
 
-  final Chat chat;
-  final CollectionReference chatCollection;
+  final double height;
+
+  @override
+  _ChatPageFooterState createState() => _ChatPageFooterState();
+}
+
+class _ChatPageFooterState extends State<ChatPageFooter> {
   final _chatController = TextEditingController();
+
+  bool allowSendChat = false;
+  ChatPageProvider provider;
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: <Widget>[
-      Container(
-        width: 350.0,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(23.0),
-          color: const Color(0xffffffff),
-          border: Border.all(width: 1.0, color: const Color(0xff707070)),
-        ),
-        child: Container(
-          padding: EdgeInsets.only(left: 10.0, right: 10.0),
-          child: TextField(
-            controller: _chatController,
-            decoration: InputDecoration(
-              hintText: "Chat",
-              border: InputBorder.none,
+    provider = Provider.of<ChatPageProvider>(context, listen: false);
+
+    return Container(
+      height: widget.height,
+      child: Column(children: <Widget>[
+        Container(
+          width: 350.0,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(23.0),
+            color: const Color(0xffffffff),
+            border: Border.all(width: 1.0, color: const Color(0xff707070)),
+          ),
+          child: Container(
+            padding: EdgeInsets.only(left: 10.0, right: 10.0),
+            child: TextField(
+              controller: _chatController,
+              decoration: InputDecoration(
+                hintText: "Chat",
+                border: InputBorder.none,
+              ),
+              onChanged: (String text) {
+                if (text == '')
+                  setState(() {
+                    allowSendChat = false;
+                  });
+                else if (allowSendChat == false)
+                  setState(() {
+                    allowSendChat = true;
+                  });
+              },
             ),
           ),
         ),
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          FlatButton(
-            child: Text("Send Post"),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      Camera(cameraUsage: CameraUsage.chat, chat: chat),
-                )),
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              GestureDetector(
+                child: Text("Send Post"),
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Camera(
+                          cameraUsage: CameraUsage.chat, chat: provider.chat),
+                    )),
+              ),
+              GestureDetector(
+                  child: Text(
+                    "Send Chat",
+                    style: TextStyle(
+                        color: (allowSendChat) ? Colors.black : Colors.grey),
+                  ),
+                  onTap: () async {
+                    if (allowSendChat) {
+                      setState(() {
+                        allowSendChat = false;
+                      });
+                      await sendChatText(
+                          _chatController.text, provider.chat.chatID);
+                      _chatController.clear();
+                    }
+                  }),
+            ],
           ),
-          FlatButton(
-              child: Text("Send Chat"),
-              onPressed: () async {
-                await sendChatText(_chatController.text, chat.chatID);
-                _chatController.clear();
-              }),
-        ],
-      )
-    ]);
+        )
+      ]),
+    );
   }
 }

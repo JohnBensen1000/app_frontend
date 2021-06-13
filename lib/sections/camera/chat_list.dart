@@ -7,8 +7,6 @@ import '../../models/chat.dart';
 
 import '../../widgets/loading_icon.dart';
 
-import 'preview.dart';
-
 class ChatListProvider extends ChangeNotifier {
   // Given a list of chats that the user is part of, keeps track of which chats
   // the user wants to share the post in. The hash table, isSendingTo, keeps
