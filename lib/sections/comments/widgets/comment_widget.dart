@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../widgets/profile_pic.dart';
 import '../../../models/comment.dart';
-import '../../../API/users.dart';
+import '../../../API/methods/users.dart';
 import '../../../repository/user_repository.dart';
 import '../../../globals.dart' as globals;
 

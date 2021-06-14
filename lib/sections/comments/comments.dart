@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
-import '../../API/comments.dart';
+import '../../API/methods/comments.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 import '../../Widgets/loading_icon.dart';
@@ -43,7 +44,7 @@ class Comments extends StatelessWidget {
             create: (context) => CommentsProvider(),
             child: Consumer<CommentsProvider>(
               builder: (context, value, child) => FutureBuilder(
-                future: getAllComments(post),
+                future: handleGetRequest(context, getAllComments, param: post),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     return CommentsSnackBar(

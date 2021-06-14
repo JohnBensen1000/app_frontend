@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../API/users.dart';
+import '../API/methods/users.dart';
 
 import '../globals.dart' as globals;
 

@@ -1,9 +1,9 @@
-import '../models/profile.dart';
-import '../models/post.dart';
-import '../models/user.dart';
+import '../../models/profile.dart';
+import '../../models/post.dart';
+import '../../models/user.dart';
 
-import '../globals.dart' as globals;
-import 'baseAPI.dart';
+import '../../globals.dart' as globals;
+import '../baseAPI.dart';
 
 Future<bool> uploadPost(bool isImage, bool isPrivate, String filePath) async {
   Map postBody = {'isImage': isImage, 'isPrivate': isPrivate};

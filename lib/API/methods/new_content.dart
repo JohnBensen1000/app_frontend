@@ -1,7 +1,7 @@
-import '../models/post.dart';
+import '../../models/post.dart';
 
-import '../globals.dart' as globals;
-import 'baseAPI.dart';
+import '../../globals.dart' as globals;
+import '../baseAPI.dart';
 
 Future<List<Post>> getFollowingPosts() async {
   var response = await globals.baseAPI

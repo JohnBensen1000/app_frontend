@@ -1,7 +1,7 @@
-import 'baseAPI.dart';
+import '../baseAPI.dart';
 
-import '../models/user.dart';
-import '../globals.dart' as globals;
+import '../../models/user.dart';
+import '../../globals.dart' as globals;
 
 Future<bool> getIfFollowing(User user) async {
   var response = await BaseAPI()

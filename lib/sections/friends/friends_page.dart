@@ -3,27 +3,28 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/chats.dart';
-import '../../API/relations.dart';
+import '../../API/handle_requests.dart';
+import '../../API/methods/chats.dart';
+import '../../API/methods/relations.dart';
 import '../../models/chat.dart';
 
 import 'chat_page.dart';
 import 'new_followers.dart';
 
-class FriendsPageProvider extends ChangeNotifier {
+class FriendsProvider extends ChangeNotifier {
   void resetState() {
     notifyListeners();
   }
 }
 
-class FriendsPageState extends StatelessWidget {
+class Friends extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (_) => FriendsPageProvider(),
-        child: Consumer<FriendsPageProvider>(
+        create: (_) => FriendsProvider(),
+        child: Consumer<FriendsProvider>(
             builder: (context, provider, child) => FutureBuilder(
-                  future: getListOfChats(),
+                  future: handleGetRequest(context, getListOfChats),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done &&
                         snapshot.hasData) {
@@ -31,9 +32,7 @@ class FriendsPageState extends StatelessWidget {
                         chatstList: snapshot.data,
                       );
                     } else {
-                      return Center(
-                        child: Text("Loading"),
-                      );
+                      return Container();
                     }
                   },
                 )));
@@ -114,7 +113,7 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: getNewFollowers(),
+        future: handleGetRequest(context, getNewFollowers),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.data.length > 0) {
@@ -138,8 +137,7 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
                                     newFollowersList: snapshot.data,
                                   )),
                         ).then((newFriends) {
-                          Provider.of<FriendsPageProvider>(context,
-                                  listen: false)
+                          Provider.of<FriendsProvider>(context, listen: false)
                               .resetState();
                         })));
           } else {

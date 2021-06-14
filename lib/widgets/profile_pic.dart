@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../sections/post/post_view.dart';
 import '../models/user.dart';
-import '../API/posts.dart';
+import '../API/methods/posts.dart';
 import '../globals.dart' as globals;
 
 class Profile extends StatelessWidget {

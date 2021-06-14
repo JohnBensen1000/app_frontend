@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/comments.dart';
+import 'package:test_flutter/API/methods/comments.dart';
 import 'package:test_flutter/widgets/back_arrow.dart';
 import 'package:video_player/video_player.dart';
 

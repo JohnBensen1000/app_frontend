@@ -1,15 +1,15 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-import '../models/user.dart';
+import '../../models/user.dart';
 
-import '../globals.dart' as globals;
-import 'baseAPI.dart';
+import '../../globals.dart' as globals;
+import '../baseAPI.dart';
 
 Future<Map> createAccount(Map postBody) async {
   return await globals.baseAPI.post("v1/users/new/", postBody);
 }
 
-Future<List<User>> searchUsers(String searchString) async {
+Future<List<User>> getUsersFromSearchString(String searchString) async {
   var response = await globals.baseAPI.get("v1/users/?contains=$searchString");
 
   List<User> creatorsList = [

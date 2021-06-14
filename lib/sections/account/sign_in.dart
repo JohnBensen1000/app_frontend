@@ -7,7 +7,7 @@ import 'widgets/input_field.dart';
 import 'widgets/account_submit_button.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/authentication.dart';
+import '../../API/methods/authentication.dart';
 import '../../models/user.dart';
 import '../navigation/home_screen.dart';
 

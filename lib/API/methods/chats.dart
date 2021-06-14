@@ -1,7 +1,7 @@
-import 'baseAPI.dart';
+import '../baseAPI.dart';
 
-import '../models/chat.dart';
-import '../globals.dart' as globals;
+import '../../models/chat.dart';
+import '../../globals.dart' as globals;
 
 Future<List<Chat>> getListOfChats() async {
   var response = await BaseAPI().get("v1/chats/${globals.user.uid}/");

@@ -2,8 +2,9 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
-import '../../API/new_content.dart';
+import '../../API/methods/new_content.dart';
 
 import 'post_list.dart';
 
@@ -21,7 +22,7 @@ class FollowingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: getFollowingPosts(),
+        future: handleGetRequest(context, getFollowingPosts),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {

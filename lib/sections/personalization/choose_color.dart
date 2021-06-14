@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/users.dart';
+import '../../API/methods/users.dart';
 import '../../widgets/back_arrow.dart';
 
 class ColorsProvider extends ChangeNotifier {

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/posts.dart';
+import '../../API/methods/posts.dart';
 import '../../models/post.dart';
 
 import '../post/post_view.dart';

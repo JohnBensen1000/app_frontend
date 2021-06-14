@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/authentication.dart';
+import '../../API/methods/authentication.dart';
 import '../../widgets/profile_pic.dart';
 import '../../main.dart';
 

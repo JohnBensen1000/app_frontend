@@ -11,11 +11,10 @@ class BaseAPI {
       var response = await http.get(baseURL + url);
       return decodeReponse(response);
     } on SocketException {
-      print(" [ERROR] No Internet Connection");
+      throw NoInternetError("No internet");
     } catch (e) {
-      print(" [ERROR] $e");
+      throw e;
     }
-    return null;
   }
 
   Future<dynamic> post(String url, Map postBody) async {
@@ -66,6 +65,7 @@ class BaseAPI {
 
   dynamic decodeReponse(var response) {
     switch (response.statusCode) {
+      case 201:
       case 200:
         if (response.runtimeType != http.StreamedResponse &&
             !response.body.isEmpty)
@@ -73,12 +73,9 @@ class BaseAPI {
         else
           return true;
         break;
-      case 201:
-        if (response.runtimeType != http.StreamedResponse &&
-            !response.body.isEmpty)
-          return json.decode(response.body);
-        else
-          return true;
+      case 400:
+      case 404:
+        throw ClientFailedError("Client Failed");
         break;
       case 500:
         throw ServerFailedException("Server error");
@@ -101,12 +98,20 @@ class AppException implements Exception {
   }
 }
 
+class NoInternetError extends AppException {
+  NoInternetError([String message]) : super(message, "NoInternetError: ");
+}
+
+class ClientFailedError extends AppException {
+  ClientFailedError([String message]) : super(message, "ClientFailedError: ");
+}
+
 class ServerFailedException extends AppException {
   ServerFailedException([String message])
-      : super(message, "an error occured on the server: ");
+      : super(message, "ServerFailedException: ");
 }
 
 class UnknownErrorException extends AppException {
   UnknownErrorException([String message])
-      : super(message, "an error occured on the server: ");
+      : super(message, "UnknownErrorException: ");
 }

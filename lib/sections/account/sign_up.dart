@@ -7,8 +7,8 @@ import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
 
-import '../../API/authentication.dart';
-import '../../API/users.dart';
+import '../../API/methods/authentication.dart';
+import '../../API/methods/users.dart';
 import '../../models/user.dart';
 
 import '../navigation/home_screen.dart';

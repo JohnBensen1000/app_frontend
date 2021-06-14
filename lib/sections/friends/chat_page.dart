@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/chats.dart';
+import '../../API/methods/chats.dart';
 import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';

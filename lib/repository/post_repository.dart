@@ -2,7 +2,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:test_flutter/API/posts.dart';
+import 'package:test_flutter/API/methods/posts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 

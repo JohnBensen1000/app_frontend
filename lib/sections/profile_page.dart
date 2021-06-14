@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
 import '../globals.dart' as globals;
-import '../API/relations.dart';
-import '../API/posts.dart';
+import '../API/methods/relations.dart';
+import '../API/methods/posts.dart';
 import '../models/user.dart';
 import '../models/post.dart';
 
@@ -154,9 +155,11 @@ class _FollowingButtonState extends State<FollowingButton> {
     double width = 125.0;
 
     return FutureBuilder(
-        future: checkIfFollowing(),
+        future: handleGetRequest(context, getIfFollowing, param: widget.user),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done)
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData) {
+            isFollowing = snapshot.data;
             return GestureDetector(
               child: ProfilePageHeaderButton(
                   name: (isFollowing) ? "Following" : "Follow",
@@ -171,16 +174,12 @@ class _FollowingButtonState extends State<FollowingButton> {
                 }
               },
             );
-          else
+          } else
             return Container(
               height: height,
               width: width,
             );
         });
-  }
-
-  Future<void> checkIfFollowing() async {
-    isFollowing = await getIfFollowing(widget.user);
   }
 
   Future<void> changeFollowing() async {
@@ -267,7 +266,7 @@ class ProfilePostBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: getUsersPosts(user),
+        future: handleGetRequest(context, getUsersPosts, param: user),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.data.length == 0)

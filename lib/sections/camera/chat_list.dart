@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
-import '../../API/chats.dart';
+import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
 
 import '../../widgets/loading_icon.dart';
@@ -64,7 +65,7 @@ class ChatListSnackBar extends StatelessWidget {
     return Container(
         height: 200,
         child: FutureBuilder(
-          future: getListOfChats(),
+          future: handleGetRequest(context, getListOfChats),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done)
               return ChangeNotifierProvider(

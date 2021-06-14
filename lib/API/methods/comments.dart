@@ -1,8 +1,8 @@
-import 'baseAPI.dart';
+import '../baseAPI.dart';
 
-import '../models/comment.dart';
-import '../models/post.dart';
-import '../globals.dart' as globals;
+import '../../models/comment.dart';
+import '../../models/post.dart';
+import '../../globals.dart' as globals;
 
 Future<List<Comment>> getAllComments(Post post) async {
   var response = await BaseAPI().get('v1/comments/${post.postID}/');

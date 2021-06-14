@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import '../models/user.dart';
-import '../API/users.dart';
+import '../API/methods/users.dart';
 
 class UserRepository {
   HashMap users = new HashMap<String, User>();

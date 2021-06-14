@@ -4,10 +4,11 @@ import 'dart:math';
 import 'dart:collection';
 
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/forwad_arrow.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/users.dart';
+import '../../API/methods/users.dart';
 import '../../widgets/back_arrow.dart';
 
 class PreferencesProvider extends ChangeNotifier {
@@ -55,7 +56,7 @@ class PreferencesPage extends StatelessWidget {
 
     return Scaffold(
         body: FutureBuilder(
-            future: getPreferenceFields(),
+            future: handleGetRequest(context, getPreferenceFields),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return ChangeNotifierProvider(

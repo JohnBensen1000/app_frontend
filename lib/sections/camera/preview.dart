@@ -9,8 +9,8 @@ import 'package:video_player/video_player.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/posts.dart';
-import '../../API/chats.dart';
+import '../../API/methods/posts.dart';
+import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
 import '../../widgets/back_arrow.dart';
 

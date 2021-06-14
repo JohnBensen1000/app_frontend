@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../globals.dart' as globals;
-import '../API/authentication.dart';
+import '../API/methods/authentication.dart';
 import '../models/user.dart';
 import '../widgets/forwad_arrow.dart';
+import '../API/handle_requests.dart';
 
 import 'navigation/home_screen.dart';
 
@@ -22,9 +23,10 @@ class Welcome extends StatelessWidget {
     return Scaffold(
         backgroundColor: const Color(0xffffffff),
         body: FutureBuilder(
-            future: checkIfDeviceSignedInOn(),
+            future: handleGetRequest(context, getIfDeviceSignedInOn),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
                 Map response = snapshot.data;
                 if (response['signedIn']) {
                   globals.user = User.fromJson(response['user']);

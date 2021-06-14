@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
-import '../../API/users.dart';
+import '../../API/methods/users.dart';
 import '../../models/user.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/profile_pic.dart';
@@ -19,9 +20,14 @@ class SearchPageProvider extends ChangeNotifier {
     return _creatorsList;
   }
 
-  Future<void> searchForCreators(String creatorString) async {
+  Future<void> searchForCreators(
+      BuildContext context, String creatorString) async {
     if (creatorString != '') {
-      _creatorsList = await searchUsers(creatorString);
+      List<User> tempCreatorsList = await handleGetRequest(
+          context, getUsersFromSearchString,
+          param: creatorString);
+
+      _creatorsList = (tempCreatorsList != null) ? tempCreatorsList : [];
     } else {
       _creatorsList = [];
     }
@@ -112,7 +118,7 @@ class SearchPageHeader extends StatelessWidget {
                     ),
                     hintText: "Who Are you looking for?"),
                 onChanged: (text) =>
-                    provider.searchForCreators(_searchController.text),
+                    provider.searchForCreators(context, _searchController.text),
                 controller: _searchController,
               )),
         ],

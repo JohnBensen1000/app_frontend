@@ -1,9 +1,9 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-import '../models/user.dart';
+import '../../models/user.dart';
 
-import '../globals.dart' as globals;
-import 'baseAPI.dart';
+import '../../globals.dart' as globals;
+import '../baseAPI.dart';
 
 Future<Map> signIn(String uid) async {
   FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
@@ -18,7 +18,7 @@ Future<Map> signOut() async {
       {'signIn': false});
 }
 
-Future<Map> checkIfDeviceSignedInOn() async {
+Future<Map> getIfDeviceSignedInOn() async {
   FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
   String deviceToken = await firebaseMessaging.getToken();
   return await BaseAPI()
