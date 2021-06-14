@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../globals.dart' as globals;
-import '../../API/authentication.dart';
-import '../../models/user.dart';
-import '../../widgets/forwad_arrow.dart';
+import '../globals.dart' as globals;
+import '../API/authentication.dart';
+import '../models/user.dart';
+import '../widgets/forwad_arrow.dart';
 
-import '../navigation/home_screen.dart';
+import 'navigation/home_screen.dart';
 
-import 'enter_account.dart';
+import 'account/enter_account.dart';
 
 class Welcome extends StatelessWidget {
   // Checks to see if the current device is signed in on. If it is, then saves
@@ -51,37 +51,43 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        SizedBox(
-          width: double.infinity,
-          child: Text(
-            'Welcome To Entropy ',
-            style: TextStyle(
-              fontFamily: 'Rockwell',
-              fontSize: 35,
-              color: const Color(0xff000000),
-              letterSpacing: -0.84,
-              height: 0.6285714285714286,
+    return Container(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Container(
+              margin: EdgeInsets.only(bottom: 100),
+              height: 150,
+              child: Image.asset('assets/images/Entropy.PNG')),
+          SizedBox(
+            width: double.infinity,
+            child: Text(
+              'Welcome To Entropy ',
+              style: TextStyle(
+                fontFamily: 'Rockwell',
+                fontSize: 35,
+                color: const Color(0xff000000),
+                letterSpacing: -0.84,
+                height: 0.6285714285714286,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
-        ),
-        Container(
-          height: 50,
-        ),
-        FlatButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    settings: RouteSettings(name: "/enterAccount"),
-                    builder: (context) => LogInScreen()),
-              );
-            },
-            child: ForwardArrow()),
-      ],
+          Container(
+            margin: EdgeInsets.only(top: 140),
+            child: FlatButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        settings: RouteSettings(name: "/enterAccount"),
+                        builder: (context) => LogInScreen()),
+                  );
+                },
+                child: ForwardArrow()),
+          ),
+        ],
+      ),
     );
   }
 }

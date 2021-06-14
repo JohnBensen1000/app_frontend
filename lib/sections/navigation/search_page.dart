@@ -5,8 +5,9 @@ import '../../API/users.dart';
 import '../../models/user.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/profile_pic.dart';
+import '../../components/bottom_box_shadow.dart';
 
-import '../profile/profile_page.dart';
+import '../profile_page.dart';
 
 class SearchPageProvider extends ChangeNotifier {
   // Used to keep track of a the searched creators. Gets a list of all users
@@ -41,6 +42,8 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double headerHeight = 120;
+
     return ChangeNotifierProvider(
         create: (context) => SearchPageProvider(),
         child: Consumer<SearchPageProvider>(
@@ -48,33 +51,9 @@ class SearchPage extends StatelessWidget {
                     body: Container(
                         child: Column(
                   children: <Widget>[
-                    Container(
-                      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          GestureDetector(
-                            child: BackArrow(),
-                            onTap: () => Navigator.of(context).pop(),
-                          ),
-                          Container(
-                              height: 50,
-                              width: 300,
-                              child: TextField(
-                                decoration: new InputDecoration(
-                                    contentPadding: EdgeInsets.all(10),
-                                    border: new OutlineInputBorder(
-                                      borderRadius: const BorderRadius.all(
-                                        const Radius.circular(40.0),
-                                      ),
-                                    ),
-                                    hintText: "Who Are you looking for?"),
-                                onChanged: (text) => provider
-                                    .searchForCreators(_searchController.text),
-                                controller: _searchController,
-                              )),
-                        ],
-                      ),
+                    SearchPageHeader(
+                      searchController: _searchController,
+                      height: headerHeight,
                     ),
                     Expanded(
                       child: ListView.builder(
@@ -89,6 +68,56 @@ class SearchPage extends StatelessWidget {
                     ),
                   ],
                 )))));
+  }
+}
+
+class SearchPageHeader extends StatelessWidget {
+  const SearchPageHeader(
+      {Key key,
+      @required TextEditingController searchController,
+      @required this.height})
+      : _searchController = searchController,
+        super(key: key);
+
+  final TextEditingController _searchController;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    SearchPageProvider provider =
+        Provider.of<SearchPageProvider>(context, listen: false);
+
+    return Container(
+      height: height,
+      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
+      decoration:
+          BoxDecoration(color: Colors.white, boxShadow: [bottomBoxShadow]),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          GestureDetector(
+            child: BackArrow(),
+            onTap: () => Navigator.of(context).pop(),
+          ),
+          Container(
+              height: 50,
+              width: 300,
+              child: TextField(
+                decoration: new InputDecoration(
+                    contentPadding: EdgeInsets.all(10),
+                    border: new OutlineInputBorder(
+                      borderRadius: const BorderRadius.all(
+                        const Radius.circular(40.0),
+                      ),
+                    ),
+                    hintText: "Who Are you looking for?"),
+                onChanged: (text) =>
+                    provider.searchForCreators(_searchController.text),
+                controller: _searchController,
+              )),
+        ],
+      ),
+    );
   }
 }
 

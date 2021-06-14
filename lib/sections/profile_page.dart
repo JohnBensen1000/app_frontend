@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../globals.dart' as globals;
-import '../../API/relations.dart';
-import '../../API/posts.dart';
-import '../../models/user.dart';
-import '../../models/post.dart';
+import '../globals.dart' as globals;
+import '../API/relations.dart';
+import '../API/posts.dart';
+import '../models/user.dart';
+import '../models/post.dart';
 
-import '../../widgets/profile_pic.dart';
-import '../../widgets/back_arrow.dart';
+import '../widgets/profile_pic.dart';
+import '../widgets/back_arrow.dart';
+import '../components/bottom_box_shadow.dart';
 
-import '../post/post_view.dart';
-import '../navigation/settings_drawer.dart';
+import 'post/post_view.dart';
+import 'navigation/settings_drawer.dart';
 
 class ProfilePage extends StatelessWidget {
   ProfilePage({@required this.user});
@@ -64,9 +65,12 @@ class ProfilePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.only(bottom: 10),
       height: height,
+      decoration:
+          BoxDecoration(color: Colors.white, boxShadow: [bottomBoxShadow]),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Container(
             padding: EdgeInsets.only(top: 40, left: 20, bottom: 20),
@@ -277,7 +281,7 @@ class ProfilePostBody extends StatelessWidget {
                 child: SizedBox(
                   height: height,
                   child: new ListView.builder(
-                    padding: EdgeInsets.only(top: 0),
+                    padding: EdgeInsets.only(top: 10),
                     itemCount: profilePostsList.length,
                     itemBuilder: (BuildContext context, int index) {
                       return PostBodyWidget(child: profilePostsList[index]);

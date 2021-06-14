@@ -5,13 +5,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
-import '../../widgets/profile_pic.dart';
+import '../../components/bottom_box_shadow.dart';
 
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
 import '../friends/friends_page.dart';
 import '../camera/camera.dart';
-import '../profile/profile_page.dart';
+import '../profile_page.dart';
 
 import 'search_page.dart';
 
@@ -144,10 +144,7 @@ class HomeAppBar extends PreferredSize {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(color: Colors.white, boxShadow: [
-        BoxShadow(
-            color: Colors.black.withOpacity(.05),
-            blurRadius: 10,
-            offset: Offset(0, 5)),
+        bottomBoxShadow,
       ]),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,

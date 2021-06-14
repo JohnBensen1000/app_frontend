@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'sections/account/welcome.dart';
+import 'sections/welcome.dart';
 
 main() => runApp(MyApp());
 

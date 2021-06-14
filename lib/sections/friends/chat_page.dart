@@ -8,6 +8,7 @@ import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
 import '../../widgets/back_arrow.dart';
+import '../../components/bottom_box_shadow.dart';
 
 import '../camera/camera.dart';
 import '../post/post_view.dart';
@@ -75,13 +76,8 @@ class ChatPageHeader extends PreferredSize {
     return Container(
         padding: EdgeInsets.only(top: 30, left: 30),
         height: height,
-        decoration: BoxDecoration(color: Colors.white, boxShadow: [
-          BoxShadow(
-              color: Colors.grey.withOpacity(.25),
-              spreadRadius: 3,
-              blurRadius: 6,
-              offset: Offset(0, 3))
-        ]),
+        decoration:
+            BoxDecoration(color: Colors.white, boxShadow: [bottomBoxShadow]),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -219,7 +215,10 @@ class ChatItemWidgetText extends StatelessWidget {
                 color: backgroundColor,
               ),
               padding: EdgeInsets.all(10),
-              child: Text(newChat)),
+              child: Text(
+                newChat,
+                style: TextStyle(color: Colors.black),
+              )),
         ],
       ),
     );
