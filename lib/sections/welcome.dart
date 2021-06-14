@@ -23,7 +23,7 @@ class Welcome extends StatelessWidget {
     return Scaffold(
         backgroundColor: const Color(0xffffffff),
         body: FutureBuilder(
-            future: handleGetRequest(context, getIfDeviceSignedInOn),
+            future: handleRequest(context, getIfDeviceSignedInOn()),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done &&
                   snapshot.hasData) {

@@ -22,7 +22,7 @@ class FollowingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: handleGetRequest(context, getFollowingPosts),
+        future: handleRequest(context, getFollowingPosts()),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {

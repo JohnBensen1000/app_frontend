@@ -44,7 +44,7 @@ class Comments extends StatelessWidget {
             create: (context) => CommentsProvider(),
             child: Consumer<CommentsProvider>(
               builder: (context, value, child) => FutureBuilder(
-                future: handleGetRequest(context, getAllComments, param: post),
+                future: handleRequest(context, getAllComments(post)),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     return CommentsSnackBar(

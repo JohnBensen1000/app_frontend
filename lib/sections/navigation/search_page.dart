@@ -23,9 +23,10 @@ class SearchPageProvider extends ChangeNotifier {
   Future<void> searchForCreators(
       BuildContext context, String creatorString) async {
     if (creatorString != '') {
-      List<User> tempCreatorsList = await handleGetRequest(
-          context, getUsersFromSearchString,
-          param: creatorString);
+      List<User> tempCreatorsList = await handleRequest(
+        context,
+        getUsersFromSearchString(creatorString),
+      );
 
       _creatorsList = (tempCreatorsList != null) ? tempCreatorsList : [];
     } else {

@@ -55,13 +55,6 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
               }),
             ),
             SettingsButton(
-              buttonName: "Go To Profile Page",
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ProfilePage(user: globals.user))),
-            ),
-            SettingsButton(
                 buttonName: "Sign Out",
                 onPressed: () async {
                   await showDialog(

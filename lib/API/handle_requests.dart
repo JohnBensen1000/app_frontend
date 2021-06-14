@@ -2,24 +2,33 @@ import 'package:flutter/material.dart';
 
 import 'baseAPI.dart';
 
-// Used for error handling anytime a function makes an HTTP GET request. Calls
-// this function inside a try-catch so that any exception that  occurs will be
-// handled by the function handleGetException().
-Future<dynamic> handleGetRequest(BuildContext context, Function function,
-    {var param}) async {
+// // Used for error handling anytime a function makes an HTTP GET request. Calls
+// // this function inside a try-catch so that any exception that  occurs will be
+// // handled by the function handleGetException().
+// Future<dynamic> handleGetRequest(BuildContext context, Function function,
+//     {var param}) async {
+//   try {
+//     return (param != null) ? await function(param) : await function();
+//   } catch (exception) {
+//     handleException(context, exception);
+//     return null;
+//   }
+// }
+
+// An async function that performs an HTTP request is passed here to be
+// completed. That way, if an exception occurs, it is caught here.
+Future<dynamic> handleRequest(BuildContext context, Future future) async {
   try {
-    return (param != null) ? await function(param) : await function();
+    return await future;
   } catch (exception) {
-    print(exception);
-    handleGetException(context, exception);
+    handleException(context, exception);
     return null;
   }
 }
 
 // Determines what kind of exception was thrown and displays the corresponding
 // alert dialog.
-Future<void> handleGetException(
-    BuildContext context, Exception exception) async {
+Future<void> handleException(BuildContext context, Exception exception) async {
   if (exception is NoInternetError)
     showDialog(
       context: context,

@@ -22,7 +22,7 @@ class DiscoverPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: handleGetRequest(context, getRecommendations),
+        future: handleRequest(context, getRecommendations()),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {

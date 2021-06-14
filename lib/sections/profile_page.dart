@@ -155,7 +155,7 @@ class _FollowingButtonState extends State<FollowingButton> {
     double width = 125.0;
 
     return FutureBuilder(
-        future: handleGetRequest(context, getIfFollowing, param: widget.user),
+        future: handleRequest(context, getIfFollowing(widget.user)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
@@ -169,7 +169,7 @@ class _FollowingButtonState extends State<FollowingButton> {
               onTap: () async {
                 if (allowChangeFollow) {
                   allowChangeFollow = false;
-                  await changeFollowing();
+                  await changeFollowing(context);
                   allowChangeFollow = true;
                 }
               },
@@ -182,10 +182,10 @@ class _FollowingButtonState extends State<FollowingButton> {
         });
   }
 
-  Future<void> changeFollowing() async {
+  Future<void> changeFollowing(BuildContext context) async {
     (isFollowing)
-        ? await stopFollowing(widget.user)
-        : await startFollowing(widget.user);
+        ? await handleRequest(context, postStopFollowing(widget.user))
+        : await handleRequest(context, postStartFollowing(widget.user));
 
     isFollowing = !isFollowing;
 
@@ -266,7 +266,7 @@ class ProfilePostBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: handleGetRequest(context, getUsersPosts, param: user),
+        future: handleRequest(context, getUsersPosts(user)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.data.length == 0)

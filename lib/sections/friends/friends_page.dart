@@ -24,7 +24,7 @@ class Friends extends StatelessWidget {
         create: (_) => FriendsProvider(),
         child: Consumer<FriendsProvider>(
             builder: (context, provider, child) => FutureBuilder(
-                  future: handleGetRequest(context, getListOfChats),
+                  future: handleRequest(context, getListOfChats()),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done &&
                         snapshot.hasData) {
@@ -113,7 +113,7 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: handleGetRequest(context, getNewFollowers),
+        future: handleRequest(context, getNewFollowers()),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.data.length > 0) {

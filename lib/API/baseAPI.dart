@@ -23,11 +23,10 @@ class BaseAPI {
           await http.post(baseURL + url, body: json.encode(postBody));
       return decodeReponse(response);
     } on SocketException {
-      print(" [ERROR] No Internet Connection");
+      throw NoInternetError("No internet");
     } catch (e) {
-      print(" [ERROR] $e");
+      throw e;
     }
-    return null;
   }
 
   Future<dynamic> postFile(String url, Map postBody, String filePath) async {

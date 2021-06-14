@@ -238,9 +238,9 @@ class _AcceptDeclineWidgetState extends State<AcceptDeclineWidget> {
         acceptDeclinePressed = true;
       });
       if (willFollowBack)
-        await followBack(widget.newFollower);
+        await postFollowBack(widget.newFollower);
       else
-        await dontFollowBack(widget.newFollower);
+        await postDontFollowBack(widget.newFollower);
 
       Provider.of<NewFollowersProvider>(context, listen: false)
           .removeNewFollower(widget.newFollower);

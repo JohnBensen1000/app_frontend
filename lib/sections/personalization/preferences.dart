@@ -56,7 +56,7 @@ class PreferencesPage extends StatelessWidget {
 
     return Scaffold(
         body: FutureBuilder(
-            future: handleGetRequest(context, getPreferenceFields),
+            future: handleRequest(context, getPreferenceFields()),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return ChangeNotifierProvider(

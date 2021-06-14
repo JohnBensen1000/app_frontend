@@ -9,13 +9,13 @@ Future<bool> getIfFollowing(User user) async {
   return response['isFollowing'];
 }
 
-Future<bool> startFollowing(User user) async {
+Future<bool> postStartFollowing(User user) async {
   Map postBody = {'uid': user.uid};
   return await BaseAPI()
       .post('v1/relationships/${globals.user.uid}/following/', postBody);
 }
 
-Future<bool> stopFollowing(User user) async {
+Future<bool> postStopFollowing(User user) async {
   return await BaseAPI()
       .delete('v1/relationships/${globals.user.uid}/following/${user.uid}/');
 }
@@ -29,13 +29,13 @@ Future<List<User>> getNewFollowers() async {
   return userList;
 }
 
-Future<bool> followBack(User user) async {
+Future<bool> postFollowBack(User user) async {
   Map postBody = {'followBack': true};
   return await BaseAPI().post(
       'v1/relationships/${user.uid}/following/${globals.user.uid}/', postBody);
 }
 
-Future<bool> dontFollowBack(User user) async {
+Future<bool> postDontFollowBack(User user) async {
   Map postBody = {'followBack': false};
   return await BaseAPI().post(
       'v1/relationships/${user.uid}/following/${globals.user.uid}/', postBody);

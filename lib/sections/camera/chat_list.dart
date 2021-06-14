@@ -65,7 +65,7 @@ class ChatListSnackBar extends StatelessWidget {
     return Container(
         height: 200,
         child: FutureBuilder(
-          future: handleGetRequest(context, getListOfChats),
+          future: handleRequest(context, getListOfChats()),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done)
               return ChangeNotifierProvider(
