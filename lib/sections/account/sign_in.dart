@@ -101,7 +101,7 @@ class _SignInState extends State<SignIn> {
         password: passwordInputField.textEditingController.text,
       ))
           .user;
-      Map response = await signIn(firebaseUser.uid);
+      Map response = await postSignIn(firebaseUser.uid);
       globals.user = User.fromJson(response['user']);
 
       return true;

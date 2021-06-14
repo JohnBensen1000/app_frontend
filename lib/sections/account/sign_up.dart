@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../globals.dart' as globals;
 
@@ -50,7 +51,7 @@ class SignUpProvider extends ChangeNotifier {
   List<InputField> get inputFields =>
       [name, email, username, phone, password, confirmPassword];
 
-  Future<bool> createNewAccount() async {
+  Future<bool> createNewAccount(BuildContext context) async {
     // Clears all error messages. Validates if each input is formatted
     // correctly. If inputs are correct, creates an account in firebase
     // authentication and in the backend database. If the given email, phone,
@@ -70,13 +71,13 @@ class SignUpProvider extends ChangeNotifier {
         isNewAccountValid = await _createFirebaseAccount();
       }
       if (isNewAccountValid) {
-        isNewAccountValid = await _createAccount();
+        isNewAccountValid = await _createAccount(context);
       }
       if (isNewAccountValid) accountCreated = true;
     }
 
     if (accountCreated)
-      await signIn(globals.user.uid);
+      await postSignIn(globals.user.uid);
     else if (firebaseUser != null) {
       await firebaseUser.delete();
     }
@@ -139,7 +140,7 @@ class SignUpProvider extends ChangeNotifier {
     return true;
   }
 
-  Future<bool> _createAccount() async {
+  Future<bool> _createAccount(BuildContext context) async {
     // Sends a post request to the server with all the needed information for a
     // new account. If the given userID, email, and/or phone have been taken by
     // another user, updated the appropriate error messages. Otherwise updated
@@ -153,7 +154,9 @@ class SignUpProvider extends ChangeNotifier {
       "phone": phone.textEditingController.text,
     };
 
-    var response = await createAccount(postBody);
+    var response = await handleRequest(context, postNewAccount(postBody));
+
+    if (response == null) return false;
 
     if (response.containsKey('fieldsTaken')) {
       if (response['fieldsTaken'].contains("userID"))
@@ -227,7 +230,7 @@ class _SignUpState extends State<SignUp> {
                           buttonName: "Sign Up",
                         ),
                         onPressed: () async {
-                          if (await provider.createNewAccount())
+                          if (await provider.createNewAccount(context))
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(

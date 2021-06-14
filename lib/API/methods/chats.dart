@@ -9,7 +9,7 @@ Future<List<Chat>> getListOfChats() async {
   return [for (var chatJson in response["chats"]) Chat.fromJson(chatJson)];
 }
 
-Future<bool> sendChatText(String chat, String chatID) async {
+Future<bool> postChatText(String chat, String chatID) async {
   Map postBody = {'isPost': false, 'text': chat};
   var response =
       await BaseAPI().post('v1/chats/${globals.user.uid}/$chatID/', postBody);
@@ -17,7 +17,7 @@ Future<bool> sendChatText(String chat, String chatID) async {
   return response;
 }
 
-Future<bool> sendChatPost(bool isImage, String filePath, String chatID) async {
+Future<bool> postChatPost(bool isImage, String filePath, String chatID) async {
   Map postBody = {'isPost': true, 'isImage': isImage};
   var response = await BaseAPI()
       .postFile('v1/chats/${globals.user.uid}/$chatID/', postBody, filePath);

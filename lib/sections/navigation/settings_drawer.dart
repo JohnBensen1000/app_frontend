@@ -64,7 +64,7 @@ class _SettingsDrawerState extends State<SettingsDrawer> {
                         return LogOutAlertDialog();
                       }).then((confirmLogOut) async {
                     if (confirmLogOut != null && confirmLogOut) {
-                      await signOut();
+                      await postSignOut();
                       Navigator.popUntil(context, (route) => route.isFirst);
 
                       runApp(MyApp());

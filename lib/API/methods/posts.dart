@@ -39,7 +39,7 @@ Future<List<Post>> getUsersPosts(User user) async {
   return postList;
 }
 
-Future<bool> recordWatched(String postID, int userRating) async {
+Future<bool> postRecordWatched(String postID, int userRating) async {
   Map postJson = {'uid': globals.user.uid, 'userRating': userRating};
   return await globals.baseAPI.post('v1/posts/$postID/watched_list/', postJson);
 }

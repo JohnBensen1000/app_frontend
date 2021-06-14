@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/API/methods/comments.dart';
 import 'package:test_flutter/widgets/back_arrow.dart';
 import 'package:video_player/video_player.dart';
@@ -25,9 +26,6 @@ class CommentsPageProvider extends ChangeNotifier {
   final Post post;
   final List<Comment> commentsList;
   final Comment parentComment;
-
-  Future<void> uploadComment(String text) async =>
-      await postComment(post, parentComment, text);
 }
 
 class CommentsPage extends StatelessWidget {
@@ -251,7 +249,11 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
                         setState(() {
                           allowButtonPress = false;
                         });
-                        await provider.uploadComment(textController.text);
+                        handleRequest(
+                            context,
+                            postComment(provider.post, provider.parentComment,
+                                textController.text));
+
                         Navigator.pop(context);
                       }
                     }),

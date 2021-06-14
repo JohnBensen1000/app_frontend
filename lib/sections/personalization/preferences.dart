@@ -31,16 +31,6 @@ class PreferencesProvider extends ChangeNotifier {
     isPreferenceSelected[name] = !isPreferenceSelected[name];
     notifyListeners();
   }
-
-  Future<void> saveNewPreferences() async {
-    List<String> updatePreferences = new List<String>();
-
-    isPreferenceSelected.forEach((field, isSelected) {
-      if (isSelected) updatePreferences.add(field);
-    });
-
-    await updateUserPreferences(updatePreferences);
-  }
 }
 
 class PreferencesPage extends StatelessWidget {
@@ -332,7 +322,14 @@ class PreferenceFooter extends StatelessWidget {
         child: GestureDetector(
             child: ForwardArrow(),
             onTap: () async {
-              provider.saveNewPreferences();
+              List<String> updatePreferences = new List<String>();
+
+              provider.isPreferenceSelected.forEach((field, isSelected) {
+                if (isSelected) updatePreferences.add(field);
+              });
+              await handleRequest(
+                  context, postUserPreferences(updatePreferences));
+
               Navigator.pop(context);
             }));
   }

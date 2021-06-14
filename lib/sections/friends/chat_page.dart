@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';
@@ -367,8 +368,10 @@ class _ChatPageFooterState extends State<ChatPageFooter> {
                       setState(() {
                         allowSendChat = false;
                       });
-                      await sendChatText(
-                          _chatController.text, provider.chat.chatID);
+                      await handleRequest(
+                          context,
+                          postChatText(
+                              _chatController.text, provider.chat.chatID));
                       _chatController.clear();
                     }
                   }),

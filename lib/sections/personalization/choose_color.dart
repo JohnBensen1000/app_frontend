@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';
@@ -218,7 +219,8 @@ class ChooseColorFooter extends StatelessWidget {
                         ),
                       ),
                       onTap: () async {
-                        await updateColor(provider.chosenColorKey);
+                        await handleRequest(
+                            context, postNewColor(provider.chosenColorKey));
                         globals.user.profileColor =
                             globals.colorsMap[provider.chosenColorKey];
                         Navigator.pop(context);

@@ -5,7 +5,7 @@ import '../../models/user.dart';
 import '../../globals.dart' as globals;
 import '../baseAPI.dart';
 
-Future<Map> createAccount(Map postBody) async {
+Future<Map> postNewAccount(Map postBody) async {
   return await globals.baseAPI.post("v1/users/new/", postBody);
 }
 
@@ -19,7 +19,7 @@ Future<List<User>> getUsersFromSearchString(String searchString) async {
   return creatorsList;
 }
 
-Future<bool> updateColor(String profileColor) async {
+Future<bool> postNewColor(String profileColor) async {
   Map<String, String> postBody = {'profileColor': profileColor};
 
   return await globals.baseAPI.post('v1/users/${globals.user.uid}/', postBody);
@@ -37,7 +37,7 @@ Future<List<String>> getPreferenceFields() async {
   return [for (var field in response['fields']) field.toString()];
 }
 
-Future<bool> updateUserPreferences(List<String> updatePreferences) async {
+Future<bool> postUserPreferences(List<String> updatePreferences) async {
   Map<String, List<String>> postBody = {'preferences': updatePreferences};
 
   return await globals.baseAPI

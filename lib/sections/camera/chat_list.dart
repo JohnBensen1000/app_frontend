@@ -44,7 +44,7 @@ class ChatListProvider extends ChangeNotifier {
   Future<void> sharePostInChats() async {
     for (Chat chat in chatsList) {
       if (isSendingTo[chat]) {
-        await sendChatPost(isImage, filePath, chat.chatID);
+        await postChatPost(isImage, filePath, chat.chatID);
       }
     }
   }

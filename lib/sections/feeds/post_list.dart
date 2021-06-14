@@ -246,7 +246,7 @@ class _PostListState extends State<PostList> {
     // has watched the current post.
     String postID = widget.postList[postListIndex].postID;
 
-    var response = await recordWatched(postID, 5);
+    var response = await postRecordWatched(postID, 5);
 
     alreadyWatched[postListIndex] = true;
   }

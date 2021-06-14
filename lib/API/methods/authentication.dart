@@ -5,14 +5,14 @@ import '../../models/user.dart';
 import '../../globals.dart' as globals;
 import '../baseAPI.dart';
 
-Future<Map> signIn(String uid) async {
+Future<Map> postSignIn(String uid) async {
   FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
 
   return await BaseAPI().post("v1/authentication/$uid/signedInStatus/",
       {'signIn': true, 'deviceToken': await firebaseMessaging.getToken()});
 }
 
-Future<Map> signOut() async {
+Future<Map> postSignOut() async {
   return await BaseAPI().post(
       "v1/authentication/${globals.user.uid}/signedInStatus/",
       {'signIn': false});
