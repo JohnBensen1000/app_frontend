@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../globals.dart' as globals;
@@ -14,7 +15,23 @@ import '../../widgets/back_arrow.dart';
 import '../post/post_view.dart';
 import 'settings_drawer.dart';
 
+class ProfileProvider extends ChangeNotifier {
+  // Simply keeps track of if the setting should be open or closed.
+  bool _isSettingsOpen = false;
+
+  bool get isSettingsOpen => _isSettingsOpen;
+
+  set isSettingsOpen(newIsSettingsOpen) {
+    _isSettingsOpen = newIsSettingsOpen;
+    notifyListeners();
+  }
+}
+
 class ProfilePage extends StatelessWidget {
+  // Returns a stack of the profile page and the settings drawer. Only displays
+  // the settings drawer if it has been opened. The settings drawer contains
+  // a Settings widget that is placed on top of the profile page (hence the need
+  // for a stack).
   ProfilePage({@required this.user});
 
   final User user;
@@ -22,29 +39,37 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double headerHeight = 350;
+    double settingsWidth = 275;
+
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
-    return Scaffold(
-      body: Container(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            ProfilePageHeader(
-              user: user,
-              height: headerHeight,
+    return ChangeNotifierProvider(
+        create: (context) => ProfileProvider(),
+        child: Scaffold(
+            body: Stack(
+          children: [
+            Container(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  ProfilePageHeader(
+                    user: user,
+                    height: headerHeight,
+                  ),
+                  ProfilePostBody(
+                      user: user,
+                      height: bodyHeight,
+                      sidePadding: 20,
+                      betweenPadding: 5),
+                ],
+              ),
             ),
-            ProfilePostBody(
-                user: user,
-                height: bodyHeight,
-                sidePadding: 20,
-                betweenPadding: 5),
+            Consumer<ProfileProvider>(
+                builder: (context, provider, child) => (provider.isSettingsOpen)
+                    ? SettingsDrawer(width: settingsWidth)
+                    : Container())
           ],
-        ),
-      ),
-      drawer: SettingsDrawer(
-        width: 250,
-      ),
-    );
+        )));
   }
 }
 
@@ -65,65 +90,66 @@ class ProfilePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(bottom: 10),
-      height: height,
-      decoration: BoxDecoration(color: Colors.white),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Container(
-            padding: EdgeInsets.only(top: 40, left: 20, bottom: 20),
-            child: Row(
-              children: <Widget>[
-                Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Center(child: BackArrow()))),
-              ],
+        padding: EdgeInsets.only(bottom: 10),
+        height: height,
+        decoration: BoxDecoration(color: Colors.white),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Container(
+              padding: EdgeInsets.only(top: 40, left: 20, bottom: 20),
+              child: Row(
+                children: <Widget>[
+                  Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Center(child: BackArrow()))),
+                ],
+              ),
             ),
-          ),
-          Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                ProfilePic(diameter: 148, user: user),
-                Container(
-                  child: Text(
-                    '${user.username}',
-                    style: TextStyle(
-                      fontFamily: 'Helvetica Neue',
-                      fontSize: 25,
-                      color: const Color(0xff000000),
+            Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Consumer<ProfileProvider>(
+                      builder: (context, provider, child) =>
+                          ProfilePic(diameter: 148, user: user)),
+                  Container(
+                    child: Text(
+                      '${user.username}',
+                      style: TextStyle(
+                        fontFamily: 'Helvetica Neue',
+                        fontSize: 25,
+                        color: const Color(0xff000000),
+                      ),
+                      textAlign: TextAlign.left,
                     ),
-                    textAlign: TextAlign.left,
                   ),
-                ),
-                Container(
-                  child: Text(
-                    '@${user.userID}',
-                    style: TextStyle(
-                      fontFamily: 'Helvetica Neue',
-                      fontSize: 12,
-                      color: Colors.grey[400],
+                  Container(
+                    child: Text(
+                      '@${user.userID}',
+                      style: TextStyle(
+                        fontFamily: 'Helvetica Neue',
+                        fontSize: 12,
+                        color: Colors.grey[400],
+                      ),
+                      textAlign: TextAlign.left,
                     ),
-                    textAlign: TextAlign.left,
                   ),
-                ),
-                Container(
-                  height: 20,
-                  child: SvgPicture.string(
-                    _svg_jmyh3o,
-                    allowDrawingOutsideViewBox: true,
+                  Container(
+                    height: 20,
+                    child: SvgPicture.string(
+                      _svg_jmyh3o,
+                      allowDrawingOutsideViewBox: true,
+                    ),
                   ),
-                ),
-                if (user.uid != globals.user.uid)
-                  FollowingButton(user: user)
-                else
-                  OpenSettingsButton(),
-              ]),
-        ],
-      ),
-    );
+                  if (user.uid != globals.user.uid)
+                    FollowingButton(user: user)
+                  else
+                    OpenSettingsButton(),
+                ]),
+          ],
+        ));
   }
 }
 
@@ -194,15 +220,16 @@ class _FollowingButtonState extends State<FollowingButton> {
 class OpenSettingsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    ProfileProvider provider =
+        Provider.of<ProfileProvider>(context, listen: false);
+
     return GestureDetector(
         child: ProfilePageHeaderButton(
           name: "Settings",
           color: Colors.grey[200],
           borderColor: Colors.grey[200],
         ),
-        onTap: () {
-          Scaffold.of(context).openDrawer();
-        });
+        onTap: () => provider.isSettingsOpen = true);
   }
 }
 

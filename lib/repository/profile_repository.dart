@@ -18,7 +18,7 @@ class ProfileRepository {
     if (profiles.containsKey(user)) return profiles[user];
 
     Post profile = await handleRequest(context, getProfile(user));
-    profiles[user] = profile;
+    if (user != globals.user) profiles[user] = profile;
 
     return profile;
   }
