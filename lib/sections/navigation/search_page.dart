@@ -6,9 +6,9 @@ import '../../API/methods/users.dart';
 import '../../models/user.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/profile_pic.dart';
-import '../../components/bottom_box_shadow.dart';
+import '../../widgets/components/bottom_box_shadow.dart';
 
-import '../profile_page.dart';
+import '../profile_page/profile_page.dart';
 
 class SearchPageProvider extends ChangeNotifier {
   // Used to keep track of a the searched creators. Gets a list of all users

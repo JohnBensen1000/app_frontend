@@ -5,13 +5,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
-import '../../components/bottom_box_shadow.dart';
+import '../../widgets/components/bottom_box_shadow.dart';
 
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
 import '../friends/friends_page.dart';
 import '../camera/camera.dart';
-import '../profile_page.dart';
+import '../profile_page/profile_page.dart';
 
 import 'search_page.dart';
 

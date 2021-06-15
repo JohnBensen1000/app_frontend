@@ -9,7 +9,7 @@ import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
 import '../../widgets/back_arrow.dart';
-import '../../components/bottom_box_shadow.dart';
+import '../../widgets/components/bottom_box_shadow.dart';
 
 import '../camera/camera.dart';
 import '../post/post_view.dart';

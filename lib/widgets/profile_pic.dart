@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
 import '../sections/post/post_view.dart';
 import '../models/user.dart';
@@ -63,7 +64,8 @@ class ProfilePic extends StatelessWidget {
           ClipPath(
               clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
               child: FutureBuilder(
-                  future: globals.profileRepository.getProfilePost(user),
+                  future:
+                      globals.profileRepository.getProfilePost(context, user),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done &&
                         snapshot.hasData)

@@ -8,7 +8,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
 
-import '../profile_page.dart';
+import '../profile_page/profile_page.dart';
 import '../comments/comments.dart';
 
 import 'post.dart';

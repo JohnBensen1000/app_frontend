@@ -10,17 +10,11 @@ class User {
   String uid;
   Color profileColor;
 
-  User({this.userID, this.username, this.uid, this.profileColor});
-
   User.fromJson(Map userJson) {
     this.userID = userJson['userID'];
     this.username = userJson['username'];
     this.uid = userJson['uid'];
     this.profileColor = globals.colorsMap[userJson['profileColor']];
-  }
-
-  User.fromUID(String uid) {
-    Future<User> user = getUserFromUID(uid);
   }
 
   Map toDict() {

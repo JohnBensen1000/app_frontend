@@ -9,8 +9,11 @@ Future<List<Comment>> getAllComments(Post post) async {
 
   List<Comment> commentsList = [];
 
-  for (var comment in response["comments"]) {
-    commentsList.add(Comment.fromServer(comment));
+  for (var commentJson in response["comments"]) {
+    Comment comment = Comment.fromServer(commentJson);
+    await comment.initDone;
+
+    commentsList.add(comment);
   }
   return commentsList;
 }

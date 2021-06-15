@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
-import '../globals.dart' as globals;
-import '../API/methods/relations.dart';
-import '../API/methods/posts.dart';
-import '../models/user.dart';
-import '../models/post.dart';
+import '../../globals.dart' as globals;
+import '../../API/methods/relations.dart';
+import '../../API/methods/posts.dart';
+import '../../models/user.dart';
+import '../../models/post.dart';
 
-import '../widgets/profile_pic.dart';
-import '../widgets/back_arrow.dart';
-import '../components/bottom_box_shadow.dart';
+import '../../widgets/profile_pic.dart';
+import '../../widgets/back_arrow.dart';
+import '../../widgets/components/bottom_box_shadow.dart';
 
-import 'post/post_view.dart';
-import 'navigation/settings_drawer.dart';
+import '../post/post_view.dart';
+import 'settings_drawer.dart';
 
 class ProfilePage extends StatelessWidget {
   ProfilePage({@required this.user});
@@ -197,13 +197,14 @@ class OpenSettingsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      child: ProfilePageHeaderButton(
-        name: "Settings",
-        color: Colors.grey[200],
-        borderColor: Colors.grey[200],
-      ),
-      onTap: () => Scaffold.of(context).openDrawer(),
-    );
+        child: ProfilePageHeaderButton(
+          name: "Settings",
+          color: Colors.grey[200],
+          borderColor: Colors.grey[200],
+        ),
+        onTap: () {
+          Scaffold.of(context).openDrawer();
+        });
   }
 }
 
