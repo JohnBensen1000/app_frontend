@@ -201,10 +201,12 @@ class PreviewView extends StatelessWidget {
             child: ClipRRect(
                 borderRadius: BorderRadius.circular(cornerRadius - 1),
                 child: (provider.isImage)
-                    ? FittedBox(
-                        fit: BoxFit.cover,
-                        child: Image(
-                            image: Image.file(File(provider.filePath)).image))
+                    ? Container(
+                        decoration: BoxDecoration(
+                            image: DecorationImage(
+                                fit: BoxFit.fitWidth,
+                                image:
+                                    Image.file(File(provider.filePath)).image)))
                     : VideoPreview())),
       ]),
     );

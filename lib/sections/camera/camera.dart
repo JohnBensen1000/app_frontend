@@ -188,7 +188,8 @@ class CameraPage extends StatelessWidget {
 
 class CameraView extends StatelessWidget {
   // Displays what the camera sees in a rectangular container with rounded
-  // corners.
+  // corners. Changes size and aspect ratio of camera preview to fit nicely
+  // in the container.
 
   const CameraView({
     Key key,
@@ -226,7 +227,22 @@ class CameraView extends StatelessWidget {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.done) {
-                                return CameraPreview(snapshot.data);
+                                CameraController cameraController =
+                                    snapshot.data;
+
+                                return Transform.scale(
+                                  scale:
+                                      (1 / cameraController.value.aspectRatio) /
+                                          globals.goldenRatio,
+                                  child: Center(
+                                    child: AspectRatio(
+                                        aspectRatio: 1 /
+                                            (1 /
+                                                cameraController
+                                                    .value.aspectRatio),
+                                        child: CameraPreview(cameraController)),
+                                  ),
+                                );
                               } else {
                                 return Container();
                               }
