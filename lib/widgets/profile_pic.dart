@@ -30,11 +30,11 @@ class Profile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(user.username, style: TextStyle(fontSize: diameter / 3)),
+              Text(user.username, style: TextStyle(fontSize: .4 * diameter)),
               Text(
                 "@${user.userID}",
                 style:
-                    TextStyle(fontSize: diameter / 6, color: Colors.grey[500]),
+                    TextStyle(fontSize: .2 * diameter, color: Colors.grey[500]),
               ),
             ],
           ),

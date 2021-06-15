@@ -162,7 +162,8 @@ class PostViewHeader extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Profile(diameter: provider.height / 9, user: provider.post.creator),
+            Profile(
+                diameter: .1 * provider.height, user: provider.post.creator),
           ],
         ),
       ),

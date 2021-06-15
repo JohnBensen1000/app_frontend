@@ -24,27 +24,46 @@ enum CameraUsage {
 
 class CameraProvider extends ChangeNotifier {
   // Manages state for the entire post page. Keeps track of whether the user has
-  // captured a post, whether the post is an image or video, and whether or not
-  // the user is currently recording a video. Also provides functionality for
-  // taking an image and starting/stopping a video recording. Deletes the last
-  // image/video when a new image/video is being taken.
-
-  CameraProvider(
-      {@required this.cameraUsage,
-      @required this.controller,
-      @required this.isFlipped,
-      this.chat});
+  // captured a post and whether the post is an image or video. Also provides
+  // functionality for taking an image and starting/stopping a video recording.
+  // Contains a future of a camera controller. This camera controller is
+  // re-initialized every time cameraIndex changes.
+  CameraProvider({@required this.cameraUsage, this.chat}) {
+    _cameraIndex = 0;
+    isImage = true;
+    showCapturedPost = false;
+    cameraControllerFuture = _getCameraControllerFuture(cameraIndex);
+  }
 
   final CameraUsage cameraUsage;
   final Chat chat;
-  final CameraController controller;
-  final bool isFlipped;
 
-  int cameraIndex = 0;
-  bool isImage = true;
-  bool showCapturedPost = false;
-  bool isRecording = false;
+  int _cameraIndex;
+  bool isImage;
+  bool showCapturedPost;
   String filePath;
+  Future<CameraController> cameraControllerFuture;
+
+  int get cameraIndex => _cameraIndex;
+
+  set cameraIndex(int newCameraIndex) {
+    _cameraIndex = newCameraIndex;
+    cameraControllerFuture = _getCameraControllerFuture(cameraIndex);
+
+    notifyListeners();
+  }
+
+  Future<CameraController> _getCameraControllerFuture(int cameraIndex) async {
+    CameraController controller;
+
+    final cameras = await availableCameras();
+    final camera = cameras[cameraIndex];
+
+    controller = CameraController(camera, ResolutionPreset.high);
+    await controller.initialize();
+
+    return controller;
+  }
 
   Future<void> deleteFile() async {
     if (showCapturedPost) imageCache.clear();
@@ -58,9 +77,9 @@ class CameraProvider extends ChangeNotifier {
     // If the image has been taken with the user-facing camera, flips/rotates
     // the image so that its orientation is correct.
     filePath = join((await getTemporaryDirectory()).path, 'post.png');
-    await controller.takePicture(filePath);
+    await (await cameraControllerFuture).takePicture(filePath);
 
-    if (isFlipped) {
+    if (cameraIndex == 1) {
       image.Image capturedImage =
           image.decodeImage(await File(filePath).readAsBytes());
       capturedImage = image.flip(capturedImage, image.Flip.vertical);
@@ -70,34 +89,23 @@ class CameraProvider extends ChangeNotifier {
     }
     isImage = true;
     showCapturedPost = true;
-
-    notifyListeners();
   }
 
   Future<void> startRecording() async {
     filePath = join((await getTemporaryDirectory()).path, 'post.mp4');
-    await controller.startVideoRecording(filePath);
-
-    isRecording = true;
-    notifyListeners();
+    await (await cameraControllerFuture).startVideoRecording(filePath);
   }
 
   Future<void> stopRecording() async {
-    controller.stopVideoRecording();
+    (await cameraControllerFuture).stopVideoRecording();
 
     showCapturedPost = true;
     isImage = false;
-    isRecording = false;
-
-    notifyListeners();
   }
 }
 
-class Camera extends StatefulWidget {
-  // Main Widget for the Camera Page. Has buttons for taking an image/video,
-  // changing the camera, and exiting from the camera. This widget is rebuilt
-  // everytime the user changes the camera (from front camera to back camera
-  // or vica versa).
+class Camera extends StatelessWidget {
+  // Simply initializes the CameraProvider and Camera Page.
 
   Camera({
     @required this.cameraUsage,
@@ -110,85 +118,71 @@ class Camera extends StatefulWidget {
   final double height;
 
   @override
-  _CameraState createState() => _CameraState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: ChangeNotifierProvider(
+            create: (_) => CameraProvider(cameraUsage: cameraUsage, chat: chat),
+            child: CameraPage(cameraUsage: cameraUsage, chat: chat)));
+  }
 }
 
-class _CameraState extends State<Camera> {
-  int cameraIndex = 0;
+class CameraPage extends StatelessWidget {
+  // Main Widget for the Camera Page. Displays the camera preview, along with
+  // a back button, a capture image/video button, and a flip camera button.
+
+  CameraPage({
+    @required this.cameraUsage,
+    this.chat,
+    this.height = 600,
+  });
+
+  final CameraUsage cameraUsage;
+  final Chat chat;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: FutureBuilder(
-            future: initializeCamera(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                CameraController cameraController = snapshot.data;
-
-                return ChangeNotifierProvider(
-                    create: (_) => CameraProvider(
-                        cameraUsage: widget.cameraUsage,
-                        controller: cameraController,
-                        isFlipped: cameraIndex == 1,
-                        chat: widget.chat),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                            alignment: Alignment.topLeft,
-                            padding: EdgeInsets.only(top: 20, left: 5),
-                            child: FlatButton(
-                                child: BackArrow(),
-                                onPressed: () => Navigator.pop(context))),
-                        CameraView(
-                            height: widget.height,
-                            widget: CameraPreview(cameraController)),
-                        Container(
-                          padding: EdgeInsets.only(top: 5),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                alignment: Alignment.bottomLeft,
-                                child: Container(
-                                    width: 105,
-                                    height: 105,
-                                    child: Center(
-                                      child: GestureDetector(
-                                        child: Button(
-                                          buttonName: "Flip Camera",
-                                        ),
-                                        onTap: () => setState(() {
-                                          cameraIndex = (cameraIndex + 1) % 2;
-                                        }),
-                                      ),
-                                    )),
-                              ),
-                              PostButton(diameter: 105),
-                              Container(
-                                width: 105,
-                              )
-                            ],
+    CameraProvider provider =
+        Provider.of<CameraProvider>(context, listen: false);
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Container(
+            alignment: Alignment.topLeft,
+            padding: EdgeInsets.only(top: 20, left: 5),
+            child: FlatButton(
+                child: BackArrow(), onPressed: () => Navigator.pop(context))),
+        CameraView(
+          height: height,
+        ),
+        Container(
+          padding: EdgeInsets.only(top: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                alignment: Alignment.bottomLeft,
+                child: Container(
+                    width: 105,
+                    height: 105,
+                    child: Center(
+                      child: GestureDetector(
+                          child: Button(
+                            buttonName: "Flip Camera",
                           ),
-                        ),
-                      ],
-                    ));
-              } else {
-                return Container(color: Colors.black);
-              }
-            }));
-  }
-
-  Future<CameraController> initializeCamera() async {
-    CameraController controller;
-
-    final cameras = await availableCameras();
-    final camera = cameras[cameraIndex];
-
-    controller = CameraController(camera, ResolutionPreset.high);
-    await controller.initialize();
-
-    return controller;
+                          onTap: () => provider.cameraIndex =
+                              (provider.cameraIndex + 1) % 2),
+                    )),
+              ),
+              PostButton(diameter: 105),
+              Container(
+                width: 105,
+              )
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -199,11 +193,9 @@ class CameraView extends StatelessWidget {
   const CameraView({
     Key key,
     @required this.height,
-    @required this.widget,
   }) : super(key: key);
 
   final double height;
-  final Widget widget;
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +210,7 @@ class CameraView extends StatelessWidget {
             height: height,
             width: width,
             decoration: BoxDecoration(
+              color: Colors.black,
               borderRadius: BorderRadius.circular(cornerRadius),
               border: Border.all(width: 1.0, color: globals.user.profileColor),
             ),
@@ -227,16 +220,27 @@ class CameraView extends StatelessWidget {
               width: width - 2,
               child: ClipRRect(
                   borderRadius: BorderRadius.circular(cornerRadius - 1),
-                  child: widget)),
+                  child: Consumer<CameraProvider>(
+                      builder: (context, provider, child) => FutureBuilder(
+                            future: provider.cameraControllerFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.done) {
+                                return CameraPreview(snapshot.data);
+                              } else {
+                                return Container();
+                              }
+                            },
+                          )))),
         ],
       ),
     );
   }
 }
 
-class PostButton extends StatelessWidget {
+class PostButton extends StatefulWidget {
   // Button that takes an image when tapped, and takes a video when held down.
-  // If a video is being recorded, then displays a red CircularProgressIndicator
+  // If a video is being recorded, then displays a CircularProgressIndicator
   // that wraps around a PostButtonCircle. Otherwise displays a PostButtonCircle
   // When the user takes an image or stops recording a video, the user is taken
   // to the Preview page.
@@ -251,63 +255,75 @@ class PostButton extends StatelessWidget {
   final double strokeWidth;
 
   @override
+  _PostButtonState createState() => _PostButtonState();
+}
+
+class _PostButtonState extends State<PostButton> {
+  bool isRecording = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Consumer<CameraProvider>(builder: (context, provider, child) {
-      return Container(
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: <Widget>[
-            Container(
-              alignment: Alignment.bottomCenter,
-              child: GestureDetector(
-                  child: (provider.isRecording)
-                      ? StreamBuilder(
-                          stream: PostButtonVideoTimer().stream,
-                          builder: (context, snapshot) {
-                            return Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  PostButtonCircle(diameter: diameter),
-                                  SizedBox(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: strokeWidth,
-                                      value: snapshot.data,
-                                      valueColor:
-                                          new AlwaysStoppedAnimation<Color>(
-                                              globals.user.profileColor),
-                                    ),
-                                    height: diameter + strokeWidth,
-                                    width: diameter + strokeWidth,
-                                  ),
-                                ]);
-                          },
-                        )
-                      : PostButtonCircle(diameter: diameter),
-                  onTap: () async {
-                    await provider.takeImage();
-                    await pushPreviewPage(context, provider);
-                  },
-                  onLongPress: () async {
-                    await provider.startRecording();
-                  },
-                  onLongPressEnd: (_) async {
-                    await provider.stopRecording();
-                    await pushPreviewPage(context, provider);
-                  }),
-            )
-          ],
-        ),
-      );
-    });
+    CameraProvider provider =
+        Provider.of<CameraProvider>(context, listen: false);
+
+    return Container(
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: <Widget>[
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: GestureDetector(
+                child: (isRecording)
+                    ? StreamBuilder(
+                        stream: PostButtonVideoTimer().stream,
+                        builder: (context, snapshot) {
+                          return Stack(alignment: Alignment.center, children: [
+                            PostButtonCircle(diameter: widget.diameter),
+                            SizedBox(
+                              child: CircularProgressIndicator(
+                                strokeWidth: widget.strokeWidth,
+                                value: snapshot.data,
+                                valueColor: new AlwaysStoppedAnimation<Color>(
+                                    globals.user.profileColor),
+                              ),
+                              height: widget.diameter + widget.strokeWidth,
+                              width: widget.diameter + widget.strokeWidth,
+                            ),
+                          ]);
+                        },
+                      )
+                    : PostButtonCircle(diameter: widget.diameter),
+                onTap: () async {
+                  await provider.takeImage();
+                  await pushPreviewPage(context, provider);
+                },
+                onLongPress: () async {
+                  await provider.startRecording();
+                  setState(() {
+                    isRecording = true;
+                  });
+                },
+                onLongPressEnd: (_) async {
+                  await provider.stopRecording();
+                  await pushPreviewPage(context, provider);
+                  setState(() {
+                    isRecording = false;
+                  });
+                }),
+          )
+        ],
+      ),
+    );
   }
 
   Future<void> pushPreviewPage(
       BuildContext context, CameraProvider provider) async {
+    CameraController cameraController = await provider.cameraControllerFuture;
     Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => Preview(
-                  controller: provider.controller,
+                  controller: cameraController,
                   isImage: provider.isImage,
                   cameraUsage: provider.cameraUsage,
                   filePath: provider.filePath,
