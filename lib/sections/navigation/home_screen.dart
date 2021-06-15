@@ -5,7 +5,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
-import '../../widgets/components/bottom_box_shadow.dart';
 
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
@@ -143,9 +142,9 @@ class HomeAppBar extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [
-        bottomBoxShadow,
-      ]),
+      decoration: BoxDecoration(
+        color: Colors.white,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[

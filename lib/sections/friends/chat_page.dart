@@ -9,7 +9,6 @@ import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
 import '../../widgets/back_arrow.dart';
-import '../../widgets/components/bottom_box_shadow.dart';
 
 import '../camera/camera.dart';
 import '../post/post_view.dart';
@@ -77,8 +76,7 @@ class ChatPageHeader extends PreferredSize {
     return Container(
         padding: EdgeInsets.only(top: 30, left: 30),
         height: height,
-        decoration:
-            BoxDecoration(color: Colors.white, boxShadow: [bottomBoxShadow]),
+        decoration: BoxDecoration(color: Colors.white),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

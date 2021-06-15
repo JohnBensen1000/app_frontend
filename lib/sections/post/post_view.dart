@@ -200,8 +200,8 @@ class PostViewBody extends StatelessWidget {
                 width: width,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(provider.height / 19),
-                  border:
-                      Border.all(width: 1.0, color: const Color(0xff707070)),
+                  border: Border.all(
+                      width: 1.0, color: provider.post.creator.profileColor),
                 ),
               ),
               if (provider.post.isImage)

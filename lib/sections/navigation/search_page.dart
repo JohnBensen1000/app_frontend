@@ -6,7 +6,6 @@ import '../../API/methods/users.dart';
 import '../../models/user.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/profile_pic.dart';
-import '../../widgets/components/bottom_box_shadow.dart';
 
 import '../profile_page/profile_page.dart';
 
@@ -97,8 +96,7 @@ class SearchPageHeader extends StatelessWidget {
     return Container(
       height: height,
       padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-      decoration:
-          BoxDecoration(color: Colors.white, boxShadow: [bottomBoxShadow]),
+      decoration: BoxDecoration(color: Colors.white),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[

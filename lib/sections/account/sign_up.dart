@@ -13,6 +13,8 @@ import '../../API/methods/users.dart';
 import '../../models/user.dart';
 
 import '../navigation/home_screen.dart';
+import '../personalization/choose_color.dart';
+import '../personalization/preferences.dart';
 
 import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';
@@ -231,12 +233,7 @@ class _SignUpState extends State<SignUp> {
                         ),
                         onPressed: () async {
                           if (await provider.createNewAccount(context))
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => Home(
-                                          pageLabel: PageLabel.friends,
-                                        )));
+                            _pushNextPages();
                         }),
                 ],
               ),
@@ -244,4 +241,37 @@ class _SignUpState extends State<SignUp> {
           );
         }));
   }
+
+  void _pushNextPages() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => Home(
+                  pageLabel: PageLabel.friends,
+                )));
+
+    Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
+    Navigator.push(context, SlideRightRoute(page: ColorsPage()));
+  }
+}
+
+class SlideRightRoute extends PageRouteBuilder {
+  // Custon PageRouteBuilder. Routes slide to the left when popped.
+  final Widget page;
+
+  SlideRightRoute({this.page})
+      : super(
+            pageBuilder: (BuildContext context, Animation<double> animation,
+                    Animation<double> secondaryAnimation) =>
+                page,
+            transitionsBuilder: (BuildContext context,
+                    Animation<double> animation,
+                    Animation<double> secondaryAnimation,
+                    Widget child) =>
+                SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(-1, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child));
 }

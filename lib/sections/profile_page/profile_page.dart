@@ -10,7 +10,6 @@ import '../../models/post.dart';
 
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
-import '../../widgets/components/bottom_box_shadow.dart';
 
 import '../post/post_view.dart';
 import 'settings_drawer.dart';
@@ -68,8 +67,7 @@ class ProfilePageHeader extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(bottom: 10),
       height: height,
-      decoration:
-          BoxDecoration(color: Colors.white, boxShadow: [bottomBoxShadow]),
+      decoration: BoxDecoration(color: Colors.white),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
