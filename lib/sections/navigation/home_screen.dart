@@ -365,7 +365,7 @@ class _HomePageState extends State<HomePage> {
       Widget discoverPage = DiscoverPage(
         height: widget.height,
       );
-      Widget friendsPage = Friends();
+      Widget friendsPage = Friends(height: widget.height);
       Widget followingPage = FollowingPage(
         height: widget.height,
       );

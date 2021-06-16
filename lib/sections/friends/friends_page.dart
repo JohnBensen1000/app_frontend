@@ -18,6 +18,10 @@ class FriendsProvider extends ChangeNotifier {
 }
 
 class Friends extends StatelessWidget {
+  Friends({@required this.height});
+
+  final double height;
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -30,6 +34,7 @@ class Friends extends StatelessWidget {
                         snapshot.hasData) {
                       return FriendsPage(
                         chatstList: snapshot.data,
+                        height: height,
                       );
                     } else {
                       return Container();
@@ -40,40 +45,41 @@ class Friends extends StatelessWidget {
 }
 
 class FriendsPage extends StatelessWidget {
-  const FriendsPage({
-    @required this.chatstList,
-  });
+  const FriendsPage({@required this.chatstList, @required this.height});
 
   final List<Chat> chatstList;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        NewFollowersAlert(),
-        Container(
-            height: 600,
-            child: ListView.builder(
-                padding: EdgeInsets.only(top: 20),
-                itemCount: chatstList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  Chat chat = chatstList[index];
-                  return FlatButton(
-                    child: ChatWidget(
-                      chat: chat,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ChatPage(
-                                  chat: chat,
-                                )),
-                      );
-                    },
-                  );
-                })),
-      ],
+    return Container(
+      height: height,
+      child: Column(
+        children: <Widget>[
+          NewFollowersAlert(),
+          Expanded(
+              child: ListView.builder(
+                  padding: EdgeInsets.only(top: 20),
+                  itemCount: chatstList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    Chat chat = chatstList[index];
+                    return FlatButton(
+                      child: ChatWidget(
+                        chat: chat,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ChatPage(
+                                    chat: chat,
+                                  )),
+                        );
+                      },
+                    );
+                  })),
+        ],
+      ),
     );
   }
 }
