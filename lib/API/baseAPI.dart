@@ -2,6 +2,29 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:ntp/ntp.dart';
+
+import '../globals.dart' as globals;
+
+Future<String> uploadFile(
+    String filePath, String directory, bool isImage) async {
+  String fileExtension = (isImage) ? 'png' : 'mp4';
+
+  StorageReference storageReference = FirebaseStorage.instance
+      .ref()
+      .child('USERS/$directory/${(await NTP.now()).toString()}.$fileExtension');
+
+  File file = File(filePath);
+
+  await storageReference.putFile(file).onComplete;
+  String downloadURL;
+
+  await storageReference.getDownloadURL().then((fileURL) {
+    downloadURL = fileURL;
+  });
+  return downloadURL;
+}
 
 class BaseAPI {
   String baseURL = "http://192.168.0.180:8000/";
@@ -27,24 +50,6 @@ class BaseAPI {
     } catch (e) {
       throw e;
     }
-  }
-
-  Future<dynamic> postFile(String url, Map postBody, String filePath) async {
-    try {
-      http.MultipartRequest request =
-          http.MultipartRequest('POST', Uri.parse(baseURL + url));
-
-      request.fields['json'] = json.encode(postBody);
-      request.files.add(await http.MultipartFile.fromPath('media', filePath));
-
-      var response = await request.send();
-      return decodeReponse(response);
-    } on SocketException {
-      print(" [ERROR] No Internet Connection");
-    } catch (e) {
-      print(" [ERROR] $e");
-    }
-    return null;
   }
 
   Future<dynamic> delete(String url) async {

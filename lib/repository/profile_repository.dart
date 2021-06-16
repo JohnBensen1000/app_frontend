@@ -1,14 +1,11 @@
 import 'dart:collection';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
 import '../globals.dart' as globals;
 import '../models/user.dart';
-import '../models/profile.dart';
 import '../models/post.dart';
 
-import '../API/methods/users.dart';
 import '../API/methods/posts.dart';
 
 class ProfileRepository {

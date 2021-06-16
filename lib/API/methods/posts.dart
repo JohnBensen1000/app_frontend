@@ -6,9 +6,14 @@ import '../../globals.dart' as globals;
 import '../baseAPI.dart';
 
 Future<bool> uploadPost(bool isImage, bool isPrivate, String filePath) async {
-  Map postBody = {'isImage': isImage, 'isPrivate': isPrivate};
-  return await globals.baseAPI
-      .postFile("v1/posts/${globals.user.uid}/", postBody, filePath);
+  String downloadURL = await uploadFile(filePath, globals.user.uid, isImage);
+
+  Map postBody = {
+    'isImage': isImage,
+    'isPrivate': isPrivate,
+    'downloadURL': downloadURL
+  };
+  return await globals.baseAPI.post("v1/posts/${globals.user.uid}/", postBody);
 }
 
 Future<Post> getProfile(User user) async {
@@ -26,9 +31,11 @@ Future<Post> getProfile(User user) async {
 }
 
 Future<bool> uploadProfilePic(bool isImage, String filePath) async {
-  Map postBody = {'isImage': isImage};
+  String downloadURL = await uploadFile(filePath, globals.user.uid, isImage);
+
+  Map postBody = {'isImage': isImage, 'downloadURL': downloadURL};
   return await globals.baseAPI
-      .postFile("v1/posts/${globals.user.uid}/profile/", postBody, filePath);
+      .post("v1/posts/${globals.user.uid}/profile/", postBody);
 }
 
 Future<List<Post>> getUsersPosts(User user) async {

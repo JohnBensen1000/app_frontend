@@ -196,14 +196,17 @@ class PostViewBody extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Container(
-                height: height,
-                width: width,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(provider.height / 19),
-                  border: Border.all(
-                      width: 1.0, color: provider.post.creator.profileColor),
-                ),
-              ),
+                  height: height,
+                  width: width,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(provider.height / 19),
+                    border: Border.all(
+                      width: 1.0,
+                      color: provider.post.creator != null
+                          ? provider.post.creator.profileColor
+                          : Colors.grey[700],
+                    ),
+                  )),
               if (provider.post.isImage)
                 ImageContainer()
               else if (provider.playOnInit)

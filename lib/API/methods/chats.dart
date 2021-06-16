@@ -18,9 +18,15 @@ Future<bool> postChatText(String chat, String chatID) async {
 }
 
 Future<bool> postChatPost(bool isImage, String filePath, String chatID) async {
-  Map postBody = {'isPost': true, 'isImage': isImage};
-  var response = await BaseAPI()
-      .postFile('v1/chats/${globals.user.uid}/$chatID/', postBody, filePath);
+  String downloadURL = await uploadFile(filePath, chatID, isImage);
+
+  Map postBody = {
+    'isPost': true,
+    'isImage': isImage,
+    'downloadURL': downloadURL
+  };
+  var response =
+      await BaseAPI().post('v1/chats/${globals.user.uid}/$chatID/', postBody);
 
   return response;
 }

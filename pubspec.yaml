@@ -21,6 +21,7 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
+  ntp: ^1.0.7
   video_thumbnail: ^0.2.5+1
   video_player: ^0.9.0
   firebase_core: ^0.4.0+9
