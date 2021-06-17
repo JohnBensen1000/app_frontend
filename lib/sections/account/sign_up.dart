@@ -1,6 +1,4 @@
-import 'dart:io' show Platform;
-
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +18,7 @@ import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';
 import 'widgets/account_submit_button.dart';
 
-FirebaseAuth auth = FirebaseAuth.instance;
+firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
 class SignUpProvider extends ChangeNotifier {
   // Contains state of entire sign up page. Contains InputField object for
@@ -37,7 +35,7 @@ class SignUpProvider extends ChangeNotifier {
   final InputField confirmPassword;
 
   bool accountCreated;
-  FirebaseUser firebaseUser;
+  firebase_auth.User firebaseUser;
 
   SignUpProvider({
     @required this.name,
@@ -128,13 +126,14 @@ class SignUpProvider extends ChangeNotifier {
               email: email.textEditingController.text,
               password: password.textEditingController.text))
           .user;
-    } on PlatformException catch (error) {
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      print(error.code);
       switch (error.code) {
         case "ERROR_WEAK_PASSWORD":
           password.errorText = "The selected password is too weak.";
           confirmPassword.textEditingController.clear();
           break;
-        case "ERROR_EMAIL_ALREADY_IN_USE":
+        case "email-already-in-use":
           email.errorText = "This email is already taken";
       }
       return false;

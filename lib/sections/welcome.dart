@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../globals.dart' as globals;
 import '../API/methods/authentication.dart';
@@ -23,26 +24,34 @@ class Welcome extends StatelessWidget {
     return Scaffold(
         backgroundColor: const Color(0xffffffff),
         body: FutureBuilder(
-            future: handleRequest(context, getIfDeviceSignedInOn()),
+            future: Firebase.initializeApp(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                Map response = snapshot.data;
-                if (response['signedIn']) {
-                  globals.user = User.fromJson(response['user']);
-                  return Home(
-                    pageLabel: PageLabel.following,
-                  );
-                } else {
-                  return WelcomePage();
-                }
-              } else {
-                return Center(
-                  child: Container(
-                      child: Image.asset('assets/images/Entropy.jpg')),
-                );
-              }
+              if (snapshot.connectionState == ConnectionState.done)
+                return WelcomePage();
+              else
+                return Container();
             }));
+    // body: FutureBuilder(
+    //     future: handleRequest(context, getIfDeviceSignedInOn()),
+    //     builder: (context, snapshot) {
+    //       if (snapshot.connectionState == ConnectionState.done &&
+    //           snapshot.hasData) {
+    //         Map response = snapshot.data;
+    //         if (response['signedIn']) {
+    //           globals.user = User.fromJson(response['user']);
+    //           return Home(
+    //             pageLabel: PageLabel.following,
+    //           );
+    //         } else {
+    //           return WelcomePage();
+    //         }
+    //       } else {
+    //         return Center(
+    //           child: Container(
+    //               child: Image.asset('assets/images/Entropy.jpg')),
+    //         );
+    //       }
+    //     }));
   }
 }
 

@@ -1,5 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-
 import '../../models/user.dart';
 
 import '../../globals.dart' as globals;
@@ -10,7 +8,8 @@ Future<Map> postNewAccount(Map postBody) async {
 }
 
 Future<List<User>> getUsersFromSearchString(String searchString) async {
-  var response = await globals.baseAPI.get("v1/users/?contains=$searchString");
+  var response = await globals.baseAPI
+      .get("v1/users/", queryParameters: {'contains': searchString});
 
   List<User> creatorsList = [
     for (var userJson in response["creatorsList"]) User.fromJson(userJson)

@@ -5,33 +5,32 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:ntp/ntp.dart';
 
-import '../globals.dart' as globals;
-
 Future<String> uploadFile(
     String filePath, String directory, bool isImage) async {
-  String fileExtension = (isImage) ? 'png' : 'mp4';
+  String fileExtension = (isImage) ? 'jpg' : 'mp4';
 
-  StorageReference storageReference = FirebaseStorage.instance
-      .ref()
-      .child('USERS/$directory/${(await NTP.now()).toString()}.$fileExtension');
+  Reference storageReference = FirebaseStorage.instance.ref().child(
+      'USERS/$directory/${(await NTP.now()).microsecondsSinceEpoch.toString()}.$fileExtension');
 
   File file = File(filePath);
 
-  await storageReference.putFile(file).onComplete;
+  await storageReference.putFile(file);
   String downloadURL;
 
   await storageReference.getDownloadURL().then((fileURL) {
     downloadURL = fileURL;
   });
+  print(downloadURL);
   return downloadURL;
 }
 
 class BaseAPI {
-  String baseURL = "http://192.168.0.180:8000/";
+  var baseURL = "192.168.0.180:8000";
 
-  Future<dynamic> get(String url) async {
+  Future<dynamic> get(String url,
+      {Map<String, dynamic> queryParameters}) async {
     try {
-      var response = await http.get(baseURL + url);
+      var response = await http.get(Uri.http(baseURL, url, queryParameters));
       return decodeReponse(response);
     } on SocketException {
       throw NoInternetError("No internet");
@@ -43,7 +42,7 @@ class BaseAPI {
   Future<dynamic> post(String url, Map postBody) async {
     try {
       var response =
-          await http.post(baseURL + url, body: json.encode(postBody));
+          await http.post(Uri.http(baseURL, url), body: json.encode(postBody));
       return decodeReponse(response);
     } on SocketException {
       throw NoInternetError("No internet");
@@ -54,7 +53,7 @@ class BaseAPI {
 
   Future<dynamic> delete(String url) async {
     try {
-      http.Response response = await http.delete(baseURL + url);
+      http.Response response = await http.delete(Uri.http(baseURL, url));
       return decodeReponse(response);
     } on HttpException {
       await Future.delayed(Duration(milliseconds: 100));

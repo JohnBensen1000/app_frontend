@@ -47,7 +47,7 @@ class ChatItem {
   String text;
   Map post;
 
-  ChatItem.fromFirebase(Map chatItemJson) {
+  ChatItem.fromFirebase(Map<String, dynamic> chatItemJson) {
     this.isPost = chatItemJson['isPost'];
     this.uid = chatItemJson['uid'];
     if (this.isPost)

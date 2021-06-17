@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -11,7 +11,7 @@ import '../../API/methods/authentication.dart';
 import '../../models/user.dart';
 import '../navigation/home_screen.dart';
 
-FirebaseAuth auth = FirebaseAuth.instance;
+firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
 class SignIn extends StatefulWidget {
   @override
@@ -62,11 +62,11 @@ class _SignInState extends State<SignIn> {
                 ),
               ),
               if (!keyboardActivated)
-                FlatButton(
+                GestureDetector(
                     child: AccountSubmitButton(
                       buttonName: "Sign In",
                     ),
-                    onPressed: () async {
+                    onTap: () async {
                       if (await _signIn()) {
                         Navigator.push(
                             context,
@@ -96,7 +96,7 @@ class _SignInState extends State<SignIn> {
     try {
       if (!areInputsValid()) return false;
 
-      FirebaseUser firebaseUser = (await auth.signInWithEmailAndPassword(
+      firebase_auth.User firebaseUser = (await auth.signInWithEmailAndPassword(
         email: emailInputField.textEditingController.text,
         password: passwordInputField.textEditingController.text,
       ))

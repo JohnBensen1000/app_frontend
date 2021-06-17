@@ -1,15 +1,11 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-
 import '../../models/user.dart';
 
 import '../../globals.dart' as globals;
 import '../baseAPI.dart';
 
 Future<Map> postSignIn(String uid) async {
-  FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
-
   return await BaseAPI().post("v1/authentication/$uid/signedInStatus/",
-      {'signIn': true, 'deviceToken': await firebaseMessaging.getToken()});
+      {'signIn': true, 'deviceToken': ""});
 }
 
 Future<Map> postSignOut() async {
@@ -18,9 +14,8 @@ Future<Map> postSignOut() async {
       {'signIn': false});
 }
 
-Future<Map> getIfDeviceSignedInOn() async {
-  FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
-  String deviceToken = await firebaseMessaging.getToken();
-  return await BaseAPI()
-      .get('v1/authentication/deviceSignedInOn/?deviceToken=$deviceToken');
-}
+// Future<Map> getIfDeviceSignedInOn() async {
+//   String deviceToken = await FirebaseMessaging.instance.getToken();
+//   return await BaseAPI()
+//       .get('v1/authentication/deviceSignedInOn/?deviceToken=$deviceToken');
+// }

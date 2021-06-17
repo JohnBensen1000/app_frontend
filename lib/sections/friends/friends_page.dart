@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
@@ -102,18 +101,18 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
   @override
   void initState() {
     super.initState();
-    FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+    // FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
 
-    _firebaseMessaging.configure(
-        onMessage: (message) async {
-          if (message["notification"]['body']['uid'] == globals.user.uid) {
-            setState(() {
-              newFollowingText = "New Followers!";
-            });
-            print(message["notification"]["body"]);
-          }
-        },
-        onResume: null);
+    // _firebaseMessaging.configure(
+    //     onMessage: (message) async {
+    //       if (message["notification"]['body']['uid'] == globals.user.uid) {
+    //         setState(() {
+    //           newFollowingText = "New Followers!";
+    //         });
+    //         print(message["notification"]["body"]);
+    //       }
+    //     },
+    //     onResume: null);
   }
 
   @override

@@ -43,7 +43,8 @@ class ChatPage extends StatelessWidget {
 
     return ChangeNotifierProvider(
         create: (context) => ChatPageProvider(
-            chatCollection: Firestore.instance.collection("Chats"), chat: chat),
+            chatCollection: FirebaseFirestore.instance.collection("Chats"),
+            chat: chat),
         child: Scaffold(
             body: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -111,12 +112,19 @@ class ChatPageBody extends StatelessWidget {
 
     return Expanded(
         child: StreamBuilder(
-            stream: Firestore.instance
+            stream: FirebaseFirestore.instance
                 .collection(globals.chatCollection)
-                .document(provider.chat.chatID)
+                .doc(provider.chat.chatID)
                 .collection('chats')
                 .orderBy('time', descending: true)
-                .snapshots(),
+                .snapshots()
+                .map((snapshot) {
+              return snapshot.docs.map((doc) {
+                ChatItem chatItem = ChatItem.fromFirebase(doc.data());
+                User user = provider.chat.membersMap[chatItem.uid];
+                return ChatItemWidget(chatItem: chatItem, user: user);
+              }).toList();
+            }),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return Container(
@@ -124,14 +132,10 @@ class ChatPageBody extends StatelessWidget {
                   child: ListView.builder(
                       padding: EdgeInsets.symmetric(vertical: 10),
                       reverse: true,
-                      itemCount: snapshot.data.documents.length,
+                      itemCount: snapshot.data.length,
                       itemBuilder: (context, index) {
-                        if (snapshot.data.documents.length > 0) {
-                          ChatItem chatItem = ChatItem.fromFirebase(
-                              snapshot.data.documents[index].data);
-                          User user = provider.chat.membersMap[chatItem.uid];
-
-                          return ChatItemWidget(chatItem: chatItem, user: user);
+                        if (snapshot.data.length > 0) {
+                          return snapshot.data[index];
                         } else {
                           return Container();
                         }

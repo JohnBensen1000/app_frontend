@@ -76,8 +76,8 @@ class CameraProvider extends ChangeNotifier {
   Future<void> takeImage() async {
     // If the image has been taken with the user-facing camera, flips/rotates
     // the image so that its orientation is correct.
-    filePath = join((await getTemporaryDirectory()).path, 'post.png');
-    await (await cameraControllerFuture).takePicture(filePath);
+    XFile file = await (await cameraControllerFuture).takePicture();
+    filePath = file.path;
 
     if (cameraIndex == 1) {
       image.Image capturedImage =
@@ -92,12 +92,12 @@ class CameraProvider extends ChangeNotifier {
   }
 
   Future<void> startRecording() async {
-    filePath = join((await getTemporaryDirectory()).path, 'post.mp4');
-    await (await cameraControllerFuture).startVideoRecording(filePath);
+    (await cameraControllerFuture).startVideoRecording();
   }
 
   Future<void> stopRecording() async {
-    (await cameraControllerFuture).stopVideoRecording();
+    XFile file = await (await cameraControllerFuture).stopVideoRecording();
+    filePath = file.path;
 
     showCapturedPost = true;
     isImage = false;
@@ -231,15 +231,12 @@ class CameraView extends StatelessWidget {
                                     snapshot.data;
 
                                 return Transform.scale(
-                                  scale:
-                                      (1 / cameraController.value.aspectRatio) /
-                                          globals.goldenRatio,
+                                  scale: (cameraController.value.aspectRatio) /
+                                      (globals.goldenRatio),
                                   child: Center(
                                     child: AspectRatio(
-                                        aspectRatio: 1 /
-                                            (1 /
-                                                cameraController
-                                                    .value.aspectRatio),
+                                        aspectRatio: (1 /
+                                            cameraController.value.aspectRatio),
                                         child: CameraPreview(cameraController)),
                                   ),
                                 );
