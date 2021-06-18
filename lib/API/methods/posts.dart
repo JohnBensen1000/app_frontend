@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../models/profile.dart';
 import '../../models/post.dart';
 import '../../models/user.dart';
@@ -5,8 +7,8 @@ import '../../models/user.dart';
 import '../../globals.dart' as globals;
 import '../baseAPI.dart';
 
-Future<bool> uploadPost(bool isImage, bool isPrivate, String filePath) async {
-  String downloadURL = await uploadFile(filePath, globals.user.uid, isImage);
+Future<bool> uploadPost(bool isImage, bool isPrivate, File file) async {
+  String downloadURL = await uploadFile(file, globals.user.uid, isImage);
 
   Map postBody = {
     'isImage': isImage,
@@ -30,8 +32,8 @@ Future<Post> getProfile(User user) async {
     return null;
 }
 
-Future<bool> uploadProfilePic(bool isImage, String filePath) async {
-  String downloadURL = await uploadFile(filePath, globals.user.uid, isImage);
+Future<bool> uploadProfilePic(bool isImage, File file) async {
+  String downloadURL = await uploadFile(file, globals.user.uid, isImage);
 
   Map postBody = {'isImage': isImage, 'downloadURL': downloadURL};
   return await globals.baseAPI

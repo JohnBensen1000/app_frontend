@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/scheduler.dart';
@@ -16,9 +18,7 @@ class ChatListProvider extends ChangeNotifier {
   // 'sendChatPost' for every chat that is selected to recieve the post.
 
   ChatListProvider(
-      {@required this.chatsList,
-      @required this.isImage,
-      @required this.filePath}) {
+      {@required this.chatsList, @required this.isImage, @required this.file}) {
     isSendingTo =
         Map.fromIterable(chatsList, key: (k) => k, value: (_) => false);
     numChatsSelected = 0;
@@ -26,7 +26,7 @@ class ChatListProvider extends ChangeNotifier {
 
   final List<Chat> chatsList;
   final bool isImage;
-  final String filePath;
+  final File file;
 
   Map<Chat, bool> isSendingTo;
   int numChatsSelected;
@@ -44,7 +44,7 @@ class ChatListProvider extends ChangeNotifier {
   Future<void> sharePostInChats() async {
     for (Chat chat in chatsList) {
       if (isSendingTo[chat]) {
-        await postChatPost(isImage, filePath, chat.chatID);
+        await postChatPost(isImage, file, chat.chatID);
       }
     }
   }
@@ -55,10 +55,10 @@ class ChatListSnackBar extends StatelessWidget {
   // user is part of and a button that allows the user to share the post in the
   // selected chats.
 
-  ChatListSnackBar({@required this.isImage, @required this.filePath});
+  ChatListSnackBar({@required this.isImage, @required this.file});
 
   final bool isImage;
-  final String filePath;
+  final File file;
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +70,7 @@ class ChatListSnackBar extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.done)
               return ChangeNotifierProvider(
                 create: (context) => ChatListProvider(
-                    chatsList: snapshot.data,
-                    isImage: isImage,
-                    filePath: filePath),
+                    chatsList: snapshot.data, isImage: isImage, file: file),
                 child: Column(
                   children: [
                     Container(

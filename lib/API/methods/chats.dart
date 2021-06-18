@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../baseAPI.dart';
 
 import '../../models/chat.dart';
@@ -11,22 +13,18 @@ Future<List<Chat>> getListOfChats() async {
 
 Future<bool> postChatText(String chat, String chatID) async {
   Map postBody = {'isPost': false, 'text': chat};
-  var response =
-      await BaseAPI().post('v1/chats/${globals.user.uid}/$chatID/', postBody);
-
-  return response;
+  return await BaseAPI()
+      .post('v1/chats/${globals.user.uid}/$chatID/', postBody);
 }
 
-Future<bool> postChatPost(bool isImage, String filePath, String chatID) async {
-  String downloadURL = await uploadFile(filePath, chatID, isImage);
+Future<bool> postChatPost(bool isImage, File file, String chatID) async {
+  String downloadURL = await uploadFile(file, chatID, isImage);
 
   Map postBody = {
     'isPost': true,
     'isImage': isImage,
     'downloadURL': downloadURL
   };
-  var response =
-      await BaseAPI().post('v1/chats/${globals.user.uid}/$chatID/', postBody);
-
-  return response;
+  return await BaseAPI()
+      .post('v1/chats/${globals.user.uid}/$chatID/', postBody);
 }

@@ -15,9 +15,6 @@ class Chat {
 
   HashMap membersMap = new HashMap<String, User>();
 
-  Chat(this.chatID, this.chatName, this.isDirectMessage, this.members,
-      this.chatIcon, this.color);
-
   Chat.fromJson(Map chatJson) {
     this.chatID = chatJson["chatID"];
     this.isDirectMessage = chatJson["isDirectMessage"];

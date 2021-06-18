@@ -44,6 +44,8 @@ class CameraProvider extends ChangeNotifier {
   String filePath;
   Future<CameraController> cameraControllerFuture;
 
+  File get file => File(filePath);
+
   int get cameraIndex => _cameraIndex;
 
   set cameraIndex(int newCameraIndex) {
@@ -339,7 +341,7 @@ class _PostButtonState extends State<PostButton> {
                   controller: cameraController,
                   isImage: provider.isImage,
                   cameraUsage: provider.cameraUsage,
-                  filePath: provider.filePath,
+                  file: provider.file,
                   chat: provider.chat,
                 ))).then((_) async => await provider.deleteFile());
   }

@@ -10,8 +10,7 @@ User user;
 double goldenRatio = 1.61803398875;
 double cornerRadiusRatio = 1 / 19; // Fraction of height that corner radius is
 
-String serverName = "DEVELOP";
-String chatCollection = serverName + "_chats";
+String chatCollection = "CHATS";
 
 Map<String, Color> colorsMap = {
   '1': Color.fromRGBO(255, 72, 0, 1.0),

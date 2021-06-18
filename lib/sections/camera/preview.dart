@@ -34,13 +34,13 @@ class PreviewProvider extends ChangeNotifier {
       {@required this.controller,
       @required this.isImage,
       @required this.cameraUsage,
-      @required this.filePath,
+      @required this.file,
       this.chat});
 
   final CameraController controller;
   final bool isImage;
   final CameraUsage cameraUsage;
-  final String filePath;
+  final File file;
   final Chat chat;
 
   bool allowNewPost = true;
@@ -61,13 +61,13 @@ class Preview extends StatefulWidget {
       {@required this.controller,
       @required this.isImage,
       @required this.cameraUsage,
-      @required this.filePath,
+      @required this.file,
       this.chat});
 
   final CameraController controller;
   final bool isImage;
   final CameraUsage cameraUsage;
-  final String filePath;
+  final File file;
   final Chat chat;
 
   @override
@@ -83,7 +83,7 @@ class _PreviewState extends State<Preview> {
                 controller: widget.controller,
                 isImage: widget.isImage,
                 cameraUsage: widget.cameraUsage,
-                filePath: widget.filePath,
+                file: widget.file,
                 chat: widget.chat),
             child: PreviewPage()));
   }
@@ -149,23 +149,19 @@ class PreviewPage extends StatelessWidget {
   Future<void> _uploadPost(
       PreviewProvider provider, BuildContext context) async {
     await handleRequest(
-        context, uploadPost(provider.isImage, false, provider.filePath));
+        context, uploadPost(provider.isImage, false, provider.file));
   }
 
   Future<void> _uploadProfile(
       PreviewProvider provider, BuildContext context) async {
-    await handleRequest(
-        context,
-        globals.postRepository
-            .postProfile(provider.isImage, provider.filePath));
+    await handleRequest(context,
+        globals.postRepository.postProfile(provider.isImage, provider.file));
   }
 
   Future<void> _sendInChat(
       PreviewProvider provider, BuildContext context) async {
-    await handleRequest(
-        context,
-        postChatPost(
-            provider.isImage, provider.filePath, provider.chat.chatID));
+    await handleRequest(context,
+        postChatPost(provider.isImage, provider.file, provider.chat.chatID));
   }
 }
 
@@ -206,8 +202,7 @@ class PreviewView extends StatelessWidget {
                         decoration: BoxDecoration(
                             image: DecorationImage(
                                 fit: BoxFit.fitWidth,
-                                image:
-                                    Image.file(File(provider.filePath)).image)))
+                                image: Image.file(provider.file).image)))
                     : VideoPreview())),
       ]),
     );
@@ -239,7 +234,7 @@ class _VideoPreviewState extends State<VideoPreview> {
         Provider.of<PreviewProvider>(context, listen: false);
 
     return FutureBuilder(
-      future: initializeVideoPlayer(provider.filePath),
+      future: initializeVideoPlayer(provider.file.path),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return VideoPlayer(videoPlayerController);
@@ -336,7 +331,7 @@ class ShareButton extends StatelessWidget {
                 padding: EdgeInsets.only(left: 5, right: 5),
                 content: ChatListSnackBar(
                   isImage: provider.isImage,
-                  filePath: provider.filePath,
+                  file: provider.file,
                 ),
               ))
               .closed

@@ -1,7 +1,6 @@
 import '../../models/user.dart';
 
 import '../../globals.dart' as globals;
-import '../baseAPI.dart';
 
 Future<Map> postNewAccount(Map postBody) async {
   return await globals.baseAPI.post("v1/users/new/", postBody);
@@ -11,11 +10,9 @@ Future<List<User>> getUsersFromSearchString(String searchString) async {
   var response = await globals.baseAPI
       .get("v1/users/", queryParameters: {'contains': searchString});
 
-  List<User> creatorsList = [
+  return [
     for (var userJson in response["creatorsList"]) User.fromJson(userJson)
   ];
-
-  return creatorsList;
 }
 
 Future<bool> postNewColor(String profileColor) async {

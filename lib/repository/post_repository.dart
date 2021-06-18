@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'dart:collection';
 import 'dart:typed_data';
 
@@ -56,7 +58,7 @@ class PostRepository {
     return videoPlayer;
   }
 
-  Future<void> postProfile(bool isImage, String filePath) async {
+  Future<void> postProfile(bool isImage, File file) async {
     // When a user posts a new profile, the currently cached profile has to be
     // deleted.
     String postID = globals.user.uid + 'profile';
@@ -68,6 +70,6 @@ class PostRepository {
 
     print(imageProviders.keys);
 
-    await uploadProfilePic(isImage, filePath);
+    await uploadProfilePic(isImage, file);
   }
 }

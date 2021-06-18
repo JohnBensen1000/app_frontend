@@ -1,5 +1,3 @@
-import 'package:firebase_storage/firebase_storage.dart';
-
 import 'user.dart';
 import 'chat.dart';
 import 'post.dart';
@@ -20,8 +18,6 @@ class Post {
   }
 
   Post.fromChatItem(ChatItem chatItem) {
-    this.creator = null;
-    this.postID = null;
     this.isImage = chatItem.post['isImage'];
     this.downloadURL = chatItem.post["downloadURL"];
   }

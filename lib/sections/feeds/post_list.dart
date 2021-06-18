@@ -87,123 +87,107 @@ class PostListProvider extends ChangeNotifier {
   }
 }
 
-class PostList extends StatefulWidget {
-  /*Responsible for displaying a scrollable list of post widgets. At any given
-    time, this widget holds the previous, current, and next post widget so that
-    transition between post widgets is smooth. The previous and next post widget
-    are both positioned off-screen. By using a PostListScrollerProvider() and a
-    GestureDetector(), this widget listens to the user's vertical drags to
-    continuously update the position of each widget.
-  */
+class PostList extends StatelessWidget {
+  // Simply initializes the provider and PostListPage().
 
-  PostList({@required this.postList, @required this.height});
+  PostList({@required this.height, @required this.postList});
 
-  final List<Post> postList;
   final double height;
-
-  @override
-  _PostListState createState() => _PostListState();
-}
-
-class _PostListState extends State<PostList> {
-  int postListIndex = 0;
-  double postVerticalOffset;
-
-  List<Future<PostView>> postViews;
-  List<bool> alreadyWatched;
+  final List<Post> postList;
 
   @override
   Widget build(BuildContext context) {
-    postVerticalOffset = widget.height;
+    return ChangeNotifierProvider(
+        create: (context) => PostListProvider(postVerticalOffset: height),
+        child: PostListPage(
+          postList: postList,
+        ));
+  }
+}
 
+class PostListPage extends StatefulWidget {
+  // Builds the current, previous, and next post views. Keeps track of the
+  // vertical position of these three widgets. When the user starts scrolling
+  // up/down, continuously updates the positions of these widgets using the
+  // offset given by provider.verticalOffset. When the user stops scrolling,
+  // determines if the user has scrolled far enough to move to the next widget.
+
+  PostListPage({@required this.postList});
+
+  final List<Post> postList;
+
+  @override
+  _PostListPageState createState() => _PostListPageState();
+}
+
+class _PostListPageState extends State<PostListPage> {
+  int postListIndex;
+  double postVerticalOffset;
+
+  List<Widget> postViews;
+  List<bool> alreadyWatched;
+
+  @override
+  void initState() {
+    super.initState();
+
+    PostListProvider provider =
+        Provider.of<PostListProvider>(context, listen: false);
+
+    postListIndex = 0;
+    postViews = [
+      _postViewWidget(provider, postListIndex - 1),
+      _postViewWidget(provider, postListIndex),
+      _postViewWidget(provider, postListIndex + 1),
+    ];
+    alreadyWatched = List<bool>.filled(widget.postList.length, false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     if (widget.postList.length == 0)
       return Center(
         child: Text("Sorry, we ran out of content."),
       );
 
-    alreadyWatched = List<bool>.filled(widget.postList.length, false);
-    postViews = [
-      _buildPostView(postListIndex - 1),
-      _buildPostView(postListIndex),
-      _buildPostView(postListIndex + 1)
-    ];
-
-    return ChangeNotifierProvider(
-      create: (context) =>
-          PostListProvider(postVerticalOffset: postVerticalOffset),
-      child: Consumer<PostListProvider>(builder: (context, provider, child) {
-        alreadyWatched[postListIndex] = true;
-
+    return Consumer<PostListProvider>(
+      builder: (context, provider, child) {
         return Stack(children: [
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[0]),
-            child: _buildGestureDetector(provider, postViews[0]),
+            child: postViews[0],
           ),
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[1]),
-            child: _buildGestureDetector(provider, postViews[1]),
+            child: postViews[1],
           ),
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[2]),
-            child: _buildGestureDetector(provider, postViews[2]),
+            child: postViews[2],
           ),
         ]);
-      }),
+      },
     );
   }
 
-  Future<PostView> _buildPostView(int index) async {
-    // Looks to see if index is a valid index of widget.postList. If it is,
-    // builds and returns a PostView() that corresponds to the correct
-    // item of widget.postList. If the post is a video, then this function
-    // initializes the videoPlayerController that will be used to play/pause the
-    // video.
-
+  Widget _postViewWidget(PostListProvider provider, int index) {
     if (index < 0 || index >= widget.postList.length) {
       return null;
     } else {
-      Post post = widget.postList[index];
-      VideoPlayerController videoPlayerController;
-
-      if (post.isImage == false) {
-        videoPlayerController = VideoPlayerController.network(post.downloadURL);
-        videoPlayerController.setLooping(true);
-      }
-
-      PostView postView = PostView(
-        post: post,
-        height: .75 * postVerticalOffset,
-        aspectRatio: globals.goldenRatio,
-        postStage: PostStage.fullWidget,
-        videoPlayerController: videoPlayerController,
-        playOnInit: true,
+      return GestureDetector(
+        child: Center(
+            child: PostView(
+          post: widget.postList[index],
+          height: .75 * provider.postVerticalOffset,
+          aspectRatio: globals.goldenRatio,
+          postStage: PostStage.fullWidget,
+          playOnInit: true,
+        )),
+        onVerticalDragUpdate: (value) =>
+            provider.verticalOffset += value.delta.dy,
+        onVerticalDragEnd: (_) => _handleVerticalDragStop(provider),
       );
-
-      return postView;
     }
-  }
-
-  GestureDetector _buildGestureDetector(
-      PostListProvider provider, Future<PostView> postView) {
-    // Returns a GestureDetector that contains a post widget and updates the
-    // provider whenever it detects a vertical drag.
-
-    return GestureDetector(
-      child: FutureBuilder(
-          future: postView,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return Center(child: snapshot.data);
-            } else {
-              return Center();
-            }
-          }),
-      onVerticalDragUpdate: (value) =>
-          provider.verticalOffset += value.delta.dy,
-      onVerticalDragEnd: (_) {
-        _handleVerticalDragStop(provider);
-      },
-    );
   }
 
   Future<void> _handleVerticalDragStop(PostListProvider provider) async {
@@ -214,26 +198,22 @@ class _PostListState extends State<PostList> {
     // The same logic applies for the user swiping up. Nothing happens if the
     // current post widget is either the first or last post in postList.
 
-    _recordedWatched();
+    _recordedWatched(postListIndex);
 
     provider.findIndexes();
 
     if (postListIndex + 1 < widget.postList.length &&
-        provider.verticalOffset < -(postVerticalOffset / 4)) {
+        provider.verticalOffset < -(provider.postVerticalOffset / 4)) {
       postListIndex++;
       provider.swipeUp();
-      await _dealWithvideoPlayerControllers(await postViews[provider.nextIndex],
-          await postViews[provider.currIndex]);
-
-      postViews[provider.prevIndex] = _buildPostView(postListIndex + 1);
+      postViews[provider.prevIndex] =
+          _postViewWidget(provider, postListIndex + 1);
     } else if (postListIndex - 1 >= 0 &&
-        provider.verticalOffset > (postVerticalOffset / 4)) {
+        provider.verticalOffset > (provider.postVerticalOffset / 4)) {
       postListIndex--;
       provider.swipeDown();
-      await _dealWithvideoPlayerControllers(await postViews[provider.prevIndex],
-          await postViews[provider.currIndex]);
-
-      postViews[provider.nextIndex] = _buildPostView(postListIndex - 1);
+      postViews[provider.nextIndex] =
+          _postViewWidget(provider, postListIndex - 1);
     } else {
       provider.moveBack();
       // TODO: When user runs out of posts to watch, request more posts from server
@@ -241,28 +221,15 @@ class _PostListState extends State<PostList> {
     }
   }
 
-  Future<void> _recordedWatched() async {
+  Future<void> _recordedWatched(int index) async {
     // Sends a post request to the server to tell it to record that the user
     // has watched the current post.
-    String postID = widget.postList[postListIndex].postID;
+    if (!alreadyWatched[index]) {
+      String postID = widget.postList[index].postID;
 
-    var response = await postRecordWatched(postID, 5);
+      await postRecordWatched(postID, 1);
 
-    alreadyWatched[postListIndex] = true;
-  }
-
-  Future<void> _dealWithvideoPlayerControllers(
-      PostView postViewPlay, PostView postViewPause) async {
-    // This function only applies to video posts. Plays a video if it comes
-    // into view. Pauses a video if it goes off screen.
-
-    if (postViewPlay != null && postViewPlay.videoPlayerController != null) {
-      await postViewPlay.videoPlayerController.play();
-    }
-    if (postViewPause != null && postViewPause.videoPlayerController != null) {
-      await postViewPause.videoPlayerController.pause();
-      await postViewPause.videoPlayerController
-          .seekTo(Duration(microseconds: 0));
+      alreadyWatched[index] = true;
     }
   }
 }

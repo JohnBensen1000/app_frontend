@@ -398,7 +398,7 @@ class _CommentsButtonState extends State<CommentsButton> {
                 setState(() {
                   showCommentsButton = false;
                 });
-                ScaffoldMessenger.of(context)
+                Scaffold.of(context)
                     .showSnackBar(SnackBar(
                       // backgroundColor: Colors.transparent,
                       backgroundColor: Colors.white.withOpacity(.7),

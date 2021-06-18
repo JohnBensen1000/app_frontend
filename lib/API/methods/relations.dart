@@ -23,10 +23,9 @@ Future<bool> postStopFollowing(User user) async {
 Future<List<User>> getNewFollowers() async {
   Map response = await BaseAPI()
       .get('v1/relationships/${globals.user.uid}/followers/new/');
-  List<User> userList = [
+  return [
     for (var userJson in response["followerList"]) User.fromJson(userJson)
   ];
-  return userList;
 }
 
 Future<bool> postFollowBack(User user) async {
