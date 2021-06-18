@@ -57,7 +57,7 @@ class _SettingsState extends State<Settings> {
               buttonName: "Sign Out",
               onPressed: () async {
                 await showDialog(
-                    barrierColor: null,
+                    // barrierColor: null,
                     context: context,
                     builder: (BuildContext context) {
                       return LogOutAlertDialog();
@@ -124,6 +124,7 @@ class LogOutAlertDialog extends StatelessWidget {
   // Displays two buttons: "yes" or "no". If the user clicks "yes", returns true
   // (indicating that the user does want to sign out). If the user clicks "no",
   // then returns false.
+
   const LogOutAlertDialog({
     Key key,
   }) : super(key: key);
@@ -134,40 +135,44 @@ class LogOutAlertDialog extends StatelessWidget {
       elevation: 0,
       backgroundColor: Colors.transparent,
       content: Container(
-        height: 160,
-        width: 320,
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(25))),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-                padding: EdgeInsets.only(bottom: 20, left: 25, right: 25),
-                child: Text(
-                  "Are you sure you want to logout?",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20),
-                )),
-            Row(
+        child: Center(
+          child: Container(
+            height: 160,
+            width: 320,
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(25))),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GestureDetector(
-                  child:
-                      LougOutAlertDialogButton(color: Colors.red, text: 'Yes'),
-                  onTap: () => Navigator.pop(context, true),
-                ),
                 Container(
-                  width: 20,
-                ),
-                GestureDetector(
-                  child: LougOutAlertDialogButton(
-                      color: Colors.grey[200], text: 'No'),
-                  onTap: () => Navigator.pop(context, false),
+                    padding: EdgeInsets.only(bottom: 20, left: 25, right: 25),
+                    child: Text(
+                      "Are you sure you want to logout?",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 20),
+                    )),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      child: LougOutAlertDialogButton(
+                          color: Colors.red, text: 'Yes'),
+                      onTap: () => Navigator.pop(context, true),
+                    ),
+                    Container(
+                      width: 20,
+                    ),
+                    GestureDetector(
+                      child: LougOutAlertDialogButton(
+                          color: Colors.grey[200], text: 'No'),
+                      onTap: () => Navigator.pop(context, false),
+                    )
+                  ],
                 )
               ],
-            )
-          ],
+            ),
+          ),
         ),
       ),
     );

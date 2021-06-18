@@ -44,7 +44,7 @@ class _SignInState extends State<SignIn> {
 
     return Scaffold(
         appBar: AccountAppBar(
-          height: 200,
+          height: 160,
         ),
         body: Padding(
           padding: const EdgeInsets.only(top: 40, bottom: 80),

@@ -34,7 +34,6 @@ class PostViewProvider extends ChangeNotifier {
     @required this.playOnInit,
     @required this.fromChatPage,
     @required this.fullPage,
-    @required this.videoPlayerController,
     @required this.saveInMemory,
     @required this.playWithVolume,
   }) {
@@ -50,7 +49,6 @@ class PostViewProvider extends ChangeNotifier {
   final bool fullPage;
   final bool playWithVolume;
   final bool saveInMemory;
-  final VideoPlayerController videoPlayerController;
 
   double cornerRadius;
 }
@@ -72,7 +70,6 @@ class PostView extends StatelessWidget {
     this.fullPage = false,
     this.playWithVolume = true,
     this.saveInMemory = false,
-    this.videoPlayerController,
   });
 
   final Post post;
@@ -84,7 +81,6 @@ class PostView extends StatelessWidget {
   final bool fullPage;
   final bool playWithVolume;
   final bool saveInMemory;
-  final VideoPlayerController videoPlayerController;
 
   @override
   Widget build(BuildContext context) {
@@ -92,54 +88,33 @@ class PostView extends StatelessWidget {
         ? height
         : height * 1.3333333;
 
-    return FutureBuilder(
-        future: getVideoPlayerController(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return ChangeNotifierProvider(
-                create: (context) => PostViewProvider(
-                    post: post,
-                    height: height,
-                    aspectRatio: aspectRatio,
-                    postStage: postStage,
-                    playOnInit: playOnInit,
-                    fromChatPage: fromChatPage,
-                    fullPage: fullPage,
-                    playWithVolume: playWithVolume,
-                    saveInMemory: saveInMemory,
-                    videoPlayerController: snapshot.data),
-                child: Consumer<PostViewProvider>(
-                  builder: (context, provider, child) => Container(
-                    height: postViewHeight,
-                    width: provider.height / provider.aspectRatio,
-                    child: Column(
-                      children: <Widget>[
-                        if (provider.postStage.index >=
-                            PostStage.fullWidget.index)
-                          PostViewHeader(),
-                        PostViewBody(),
-                        if (provider.postStage.index >=
-                            PostStage.fullWidget.index)
-                          CommentsButton(post: provider.post),
-                      ],
-                    ),
-                  ),
-                ));
-          } else {
-            return Container();
-          }
-        });
-  }
-
-  Future<VideoPlayerController> getVideoPlayerController() async {
-    if (videoPlayerController == null && !post.isImage) {
-      VideoPlayerController videoPlayerController =
-          globals.postRepository.getVideoPlayer(post, saveInMemory);
-      await videoPlayerController.setLooping(true);
-      return videoPlayerController;
-    } else {
-      return videoPlayerController;
-    }
+    return ChangeNotifierProvider(
+        create: (context) => PostViewProvider(
+              post: post,
+              height: height,
+              aspectRatio: aspectRatio,
+              postStage: postStage,
+              playOnInit: playOnInit,
+              fromChatPage: fromChatPage,
+              fullPage: fullPage,
+              playWithVolume: playWithVolume,
+              saveInMemory: saveInMemory,
+            ),
+        child: Consumer<PostViewProvider>(
+          builder: (context, provider, child) => Container(
+            height: postViewHeight,
+            width: provider.height / provider.aspectRatio,
+            child: Column(
+              children: <Widget>[
+                if (provider.postStage.index >= PostStage.fullWidget.index)
+                  PostViewHeader(),
+                PostViewBody(),
+                if (provider.postStage.index >= PostStage.fullWidget.index)
+                  CommentsButton(post: provider.post),
+              ],
+            ),
+          ),
+        ));
   }
 }
 
@@ -300,9 +275,22 @@ class ThumbnailContainer extends StatelessWidget {
   }
 }
 
-class VideoContainer extends StatelessWidget {
+class VideoContainer extends StatefulWidget {
   // Downloads and shows a video. Automatically pauses the video when it is
   // hidden from view, plays the video when it gets back into view.
+  @override
+  _VideoContainerState createState() => _VideoContainerState();
+}
+
+class _VideoContainerState extends State<VideoContainer> {
+  VideoPlayerController videoPlayerController;
+
+  @override
+  void dispose() {
+    videoPlayerController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     PostViewProvider provider =
@@ -324,20 +312,20 @@ class VideoContainer extends StatelessWidget {
                           child: FittedBox(
                               fit: BoxFit.cover,
                               child: SizedBox(
-                                  height: provider.videoPlayerController.value
-                                          .size?.height ??
+                                  height: videoPlayerController
+                                          .value.size?.height ??
                                       0,
-                                  width: provider.videoPlayerController.value
-                                          .size?.width ??
-                                      0,
+                                  width:
+                                      videoPlayerController.value.size?.width ??
+                                          0,
                                   child: VideoPlayer(
-                                    provider.videoPlayerController,
+                                    videoPlayerController,
                                   ))))),
                   onVisibilityChanged: (VisibilityInfo info) {
                     if (provider.playOnInit && info.visibleFraction == 1.0)
-                      provider.videoPlayerController.play();
+                      videoPlayerController.play();
                     else
-                      provider.videoPlayerController.pause();
+                      videoPlayerController.pause();
                   });
             } else
               return Container();
@@ -347,11 +335,13 @@ class VideoContainer extends StatelessWidget {
   }
 
   Future<void> initializeVideoController(PostViewProvider provider) async {
-    await provider.videoPlayerController.initialize();
-    // await provider.videoPlayerController.play();
+    videoPlayerController = globals.postRepository
+        .getVideoPlayer(provider.post, provider.saveInMemory);
+    await videoPlayerController.setLooping(true);
 
-    if (!provider.playWithVolume)
-      await provider.videoPlayerController.setVolume(0.0);
+    await videoPlayerController.initialize();
+
+    if (!provider.playWithVolume) await videoPlayerController.setVolume(0.0);
   }
 }
 

@@ -253,7 +253,7 @@ class ProfilePageHeaderButton extends StatelessWidget {
       decoration: BoxDecoration(
           border: Border.all(color: borderColor, width: 2.0),
           color: color,
-          borderRadius: BorderRadius.all(Radius.circular(10))),
+          borderRadius: BorderRadius.all(Radius.circular(20))),
       child: Center(
         child: Text(
           name,

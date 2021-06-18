@@ -43,20 +43,10 @@ class LogInScreen extends StatelessWidget {
               width: 256.0,
               height: 256.0,
               decoration: BoxDecoration(
-                borderRadius:
-                    BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                // image: DecorationImage(
-                //   image: const AssetImage(''),
-                //   fit: BoxFit.cover,
-                // ),
-                border: Border.all(width: 3.0, color: const Color(0xff1de0e0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0x29000000),
-                    offset: Offset(0, 5),
-                    blurRadius: 8,
-                  ),
-                ],
+                image: DecorationImage(
+                  image: const AssetImage('assets/images/Entropy.PNG'),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -67,7 +57,7 @@ class LogInScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(25.0),
                 color: const Color(0xffffffff),
-                border: Border.all(width: 1.0, color: const Color(0xff1de0e0)),
+                border: Border.all(width: 1.0, color: Colors.grey[400]),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0x29000000),
@@ -76,8 +66,8 @@ class LogInScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: FlatButton(
-                onPressed: () {
+              child: GestureDetector(
+                onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => SignUp()),
@@ -101,8 +91,8 @@ class LogInScreen extends StatelessWidget {
 
           SizedBox(
               width: 202.0,
-              child: FlatButton(
-                onPressed: () {
+              child: GestureDetector(
+                onTap: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => SignIn()));
                 },

@@ -14,7 +14,7 @@ class SettingsDrawerProvider extends ChangeNotifier {
   }
 
   double xOffset = 1;
-  double deltaX = .007;
+  double deltaX = .009;
 
   Future<void> animateEntrance() async {
     while (xOffset >= 0) {
