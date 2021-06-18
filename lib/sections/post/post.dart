@@ -26,53 +26,29 @@ class PostPage extends StatelessWidget {
     PostStage postStage =
         (fromChatPage) ? PostStage.onlyPost : PostStage.fullWidget;
 
-    return FutureBuilder(
-      future: getVideoPlayerController(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return Scaffold(
-              appBar: PostAppBar(
-                height: 40,
-                videoPlayerController: snapshot.data,
-              ),
-              body: Center(
-                child: Center(
-                  child: PostView(
-                    post: post,
-                    aspectRatio: globals.goldenRatio,
-                    height: 600,
-                    postStage: postStage,
-                    videoPlayerController: snapshot.data,
-                    playOnInit: true,
-                    fullPage: true,
-                  ),
-                ),
-              ));
-        } else {
-          return Container();
-        }
-      },
-    );
-  }
-
-  Future<void> getVideoPlayerController() async {
-    if (!post.isImage) {
-      VideoPlayerController videoPlayerController =
-          VideoPlayerController.network(post.downloadURL);
-      videoPlayerController.setLooping(true);
-      return videoPlayerController;
-    } else {
-      return null;
-    }
+    return Scaffold(
+        appBar: PostAppBar(
+          height: 40,
+        ),
+        body: Center(
+          child: Center(
+            child: PostView(
+              post: post,
+              aspectRatio: globals.goldenRatio,
+              height: 600,
+              postStage: postStage,
+              playOnInit: true,
+              fullPage: true,
+            ),
+          ),
+        ));
   }
 }
 
 class PostAppBar extends PreferredSize {
-  const PostAppBar(
-      {@required this.height, @required this.videoPlayerController});
+  const PostAppBar({@required this.height});
 
   final double height;
-  final VideoPlayerController videoPlayerController;
 
   @override
   Size get preferredSize => Size.fromHeight(height);
@@ -85,10 +61,7 @@ class PostAppBar extends PreferredSize {
           padding: EdgeInsets.only(left: 20, top: 40),
           child: GestureDetector(
             child: BackArrow(),
-            onTap: () {
-              if (videoPlayerController != null) videoPlayerController.pause();
-              Navigator.of(context).pop();
-            },
+            onTap: () => Navigator.of(context).pop(),
           ),
         )
       ],
