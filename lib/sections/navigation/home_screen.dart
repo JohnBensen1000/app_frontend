@@ -26,6 +26,7 @@ class ResetStateProvider extends ChangeNotifier {
   // pages have to be rebuilt.
 
   void resetState() {
+    print("Resetting state");
     notifyListeners();
   }
 }
@@ -357,18 +358,33 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Widget discoverPage, friendsPage, followingPage;
+
+  @override
+  void initState() {
+    super.initState();
+    discoverPage = DiscoverPage(
+      height: widget.height,
+    );
+    friendsPage = Friends(height: widget.height);
+    followingPage = FollowingPage(
+      height: widget.height,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
 
     return Consumer<ResetStateProvider>(builder: (context, _, child) {
-      Widget discoverPage = DiscoverPage(
-        height: widget.height,
-      );
-      Widget friendsPage = Friends(height: widget.height);
-      Widget followingPage = FollowingPage(
-        height: widget.height,
-      );
+      // Rebuilds friends page to see if any new chats have been created. This
+      // is used for when the user returns from another user's profile page,
+      // where they could have started following that user (this would create a
+      // chat if that other user is already following the current user).
+
+      if (ModalRoute.of(context).isCurrent) {
+        friendsPage = Friends(height: widget.height);
+      }
 
       return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
         return GestureDetector(

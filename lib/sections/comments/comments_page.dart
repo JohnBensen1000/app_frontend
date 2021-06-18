@@ -47,8 +47,8 @@ class CommentsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    double height = MediaQuery.of(context).size.height - keyboardHeight;
+    // double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    double height = .6 * MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.height;
 
     double headerHeight = 130;
@@ -67,14 +67,13 @@ class CommentsPage extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   children: <Widget>[
                     Container(
-                        alignment: Alignment.bottomCenter,
                         child: PostView(
-                          post: post,
-                          height: height,
-                          aspectRatio: height / width,
-                          postStage: PostStage.onlyPost,
-                          playOnInit: false,
-                        )),
+                      post: post,
+                      height: height,
+                      aspectRatio: height / width,
+                      postStage: PostStage.onlyPost,
+                      playOnInit: false,
+                    )),
                     Container(
                       width: width,
                       height: height,

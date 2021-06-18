@@ -2,7 +2,6 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
@@ -112,13 +111,6 @@ class _PostListState extends State<PostList> {
   List<bool> alreadyWatched;
 
   @override
-  void initState() {
-    super.initState();
-    alreadyWatched = List<bool>.filled(widget.postList.length, false);
-    postListIndex = 0;
-  }
-
-  @override
   Widget build(BuildContext context) {
     postVerticalOffset = widget.height;
 
@@ -126,6 +118,9 @@ class _PostListState extends State<PostList> {
       return Center(
         child: Text("Sorry, we ran out of content."),
       );
+
+    alreadyWatched = List<bool>.filled(widget.postList.length, false);
+    postListIndex = 0;
 
     postViews = [
       _buildPostView(postListIndex - 1),
