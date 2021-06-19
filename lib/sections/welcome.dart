@@ -26,10 +26,28 @@ class Welcome extends StatelessWidget {
         body: FutureBuilder(
             future: Firebase.initializeApp(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done)
-                return WelcomePage();
-              else
-                return Container();
+              if (snapshot.connectionState == ConnectionState.done) {
+                return FutureBuilder(
+                  future: globals.accountRepository.getUser(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      if (snapshot.hasData) {
+                        globals.user = snapshot.data;
+                        return Home();
+                      } else
+                        return WelcomePage();
+                    } else
+                      return Center(
+                        child: Container(
+                            child: Image.asset('assets/images/Entropy.jpg')),
+                      );
+                  },
+                );
+              } else
+                return Center(
+                  child: Container(
+                      child: Image.asset('assets/images/Entropy.jpg')),
+                );
             }));
     // body: FutureBuilder(
     //     future: handleRequest(context, getIfDeviceSignedInOn()),

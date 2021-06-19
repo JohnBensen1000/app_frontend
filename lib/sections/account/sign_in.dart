@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'widgets/account_app_bar.dart';
 import 'widgets/input_field.dart';
@@ -33,9 +34,6 @@ class _SignInState extends State<SignIn> {
       obscureText: true,
       hintText: "password",
     );
-
-    emailInputField.textEditingController.text = "john@gmail.com";
-    passwordInputField.textEditingController.text = "test12345";
   }
 
   @override
@@ -103,6 +101,7 @@ class _SignInState extends State<SignIn> {
           .user;
       Map response = await postSignIn(firebaseUser.uid);
       globals.user = User.fromJson(response['user']);
+      await globals.accountRepository.setUid(uid: firebaseUser.uid);
 
       return true;
     } on PlatformException catch (error) {

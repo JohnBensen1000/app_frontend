@@ -26,7 +26,6 @@ class ResetStateProvider extends ChangeNotifier {
   // pages have to be rebuilt.
 
   void resetState() {
-    print("Resetting state");
     notifyListeners();
   }
 }

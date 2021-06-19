@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
@@ -127,7 +127,6 @@ class SignUpProvider extends ChangeNotifier {
               password: password.textEditingController.text))
           .user;
     } on firebase_auth.FirebaseAuthException catch (error) {
-      print(error.code);
       switch (error.code) {
         case "ERROR_WEAK_PASSWORD":
           password.errorText = "The selected password is too weak.";
@@ -172,6 +171,7 @@ class SignUpProvider extends ChangeNotifier {
       return false;
     } else if (response != null) {
       globals.user = User.fromJson(response['user']);
+      await globals.accountRepository.setUid(uid: firebaseUser.uid);
 
       return true;
     }
@@ -206,8 +206,6 @@ class _SignUpState extends State<SignUp> {
                   InputField(hintText: "confirm password", obscureText: true),
             ),
         child: Consumer<SignUpProvider>(builder: (context, provider, child) {
-          provider.password.textEditingController.text = 'test12345';
-          provider.confirmPassword.textEditingController.text = 'test12345';
           return Scaffold(
             appBar: AccountAppBar(height: titleBarHeight),
             body: Center(

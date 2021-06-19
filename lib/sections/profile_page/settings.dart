@@ -63,7 +63,7 @@ class _SettingsState extends State<Settings> {
                       return LogOutAlertDialog();
                     }).then((confirmLogOut) async {
                   if (confirmLogOut != null && confirmLogOut) {
-                    await postSignOut();
+                    await globals.accountRepository.removeUid();
                     Navigator.popUntil(context, (route) => route.isFirst);
 
                     runApp(MyApp());
