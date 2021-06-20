@@ -20,8 +20,8 @@ Future<String> uploadFile(File file, String directory, bool isImage) async {
 }
 
 class BaseAPI {
-  // var baseURL = "192.168.0.180:8000";
-  String baseURL = 'entropy-317014.uc.r.appspot.com';
+  var baseURL = "192.168.0.180:8000";
+  // String baseURL = 'entropy-317014.uc.r.appspot.com';
 
   Future<dynamic> get(String url,
       {Map<String, dynamic> queryParameters}) async {

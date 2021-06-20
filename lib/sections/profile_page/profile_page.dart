@@ -268,7 +268,7 @@ class ProfilePageHeaderButton extends StatelessWidget {
   }
 }
 
-class ProfilePostBody extends StatelessWidget {
+class ProfilePostBody extends StatefulWidget {
   // Gets and returns a all of the creator's publics posts. The posts are
   // organized into a list of widgets. This list runs vertically and starts off
   // with a big ProfilePostWidget() that takes up the entire width of the page.
@@ -290,9 +290,22 @@ class ProfilePostBody extends StatelessWidget {
   final int rowSize;
 
   @override
+  _ProfilePostBodyState createState() => _ProfilePostBodyState();
+}
+
+class _ProfilePostBodyState extends State<ProfilePostBody> {
+  Future<dynamic> postListFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    postListFuture = handleRequest(context, getUsersPosts(widget.user));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: handleRequest(context, getUsersPosts(user)),
+        future: postListFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.data.length == 0)
@@ -302,9 +315,10 @@ class ProfilePostBody extends StatelessWidget {
                   _getProfilePostsList(context, snapshot.data);
 
               return Padding(
-                padding: EdgeInsets.only(left: sidePadding, right: sidePadding),
+                padding: EdgeInsets.only(
+                    left: widget.sidePadding, right: widget.sidePadding),
                 child: SizedBox(
-                  height: height,
+                  height: widget.height,
                   child: new ListView.builder(
                     padding: EdgeInsets.only(top: 10),
                     itemCount: profilePostsList.length,
@@ -327,14 +341,16 @@ class ProfilePostBody extends StatelessWidget {
     // posts are broken up into rows of rowSize (int) ProfilePostWidget().
 
     double width = MediaQuery.of(context).size.width;
-    double mainPostHeight = (width - 2 * sidePadding) / globals.goldenRatio;
+    double mainPostHeight =
+        (width - 2 * widget.sidePadding) / globals.goldenRatio;
     double bodyPostHeight =
-        (((width - 2 * sidePadding) / rowSize) - betweenPadding) *
+        (((width - 2 * widget.sidePadding) / widget.rowSize) -
+                widget.betweenPadding) *
             globals.goldenRatio;
 
     List<Widget> profilePosts = [
       Padding(
-        padding: EdgeInsets.only(bottom: betweenPadding),
+        padding: EdgeInsets.only(bottom: widget.betweenPadding),
         child: PostView(
             post: postList[0],
             height: mainPostHeight,
@@ -345,12 +361,12 @@ class ProfilePostBody extends StatelessWidget {
 
     List<Widget> subPostsList = _getSubPostsList(postList, bodyPostHeight);
 
-    for (int i = 0; i < subPostsList.length; i += rowSize) {
+    for (int i = 0; i < subPostsList.length; i += widget.rowSize) {
       profilePosts.add(Padding(
-        padding: EdgeInsets.only(bottom: betweenPadding),
+        padding: EdgeInsets.only(bottom: widget.betweenPadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: subPostsList.sublist(i, i + rowSize),
+          children: subPostsList.sublist(i, i + widget.rowSize),
         ),
       ));
     }
@@ -364,7 +380,7 @@ class ProfilePostBody extends StatelessWidget {
     List<Widget> subPostsList = [];
     int i = 1;
 
-    while ((i < postList.length) || ((i - 1) % rowSize != 0)) {
+    while ((i < postList.length) || ((i - 1) % widget.rowSize != 0)) {
       if (i < postList.length) {
         subPostsList.add(
           PostView(

@@ -40,6 +40,9 @@ class _SignInState extends State<SignIn> {
   Widget build(BuildContext context) {
     bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
 
+    emailInputField.textEditingController.text = 'john@gmail.com';
+    passwordInputField.textEditingController.text = 'test12345';
+
     return Scaffold(
         appBar: AccountAppBar(
           height: 160,
@@ -104,12 +107,10 @@ class _SignInState extends State<SignIn> {
       await globals.accountRepository.setUid(uid: firebaseUser.uid);
 
       return true;
-    } on PlatformException catch (error) {
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      print(error.code);
       switch (error.code) {
-        case "ERROR_WRONG_PASSWORD":
-          passwordInputField.errorText = "This password is incorrected";
-          break;
-        case "ERROR_USER_NOT_FOUND":
+        case "user-not-found":
           emailInputField.errorText = "This email is not recognized";
           break;
       }

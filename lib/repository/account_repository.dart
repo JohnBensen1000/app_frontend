@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
 import '../API/methods/users.dart';
 import '../models/user.dart';
@@ -9,7 +10,6 @@ class AccountRepository {
   Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
 
   Future<void> setUid({String uid}) async {
-    print(" [x] Setting uid");
     SharedPreferences prefs = await prefsFuture;
 
     prefs.setString(uidKey, uid);
@@ -22,8 +22,13 @@ class AccountRepository {
 
     if (uid == null)
       return null;
-    else
-      return getUserFromUID(uid);
+    else {
+      try {
+        return await getUserFromUID(uid);
+      } catch (e) {
+        return null;
+      }
+    }
   }
 
   Future<void> removeUid() async {

@@ -39,3 +39,7 @@ Future<bool> postUserPreferences(List<String> updatePreferences) async {
   return await globals.baseAPI
       .post('v1/users/${globals.user.uid}/preferences/', postBody);
 }
+
+Future<bool> deleteAccount() async {
+  return await globals.baseAPI.delete('v1/users/${globals.user.uid}/');
+}

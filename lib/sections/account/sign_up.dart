@@ -206,6 +206,13 @@ class _SignUpState extends State<SignUp> {
                   InputField(hintText: "confirm password", obscureText: true),
             ),
         child: Consumer<SignUpProvider>(builder: (context, provider, child) {
+          provider.name.textEditingController.text = 'John';
+          provider.email.textEditingController.text = 'john@gmail.com';
+          provider.username.textEditingController.text = 'John';
+          provider.phone.textEditingController.text = '5164979872';
+          provider.password.textEditingController.text = 'test12345';
+          provider.confirmPassword.textEditingController.text = 'test12345';
+
           return Scaffold(
             appBar: AccountAppBar(height: titleBarHeight),
             body: Center(
