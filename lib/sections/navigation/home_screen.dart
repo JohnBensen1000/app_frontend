@@ -23,9 +23,13 @@ enum PageLabel {
 class ResetStateProvider extends ChangeNotifier {
   // Provider used to tell other widgets to rebuild. This is called when the
   // user returns to the home page and the Discover, Friends, and Following
-  // pages have to be rebuilt.
+  // pages have to be rebuilt. The bool resetStateBool is used to tell this
+  // provider's consumers that this provider is telling it to rebuild.
+
+  bool resetStateBool = false;
 
   void resetState() {
+    resetStateBool = true;
     notifyListeners();
   }
 }
@@ -375,14 +379,19 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
 
-    return Consumer<ResetStateProvider>(builder: (context, _, child) {
+    return Consumer<ResetStateProvider>(
+        builder: (context, resetStateProvider, child) {
       // Rebuilds friends page to see if any new chats have been created. This
       // is used for when the user returns from another user's profile page,
       // where they could have started following that user (this would create a
       // chat if that other user is already following the current user).
 
-      if (ModalRoute.of(context).isCurrent) {
+      if (resetStateProvider.resetStateBool) {
         friendsPage = Friends(height: widget.height);
+        followingPage = FollowingPage(
+          height: widget.height,
+        );
+        resetStateProvider.resetStateBool = false;
       }
 
       return Consumer<HomeScreenProvider>(builder: (context, provider, child) {

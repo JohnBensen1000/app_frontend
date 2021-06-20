@@ -40,8 +40,8 @@ class _SignInState extends State<SignIn> {
   Widget build(BuildContext context) {
     bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
 
-    emailInputField.textEditingController.text = 'john@gmail.com';
-    passwordInputField.textEditingController.text = 'test12345';
+    // emailInputField.textEditingController.text = 'john@gmail.com';
+    // passwordInputField.textEditingController.text = 'test12345';
 
     return Scaffold(
         appBar: AccountAppBar(
