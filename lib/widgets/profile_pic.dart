@@ -3,8 +3,6 @@ import 'package:test_flutter/API/handle_requests.dart';
 
 import '../sections/post/post_view.dart';
 import '../models/user.dart';
-import '../models/post.dart';
-
 import '../API/methods/posts.dart';
 import '../globals.dart' as globals;
 
@@ -46,7 +44,7 @@ class Profile extends StatelessWidget {
   }
 }
 
-class ProfilePic extends StatefulWidget {
+class ProfilePic extends StatelessWidget {
   // Gets the profile post from google stroage and returns a stack of two
   // widgets: a circular profile post and a blue cicular outline that goes
   // around the profile post.
@@ -57,38 +55,23 @@ class ProfilePic extends StatefulWidget {
   final User user;
 
   @override
-  _ProfilePicState createState() => _ProfilePicState();
-}
-
-class _ProfilePicState extends State<ProfilePic> {
-  Future<Post> profilePicFuture;
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    profilePicFuture =
-        globals.profileRepository.getProfilePost(context, widget.user);
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Container(
-      width: widget.diameter,
-      height: widget.diameter,
+      width: diameter,
+      height: diameter,
       child: Stack(
         children: <Widget>[
           ClipPath(
-              clipper:
-                  ProfilePicClip(diameter: widget.diameter, heightOffset: 0),
+              clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
               child: FutureBuilder(
-                  future: profilePicFuture,
+                  future:
+                      globals.profileRepository.getProfilePost(context, user),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done &&
                         snapshot.hasData)
                       return PostView(
                           post: snapshot.data,
-                          height: widget.diameter,
+                          height: diameter,
                           aspectRatio: 1,
                           playOnInit: true,
                           playWithVolume: false,
@@ -96,26 +79,24 @@ class _ProfilePicState extends State<ProfilePic> {
                           postStage: PostStage.onlyPost);
                     else
                       return Container(
-                        width: widget.diameter,
-                        height: widget.diameter,
+                        width: diameter,
+                        height: diameter,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.all(
                               Radius.elliptical(9999.0, 9999.0)),
                           border: Border.all(
-                              width: .02 * widget.diameter,
-                              color: widget.user.profileColor),
+                              width: .02 * diameter, color: user.profileColor),
                         ),
                       );
                   })),
           Container(
-              width: widget.diameter,
-              height: widget.diameter,
+              width: diameter,
+              height: diameter,
               decoration: BoxDecoration(
                 borderRadius:
                     BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                border: Border.all(
-                    width: .02 * widget.diameter,
-                    color: widget.user.profileColor),
+                border:
+                    Border.all(width: .02 * diameter, color: user.profileColor),
               )),
         ],
       ),

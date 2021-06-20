@@ -12,6 +12,9 @@ class ProfileRepository {
   HashMap profiles = new HashMap<User, Post>();
 
   Future<Post> getProfilePost(BuildContext context, User user) async {
+    if (user == globals.user) {
+      if (await globals.accountRepository.getUser() == null) return null;
+    }
     if (profiles.containsKey(user)) return profiles[user];
 
     Post profile = await handleRequest(context, getProfile(user));
