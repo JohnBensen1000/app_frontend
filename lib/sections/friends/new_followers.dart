@@ -202,7 +202,7 @@ class AcceptDeclineWidget extends StatefulWidget {
 }
 
 class _AcceptDeclineWidgetState extends State<AcceptDeclineWidget> {
-  bool acceptDeclinePressed = false;
+  bool acceptDeclinePressed = true;
 
   @override
   Widget build(BuildContext context) {
@@ -230,9 +230,9 @@ class _AcceptDeclineWidgetState extends State<AcceptDeclineWidget> {
   }
 
   Future<void> _followBack(BuildContext context, bool willFollowBack) async {
-    if (!acceptDeclinePressed) {
+    if (acceptDeclinePressed) {
       setState(() {
-        acceptDeclinePressed = true;
+        acceptDeclinePressed = false;
       });
       if (willFollowBack)
         await postFollowBack(widget.newFollower);
@@ -241,6 +241,10 @@ class _AcceptDeclineWidgetState extends State<AcceptDeclineWidget> {
 
       Provider.of<NewFollowersProvider>(context, listen: false)
           .removeNewFollower(widget.newFollower);
+
+      setState(() {
+        acceptDeclinePressed = true;
+      });
     }
   }
 }

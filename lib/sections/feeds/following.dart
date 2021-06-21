@@ -24,21 +24,12 @@ class FollowingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: handleRequest(context, getFollowingPosts()),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            return Container(
-              padding: EdgeInsets.only(top: 10),
-              child: PostList(
-                postList: snapshot.data,
-                height: height,
-              ),
-            );
-          } else {
-            return Center(child: Text("Loading...."));
-          }
-        });
+    return Container(
+      padding: EdgeInsets.only(top: 10),
+      child: PostList(
+        function: getFollowingPosts,
+        height: height,
+      ),
+    );
   }
 }

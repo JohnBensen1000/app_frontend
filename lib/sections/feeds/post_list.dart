@@ -96,11 +96,12 @@ class PostList extends StatefulWidget {
   // transition between post widgets is smooth. The previous and next post widget
   // are both positioned off-screen. By using a PostListScrollerProvider() and a
   // GestureDetector(), this widget listens to the user's vertical drags to
-  // continuously update the position of each widget.
+  // continuously update the position of each widget. This widget is passed a
+  // function that returns a list of Posts that are to be displayed.
 
-  PostList({@required this.postList, @required this.height});
+  PostList({@required this.function, @required this.height});
 
-  final List<Post> postList;
+  final Function function;
   final double height;
 
   @override
@@ -108,62 +109,96 @@ class PostList extends StatefulWidget {
 }
 
 class _PostListState extends State<PostList> {
-  int postListIndex;
   double postVerticalOffset;
 
-  List<Future<PostView>> postViews;
+  List<Future<Widget>> postViews;
   List<bool> alreadyWatched;
+
+  int postListIndex = 0;
+  List<Post> postList = [];
 
   @override
   Widget build(BuildContext context) {
     postVerticalOffset = widget.height;
 
-    if (widget.postList.length == 0)
-      return Center(
-        child: Text("Sorry, we ran out of content."),
-      );
+    return FutureBuilder(
+        future: handleRequest(context, widget.function()),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasData || postList.length > 0) {
+              postListIndex = postList.length;
 
-    alreadyWatched = List<bool>.filled(widget.postList.length, false);
-    postListIndex = 0;
+              if (snapshot.hasData)
+                postList.addAll(snapshot.data);
+              else
+                postListIndex -= 1;
 
-    postViews = [
-      _buildPostView(postListIndex - 1),
-      _buildPostView(postListIndex),
-      _buildPostView(postListIndex + 1)
-    ];
+              alreadyWatched = List<bool>.filled(postList.length, false);
 
-    return ChangeNotifierProvider(
-      create: (context) =>
-          PostListProvider(postVerticalOffset: postVerticalOffset),
-      child: Consumer<PostListProvider>(builder: (context, provider, child) {
-        return Stack(children: [
-          Transform.translate(
-            offset: Offset(0, provider.verticalOffset + provider.offsets[0]),
-            child: _buildGestureDetector(provider, postListIndex, postViews[0]),
-          ),
-          Transform.translate(
-            offset: Offset(0, provider.verticalOffset + provider.offsets[1]),
-            child: _buildGestureDetector(provider, postListIndex, postViews[1]),
-          ),
-          Transform.translate(
-            offset: Offset(0, provider.verticalOffset + provider.offsets[2]),
-            child: _buildGestureDetector(provider, postListIndex, postViews[2]),
-          ),
-        ]);
-      }),
-    );
+              postViews = [
+                _buildPostView(postListIndex - 1),
+                _buildPostView(postListIndex),
+                _buildPostView(postListIndex + 1)
+              ];
+
+              return ChangeNotifierProvider(
+                create: (context) =>
+                    PostListProvider(postVerticalOffset: postVerticalOffset),
+                child: Consumer<PostListProvider>(
+                    builder: (context, provider, child) {
+                  return Stack(children: [
+                    Transform.translate(
+                      offset: Offset(
+                          0, provider.verticalOffset + provider.offsets[0]),
+                      child: _buildGestureDetector(
+                          provider, postListIndex, postViews[0]),
+                    ),
+                    Transform.translate(
+                      offset: Offset(
+                          0, provider.verticalOffset + provider.offsets[1]),
+                      child: _buildGestureDetector(
+                          provider, postListIndex, postViews[1]),
+                    ),
+                    Transform.translate(
+                      offset: Offset(
+                          0, provider.verticalOffset + provider.offsets[2]),
+                      child: _buildGestureDetector(
+                          provider, postListIndex, postViews[2]),
+                    ),
+                  ]);
+                }),
+              );
+            } else
+              return Center(
+                child: GestureDetector(
+                  child: Container(
+                      width: 80,
+                      height: 30,
+                      decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: Center(child: Text("Refresh"))),
+                  onTap: () {
+                    setState(() {});
+                  },
+                ),
+              );
+          } else {
+            return Container();
+          }
+        });
   }
 
-  Future<PostView> _buildPostView(int index) async {
-    // Looks to see if index is a valid index of widget.postList. If it is,
+  Future<Widget> _buildPostView(int index) async {
+    // Looks to see if index is a valid index of postList. If it is,
     // builds and returns a PostView() that corresponds to the correct
-    // item of widget.postList.
+    // item of postList.
 
-    if (index < 0 || index >= widget.postList.length) {
+    if (index < 0 || index == postList.length) {
       return null;
     } else {
       PostView postView = PostView(
-        post: widget.postList[index],
+        post: postList[index],
         height: .75 * postVerticalOffset,
         aspectRatio: globals.goldenRatio,
         postStage: PostStage.fullWidget,
@@ -175,7 +210,7 @@ class _PostListState extends State<PostList> {
   }
 
   GestureDetector _buildGestureDetector(
-      PostListProvider provider, int postListIndex, Future<PostView> postView) {
+      PostListProvider provider, int postListIndex, Future<Widget> postView) {
     // Returns a GestureDetector that contains a post widget and updates the
     // provider whenever it detects a vertical drag. On a long press, the user
     // is given the options to block the user or report the post for
@@ -194,13 +229,13 @@ class _PostListState extends State<PostList> {
             }),
         onVerticalDragUpdate: (value) =>
             provider.verticalOffset += value.delta.dy,
-        onVerticalDragEnd: (_) {
-          _handleVerticalDragStop(provider);
+        onVerticalDragEnd: (_) async {
+          await _handleVerticalDragStop(provider);
         },
         onLongPress: () => showDialog(
                 context: context,
-                builder: (BuildContext context) => ReportContentAlertDialog(
-                    post: widget.postList[postListIndex]))
+                builder: (BuildContext context) =>
+                    ReportContentAlertDialog(post: postList[postListIndex]))
             .then((actionTaken) => (actionTaken != null)
                 ? actionTaken == ActionTaken.blocked
                     ? removePostsFromCreator(provider)
@@ -216,24 +251,28 @@ class _PostListState extends State<PostList> {
     // The same logic applies for the user swiping up. Nothing happens if the
     // current post widget is either the first or last post in postList.
 
-    _recordedWatched();
+    await _recordedWatched();
 
     provider.findIndexes();
 
-    if (postListIndex + 1 < widget.postList.length &&
+    if (postListIndex == postList.length - 1 &&
+        provider.verticalOffset < -(postVerticalOffset / 4)) {
+      await provider.swipeUp();
+      setState(() {});
+    } else if (postListIndex + 1 < postList.length &&
         provider.verticalOffset < -(postVerticalOffset / 4)) {
       postListIndex++;
-      provider.swipeUp();
+      await provider.swipeUp();
 
       postViews[provider.prevIndex] = _buildPostView(postListIndex + 1);
     } else if (postListIndex - 1 >= 0 &&
         provider.verticalOffset > (postVerticalOffset / 4)) {
       postListIndex--;
-      provider.swipeDown();
+      await provider.swipeDown();
 
       postViews[provider.nextIndex] = _buildPostView(postListIndex - 1);
     } else {
-      provider.moveBack();
+      await provider.moveBack();
       // TODO: When user runs out of posts to watch, request more posts from server
 
     }
@@ -243,7 +282,7 @@ class _PostListState extends State<PostList> {
     // Sends a post request to the server to tell it to record that the user
     // has watched the current post.
     if (!alreadyWatched[postListIndex]) {
-      String postID = widget.postList[postListIndex].postID;
+      String postID = postList[postListIndex].postID;
 
       await postRecordWatched(postID, 5);
 
@@ -260,16 +299,16 @@ class _PostListState extends State<PostList> {
 
     provider.findIndexes();
 
-    String blockedCreatorUID = widget.postList[postListIndex].creator.uid;
+    String blockedCreatorUID = postList[postListIndex].creator.uid;
 
-    for (int i = widget.postList.length - 1; i >= 0; i--) {
-      if (widget.postList[i].creator.uid == blockedCreatorUID) {
-        widget.postList.removeAt(i);
+    for (int i = postList.length - 1; i >= 0; i--) {
+      if (postList[i].creator.uid == blockedCreatorUID) {
+        postList.removeAt(i);
         if (i < postListIndex) postListIndex--;
       }
     }
 
-    if (postListIndex != widget.postList.length) {
+    if (postListIndex != postList.length) {
       postViews[provider.nextIndex] = _buildPostView(postListIndex);
       await provider.swipeUp();
       postViews[provider.currIndex] = _buildPostView(postListIndex - 1);
@@ -290,9 +329,9 @@ class _PostListState extends State<PostList> {
 
     provider.findIndexes();
 
-    widget.postList.removeAt(postListIndex);
+    postList.removeAt(postListIndex);
 
-    if (postListIndex != widget.postList.length) {
+    if (postListIndex != postList.length) {
       await provider.swipeUp();
       postViews[provider.currIndex] = postViews[provider.prevIndex];
       postViews[provider.prevIndex] = _buildPostView(postListIndex + 1);
