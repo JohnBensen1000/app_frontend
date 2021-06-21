@@ -21,27 +21,21 @@ class DiscoverPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("Coming soon."),
-    );
+    return FutureBuilder(
+        future: handleRequest(context, getRecommendations()),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData) {
+            return Container(
+              padding: EdgeInsets.only(top: 10),
+              child: PostList(
+                postList: snapshot.data,
+                height: height,
+              ),
+            );
+          } else {
+            return Center(child: Text("Loading...."));
+          }
+        });
   }
-  // @override
-  // Widget build(BuildContext context) {
-  //   return FutureBuilder(
-  //       future: handleRequest(context, getRecommendations()),
-  //       builder: (context, snapshot) {
-  //         if (snapshot.connectionState == ConnectionState.done &&
-  //             snapshot.hasData) {
-  //           return Container(
-  //             padding: EdgeInsets.only(top: 10),
-  //             child: PostList(
-  //               postList: snapshot.data,
-  //               height: height,
-  //             ),
-  //           );
-  //         } else {
-  //           return Center(child: Text("Loading...."));
-  //         }
-  //       });
-  // }
 }
