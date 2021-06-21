@@ -388,9 +388,9 @@ class _HomePageState extends State<HomePage> {
 
       if (resetStateProvider.resetStateBool) {
         friendsPage = Friends(height: widget.height);
-        followingPage = FollowingPage(
-          height: widget.height,
-        );
+        // followingPage = FollowingPage(
+        //   height: widget.height,
+        // );
         resetStateProvider.resetStateBool = false;
       }
 

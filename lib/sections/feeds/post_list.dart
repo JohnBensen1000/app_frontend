@@ -5,8 +5,12 @@ import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
+import '../../API/handle_requests.dart';
+import '../../API/methods/relations.dart';
 import '../../models/post.dart';
+import '../../models/user.dart';
 
+import '../navigation/home_screen.dart';
 import '../post/post_view.dart';
 
 class PostListProvider extends ChangeNotifier {
@@ -42,7 +46,7 @@ class PostListProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void swipeUp() async {
+  Future<void> swipeUp() async {
     for (int i = 0; i < 100 * (postVerticalOffset + _verticalOffset); i++) {
       _updateOffsets(0, -.01, -.01);
       await Future.delayed(Duration(microseconds: 10));
@@ -50,7 +54,7 @@ class PostListProvider extends ChangeNotifier {
     _setOffsets(postVerticalOffset, -postVerticalOffset, 0);
   }
 
-  void swipeDown() async {
+  Future<void> swipeDown() async {
     for (int i = 0; i < 100 * (postVerticalOffset - _verticalOffset); i++) {
       _updateOffsets(.01, .01, 0);
       await Future.delayed(Duration(microseconds: 10));
@@ -58,7 +62,7 @@ class PostListProvider extends ChangeNotifier {
     _setOffsets(0, postVerticalOffset, -postVerticalOffset);
   }
 
-  void moveBack() async {
+  Future<void> moveBack() async {
     double direction = (_verticalOffset > 0) ? -.01 : .01;
 
     for (int i = 0; i < 100 * _verticalOffset.abs(); i++) {
@@ -135,15 +139,15 @@ class _PostListState extends State<PostList> {
         return Stack(children: [
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[0]),
-            child: _buildGestureDetector(provider, postViews[0]),
+            child: _buildGestureDetector(provider, postListIndex, postViews[0]),
           ),
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[1]),
-            child: _buildGestureDetector(provider, postViews[1]),
+            child: _buildGestureDetector(provider, postListIndex, postViews[1]),
           ),
           Transform.translate(
             offset: Offset(0, provider.verticalOffset + provider.offsets[2]),
-            child: _buildGestureDetector(provider, postViews[2]),
+            child: _buildGestureDetector(provider, postListIndex, postViews[2]),
           ),
         ]);
       }),
@@ -171,26 +175,37 @@ class _PostListState extends State<PostList> {
   }
 
   GestureDetector _buildGestureDetector(
-      PostListProvider provider, Future<PostView> postView) {
+      PostListProvider provider, int postListIndex, Future<PostView> postView) {
     // Returns a GestureDetector that contains a post widget and updates the
-    // provider whenever it detects a vertical drag.
+    // provider whenever it detects a vertical drag. On a long press, the user
+    // is given the options to block the user or report the post for
+    // inappropriate content. If either of these options are selected, then
+    // removes either the post or all posts from the creator from the post list.
 
     return GestureDetector(
-      child: FutureBuilder(
-          future: postView,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return Center(child: snapshot.data);
-            } else {
-              return Center();
-            }
-          }),
-      onVerticalDragUpdate: (value) =>
-          provider.verticalOffset += value.delta.dy,
-      onVerticalDragEnd: (_) {
-        _handleVerticalDragStop(provider);
-      },
-    );
+        child: FutureBuilder(
+            future: postView,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return Center(child: snapshot.data);
+              } else {
+                return Center();
+              }
+            }),
+        onVerticalDragUpdate: (value) =>
+            provider.verticalOffset += value.delta.dy,
+        onVerticalDragEnd: (_) {
+          _handleVerticalDragStop(provider);
+        },
+        onLongPress: () => showDialog(
+                context: context,
+                builder: (BuildContext context) => ReportContentAlertDialog(
+                    post: widget.postList[postListIndex]))
+            .then((actionTaken) => (actionTaken != null)
+                ? actionTaken == ActionTaken.blocked
+                    ? removePostsFromCreator(provider)
+                    : removePost(provider)
+                : print("No action has been taken")));
   }
 
   Future<void> _handleVerticalDragStop(PostListProvider provider) async {
@@ -234,5 +249,143 @@ class _PostListState extends State<PostList> {
 
       alreadyWatched[postListIndex] = true;
     }
+  }
+
+  Future<void> removePostsFromCreator(PostListProvider provider) async {
+    // Goes through the entire post list and removes every post that was created
+    // by the recently blocked creator. Rebuilds the post views so that none of
+    // them contain the removed posts. The home page is rebuilt so that if any
+    // direct messages exist between the user and the blocked creator, that
+    // direct message is removed from the friends page.
+
+    provider.findIndexes();
+
+    String blockedCreatorUID = widget.postList[postListIndex].creator.uid;
+
+    for (int i = widget.postList.length - 1; i >= 0; i--) {
+      if (widget.postList[i].creator.uid == blockedCreatorUID) {
+        widget.postList.removeAt(i);
+        if (i < postListIndex) postListIndex--;
+      }
+    }
+
+    if (postListIndex != widget.postList.length) {
+      postViews[provider.nextIndex] = _buildPostView(postListIndex);
+      await provider.swipeUp();
+      postViews[provider.currIndex] = _buildPostView(postListIndex - 1);
+      postViews[provider.prevIndex] = _buildPostView(postListIndex + 1);
+    } else {
+      postListIndex--;
+
+      postViews[provider.prevIndex] = _buildPostView(postListIndex);
+      await provider.swipeDown();
+      postViews[provider.nextIndex] = _buildPostView(postListIndex - 1);
+    }
+
+    Provider.of<ResetStateProvider>(context, listen: false).resetState();
+  }
+
+  Future<void> removePost(PostListProvider provider) async {
+    // Removes the reported post from the post list.
+
+    provider.findIndexes();
+
+    widget.postList.removeAt(postListIndex);
+
+    if (postListIndex != widget.postList.length) {
+      await provider.swipeUp();
+      postViews[provider.currIndex] = postViews[provider.prevIndex];
+      postViews[provider.prevIndex] = _buildPostView(postListIndex + 1);
+    } else {
+      postListIndex--;
+
+      await provider.swipeDown();
+      postViews[provider.currIndex] = null;
+      postViews[provider.nextIndex] = _buildPostView(postListIndex - 1);
+    }
+  }
+}
+
+enum ActionTaken { blocked, reported }
+
+class ReportContentAlertDialog extends StatelessWidget {
+  // Allows the user to report the post or block the creator. When pressed,
+  // makes the appropriate API call for both of these options. Additionally,
+  // makes an API call to record that the user has watched the post if the user
+  // reports the post.
+
+  ReportContentAlertDialog({@required this.post});
+
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.transparent,
+      content: Container(
+        width: 200,
+        height: 200,
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+            color: Colors.grey[300].withOpacity(.9),
+            borderRadius: BorderRadius.all(Radius.circular(25))),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Container(
+                margin: EdgeInsets.all(10),
+                child: Text("Problem?", style: TextStyle(fontSize: 22))),
+            GestureDetector(
+                child: ReportContentButton(
+                  buttonName: "Report this post",
+                ),
+                onTap: () async {
+                  await handleRequest(
+                      context, postRecordWatched(post.postID, 0));
+                  await handleRequest(context, reportPost(post));
+
+                  Navigator.pop(context, ActionTaken.reported);
+                }),
+            GestureDetector(
+                child: ReportContentButton(
+                  buttonName: "Block this user",
+                ),
+                onTap: () async {
+                  await handleRequest(context, blockUser(post.creator));
+                  Navigator.pop(context, ActionTaken.blocked);
+                }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ReportContentButton extends StatelessWidget {
+  // Stateless widget used for ReportContentAlertDialog buttons.
+
+  const ReportContentButton({
+    @required this.buttonName,
+    Key key,
+  }) : super(key: key);
+
+  final String buttonName;
+
+  @override
+  Widget build(BuildContext context) {
+    Color backgroundColor = Colors.white.withOpacity(.8);
+    return GestureDetector(
+      child: Container(
+          margin: EdgeInsets.all(5),
+          width: 160,
+          height: 40,
+          decoration: BoxDecoration(
+              color: backgroundColor,
+              border: Border.all(color: Colors.grey[700], width: 1),
+              borderRadius: BorderRadius.all(Radius.circular(25))),
+          child: Center(
+            child: Text(buttonName),
+          )),
+    );
   }
 }

@@ -5,6 +5,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../API/methods/new_content.dart';
+import '../../API/methods/posts.dart';
+import '../../API/methods/relations.dart';
+import '../../models/post.dart';
 
 import 'post_list.dart';
 

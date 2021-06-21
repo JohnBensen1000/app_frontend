@@ -39,3 +39,9 @@ Future<bool> postDontFollowBack(User user) async {
   return await BaseAPI().post(
       'v1/relationships/${user.uid}/following/${globals.user.uid}/', postBody);
 }
+
+Future<bool> blockUser(User user) async {
+  Map postBody = {'uid': user.uid};
+  return await BaseAPI()
+      .post('v1/relationships/${globals.user.uid}/blocked/', postBody);
+}

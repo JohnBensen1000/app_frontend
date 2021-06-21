@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
@@ -166,48 +167,49 @@ class PostViewBody extends StatelessWidget {
     double width = provider.height / provider.aspectRatio;
 
     return GestureDetector(
-        child: Stack(alignment: Alignment.topRight, children: <Widget>[
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                  height: height,
-                  width: width,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(provider.height / 19),
-                    border: Border.all(
-                      width: 1.0,
-                      color: provider.post.creator != null
-                          ? provider.post.creator.profileColor
-                          : Colors.grey[700],
-                    ),
-                  )),
-              if (provider.post.isImage)
-                ImageContainer()
-              else if (provider.playOnInit)
-                VideoContainer()
-              else
-                ThumbnailContainer(),
-            ],
-          ),
-          if (!provider.playOnInit && !provider.post.isImage)
+      child: Stack(alignment: Alignment.topRight, children: <Widget>[
+        Stack(
+          alignment: Alignment.center,
+          children: [
             Container(
-                padding: EdgeInsets.all(.03 * height),
-                child: Text(
-                  "Video",
-                  style: TextStyle(color: Colors.grey),
+                height: height,
+                width: width,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(provider.height / 19),
+                  border: Border.all(
+                    width: 1.0,
+                    color: provider.post.creator != null
+                        ? provider.post.creator.profileColor
+                        : Colors.grey[700],
+                  ),
                 )),
-        ]),
-        onTap: () {
-          if (!provider.fullPage)
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PostPage(
-                          post: provider.post,
-                          fromChatPage: provider.fromChatPage,
-                        )));
-        });
+            if (provider.post.isImage)
+              ImageContainer()
+            else if (provider.playOnInit)
+              VideoContainer()
+            else
+              ThumbnailContainer(),
+          ],
+        ),
+        if (!provider.playOnInit && !provider.post.isImage)
+          Container(
+              padding: EdgeInsets.all(.03 * height),
+              child: Text(
+                "Video",
+                style: TextStyle(color: Colors.grey),
+              )),
+      ]),
+      onTap: () {
+        if (!provider.fullPage)
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PostPage(
+                        post: provider.post,
+                        fromChatPage: provider.fromChatPage,
+                      )));
+      },
+    );
   }
 }
 
