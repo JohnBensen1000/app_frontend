@@ -77,7 +77,6 @@ class ChatPageHeader extends PreferredSize {
     return Container(
         padding: EdgeInsets.only(top: 30, left: 30),
         height: height,
-        decoration: BoxDecoration(color: Colors.white),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

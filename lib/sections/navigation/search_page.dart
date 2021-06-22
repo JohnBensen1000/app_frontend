@@ -96,7 +96,6 @@ class SearchPageHeader extends StatelessWidget {
     return Container(
       height: height,
       padding: EdgeInsets.only(top: 50, left: 20, right: 20),
-      decoration: BoxDecoration(color: Colors.white),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[

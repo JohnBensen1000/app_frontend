@@ -92,7 +92,6 @@ class ProfilePageHeader extends StatelessWidget {
     return Container(
         padding: EdgeInsets.only(bottom: 10),
         height: height,
-        decoration: BoxDecoration(color: Colors.white),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [

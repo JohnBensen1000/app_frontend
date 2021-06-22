@@ -22,3 +22,5 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+// gcloud app logs tail -s default

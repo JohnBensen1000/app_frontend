@@ -146,9 +146,6 @@ class HomeAppBar extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
@@ -400,24 +397,15 @@ class _HomePageState extends State<HomePage> {
             Transform.translate(
                 offset: Offset(width * (provider.offset - 1), 0),
                 child: Container(
-                    width: width,
-                    height: widget.height,
-                    color: Colors.white,
-                    child: discoverPage)),
+                    width: width, height: widget.height, child: discoverPage)),
             Transform.translate(
                 offset: Offset(width * (provider.offset), 0),
                 child: Container(
-                    width: width,
-                    height: widget.height,
-                    color: Colors.white,
-                    child: friendsPage)),
+                    width: width, height: widget.height, child: friendsPage)),
             Transform.translate(
                 offset: Offset(width * (provider.offset + 1), 0),
                 child: Container(
-                    width: width,
-                    height: widget.height,
-                    color: Colors.white,
-                    child: followingPage)),
+                    width: width, height: widget.height, child: followingPage)),
           ]),
           onHorizontalDragUpdate: (value) =>
               Provider.of<HomeScreenProvider>(context, listen: false).offset +=
