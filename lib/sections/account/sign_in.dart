@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 
 import 'widgets/account_app_bar.dart';
 import 'widgets/input_field.dart';
@@ -102,13 +103,12 @@ class _SignInState extends State<SignIn> {
         password: passwordInputField.textEditingController.text,
       ))
           .user;
-      Map response = await postSignIn(firebaseUser.uid);
+      Map response = await handleRequest(context, postSignIn(firebaseUser.uid));
       globals.user = User.fromJson(response['user']);
       await globals.accountRepository.setUid(uid: firebaseUser.uid);
 
       return true;
     } on firebase_auth.FirebaseAuthException catch (error) {
-      print(error.code);
       switch (error.code) {
         case "user-not-found":
           emailInputField.errorText = "This email is not recognized";

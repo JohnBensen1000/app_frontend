@@ -121,6 +121,7 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
         future: handleRequest(context, getNewFollowers()),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData &&
               snapshot.data.length > 0) {
             newFollowingText = "New Followers: ${snapshot.data.length}";
 
