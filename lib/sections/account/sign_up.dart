@@ -30,7 +30,7 @@ class SignUpProvider extends ChangeNotifier {
   final InputField name;
   final InputField email;
   final InputField username;
-  final InputField phone;
+  // final InputField phone;
   final InputField password;
   final InputField confirmPassword;
 
@@ -42,14 +42,14 @@ class SignUpProvider extends ChangeNotifier {
     @required this.email,
     @required this.username,
     @required this.password,
-    @required this.phone,
+    // @required this.phone,
     @required this.confirmPassword,
   }) {
     this.accountCreated = false;
   }
 
   List<InputField> get inputFields =>
-      [name, email, username, phone, password, confirmPassword];
+      [name, email, username, password, confirmPassword];
 
   Future<bool> createNewAccount(BuildContext context) async {
     // Clears all error messages. Validates if each input is formatted
@@ -151,7 +151,8 @@ class SignUpProvider extends ChangeNotifier {
       "userID": username.textEditingController.text,
       "username": name.textEditingController.text,
       "email": email.textEditingController.text,
-      "phone": phone.textEditingController.text,
+      // "phone": ""
+      // "phone": phone.textEditingController.text,
     };
 
     var response = await handleRequest(context, postNewAccount(postBody));
@@ -165,8 +166,8 @@ class SignUpProvider extends ChangeNotifier {
       if (response['fieldsTaken'].contains("email"))
         email.errorText = "This email is already taken";
 
-      if (response['fieldsTaken'].contains("phone"))
-        phone.errorText = "This phone number is already taken";
+      // if (response['fieldsTaken'].contains("phone"))
+      //   phone.errorText = "This phone number is already taken";
 
       return false;
     } else if (response != null) {
@@ -200,7 +201,7 @@ class _SignUpState extends State<SignUp> {
               name: InputField(hintText: "Your Name"),
               email: InputField(hintText: "E-mail"),
               username: InputField(hintText: "username"),
-              phone: InputField(hintText: "phone number"),
+              // phone: InputField(hintText: "phone number"),
               password: InputField(hintText: "password", obscureText: true),
               confirmPassword:
                   InputField(hintText: "confirm password", obscureText: true),

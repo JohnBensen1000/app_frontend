@@ -146,6 +146,7 @@ class HomeAppBar extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
