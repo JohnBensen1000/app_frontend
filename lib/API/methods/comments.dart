@@ -18,7 +18,7 @@ Future<List<Comment>> getAllComments(Post post) async {
   return commentsList;
 }
 
-Future<bool> postComment(
+Future<Map> postComment(
     Post post, Comment parentComment, String commentText) async {
   String commentPath = (parentComment != null) ? parentComment.path : '';
 

@@ -250,10 +250,24 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
                         setState(() {
                           allowButtonPress = false;
                         });
-                        handleRequest(
+                        Map response = await handleRequest(
                             context,
                             postComment(provider.post, provider.parentComment,
                                 textController.text));
+
+                        if (response.containsKey("reasonForDenial")) {
+                          switch (response["reasonForDenial"]) {
+                            case "profanity":
+                              {
+                                await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                        RejectionAlertDialog(
+                                            reasonForRejection:
+                                                "Your comment will not be uploaded due to inappropraite langauge."));
+                              }
+                          }
+                        }
 
                         Navigator.pop(context);
                       }
@@ -261,6 +275,31 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
               ),
             ],
           ),
+        ));
+  }
+}
+
+class RejectionAlertDialog extends StatelessWidget {
+  // An alert dialog that displays a reason for rejection.
+  const RejectionAlertDialog({@required this.reasonForRejection});
+
+  final String reasonForRejection;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        backgroundColor: Colors.transparent,
+        content: Container(
+          width: 300,
+          height: 200,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white.withOpacity(.85)),
+          child: Center(
+              child: Text(
+            reasonForRejection,
+            textAlign: TextAlign.center,
+          )),
         ));
   }
 }

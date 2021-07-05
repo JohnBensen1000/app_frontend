@@ -229,10 +229,10 @@ class _PostListState extends State<PostList> {
                 children: [
                   snapshot.data,
                   Container(
-                      alignment: Alignment.bottomLeft,
-                      padding: EdgeInsets.only(left: 40, bottom: 30),
+                      alignment: Alignment.bottomRight,
+                      padding: EdgeInsets.only(right: 65, bottom: 30),
                       child: GestureDetector(
-                          child: ReportButton(width: 80),
+                          child: ReportButton(width: 50),
                           onTap: () => showDialog(
                                   context: context,
                                   builder: (BuildContext context) =>
@@ -430,7 +430,7 @@ class ReportButton extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(13.0),
               color: const Color(0xffffffff),
-              border: Border.all(width: 2.0, color: const Color(0xff707070)),
+              border: Border.all(width: 1.0, color: const Color(0xff707070)),
             ),
             child: Center(
               child: Text(
