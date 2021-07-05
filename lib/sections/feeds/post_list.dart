@@ -212,35 +212,51 @@ class _PostListState extends State<PostList> {
   GestureDetector _buildGestureDetector(
       PostListProvider provider, int postListIndex, Future<Widget> postView) {
     // Returns a GestureDetector that contains a post widget and updates the
-    // provider whenever it detects a vertical drag. On a long press, the user
-    // is given the options to block the user or report the post for
-    // inappropriate content. If either of these options are selected, then
-    // removes either the post or all posts from the creator from the post list.
+    // provider whenever it detects a vertical drag. A button is added that,
+    // when pressed, gives the user the options to block the user or report the
+    // post for inappropriate content. If either of these options are selected,
+    // then removes either the post or all posts from the creator from the post
+    // list.
 
     return GestureDetector(
-        child: FutureBuilder(
-            future: postView,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return Center(child: snapshot.data);
-              } else {
-                return Center();
-              }
-            }),
-        onVerticalDragUpdate: (value) =>
-            provider.verticalOffset += value.delta.dy,
-        onVerticalDragEnd: (_) async {
-          await _handleVerticalDragStop(provider);
-        },
-        onLongPress: () => showDialog(
-                context: context,
-                builder: (BuildContext context) =>
-                    ReportContentAlertDialog(post: postList[postListIndex]))
-            .then((actionTaken) => (actionTaken != null)
-                ? actionTaken == ActionTaken.blocked
-                    ? removePostsFromCreator(provider)
-                    : removePost(provider)
-                : print("No action has been taken")));
+      child: FutureBuilder(
+          future: postView,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                snapshot.hasData) {
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  snapshot.data,
+                  Container(
+                      alignment: Alignment.bottomLeft,
+                      padding: EdgeInsets.only(left: 40, bottom: 30),
+                      child: GestureDetector(
+                          child: ReportButton(width: 80),
+                          onTap: () => showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      ReportContentAlertDialog(
+                                          post: postList[postListIndex]))
+                              .then((actionTaken) => (actionTaken != null)
+                                  ? actionTaken == ActionTaken.blocked
+                                      ? removePostsFromCreator(provider)
+                                      : removePost(provider)
+                                  : print("No action has been taken"))))
+                ],
+              );
+
+              // return Center(child: snapshot.data);
+            } else {
+              return Center();
+            }
+          }),
+      onVerticalDragUpdate: (value) =>
+          provider.verticalOffset += value.delta.dy,
+      onVerticalDragEnd: (_) async {
+        await _handleVerticalDragStop(provider);
+      },
+    );
   }
 
   Future<void> _handleVerticalDragStop(PostListProvider provider) async {
@@ -284,7 +300,7 @@ class _PostListState extends State<PostList> {
     if (!alreadyWatched[postListIndex]) {
       String postID = postList[postListIndex].postID;
 
-      await postRecordWatched(postID, 5);
+      await handleRequest(context, postRecordWatched(postID, 5));
 
       alreadyWatched[postListIndex] = true;
     }
@@ -397,6 +413,31 @@ class ReportContentAlertDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class ReportButton extends StatelessWidget {
+  ReportButton({@required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        child: Container(
+            width: width,
+            height: 20.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(13.0),
+              color: const Color(0xffffffff),
+              border: Border.all(width: 2.0, color: const Color(0xff707070)),
+            ),
+            child: Center(
+              child: Text(
+                "Report",
+                style: TextStyle(color: const Color(0x67000000), fontSize: 10),
+              ),
+            )));
   }
 }
 

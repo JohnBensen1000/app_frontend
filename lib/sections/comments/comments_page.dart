@@ -12,7 +12,7 @@ import '../../models/comment.dart';
 import '../post/post_view.dart';
 
 import 'widgets/add_comment_button.dart';
-import 'widgets/comment_widget.dart';
+import 'comment_widget.dart';
 
 class CommentsPageProvider extends ChangeNotifier {
   // Contains state of entire page. Contains function for uploading a new
@@ -146,6 +146,7 @@ class CommentsPageHeader extends StatelessWidget {
           if (provider.parentComment != null)
             Container(
               child: CommentWidget(
+                post: provider.post,
                 comment: provider.parentComment,
                 leftPadding: 0,
               ),
@@ -178,6 +179,7 @@ class CommentsPageBody extends StatelessWidget {
               return Container(
                 margin: EdgeInsets.only(bottom: 5),
                 child: CommentWidget(
+                    post: provider.post,
                     comment: provider.commentsList[index],
                     leftPadding: paddingPerLevel *
                         (provider.commentsList[index].level -

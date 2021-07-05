@@ -30,3 +30,8 @@ Future<bool> postComment(
 
   return await BaseAPI().post('v1/comments/${post.postID}/', postBody);
 }
+
+Future<bool> postReportComment(Post post, Comment comment) async {
+  return await BaseAPI()
+      .post('v1/comments/${post.postID}/report/', comment.toJson());
+}

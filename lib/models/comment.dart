@@ -32,4 +32,13 @@ class Comment {
   }
 
   Future get initDone => initFuture;
+
+  Map toJson() {
+    return {
+      'comment': this.commentText,
+      'path': this.path,
+      'uid': this.user.uid,
+      'datePosted': this.datePosted,
+    };
+  }
 }

@@ -9,7 +9,7 @@ import '../../models/comment.dart';
 import '../../Widgets/loading_icon.dart';
 
 import 'widgets/add_comment_button.dart';
-import 'widgets/comment_widget.dart';
+import 'comment_widget.dart';
 import 'comments_page.dart';
 
 FirebaseStorage storage = FirebaseStorage.instance;
@@ -136,13 +136,15 @@ class CommentsSection extends StatelessWidget {
                 margin: EdgeInsets.only(bottom: 5),
                 child: Column(
                   children: <Widget>[
-                    CommentWidget(comment: comment, leftPadding: leftPadding),
+                    CommentWidget(
+                        post: post, comment: comment, leftPadding: leftPadding),
                     Container(
                       padding: EdgeInsets.only(left: 20 + leftPadding),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Container(
+                            padding: EdgeInsets.only(right: 20),
                             child: GestureDetector(
                               child: Center(
                                 child: Text("Reply"),
@@ -158,7 +160,7 @@ class CommentsSection extends StatelessWidget {
                                               )))
                                   .then((value) => provider.resetState()),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     )
