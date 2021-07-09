@@ -1,22 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/sections/account/agreements.dart';
+import 'package:test_flutter/widgets/forwad_arrow.dart';
 
-import '../../globals.dart' as globals;
-
-import '../../API/methods/authentication.dart';
 import '../../API/methods/users.dart';
-import '../../models/user.dart';
-
-import '../navigation/home_screen.dart';
-import '../personalization/choose_color.dart';
-import '../personalization/preferences.dart';
 
 import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';
-import 'widgets/account_submit_button.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
@@ -30,57 +21,39 @@ class SignUpProvider extends ChangeNotifier {
   final InputField name;
   final InputField email;
   final InputField username;
-  // final InputField phone;
   final InputField password;
   final InputField confirmPassword;
-
-  bool accountCreated;
-  firebase_auth.User firebaseUser;
 
   SignUpProvider({
     @required this.name,
     @required this.email,
     @required this.username,
     @required this.password,
-    // @required this.phone,
     @required this.confirmPassword,
-  }) {
-    this.accountCreated = false;
-  }
+  });
 
   List<InputField> get inputFields =>
       [name, email, username, password, confirmPassword];
 
   Future<bool> createNewAccount(BuildContext context) async {
-    // Clears all error messages. Validates if each input is formatted
-    // correctly. If inputs are correct, creates an account in firebase
-    // authentication and in the backend database. If the given email, phone,
-    // and/or userID are taken, then an account is not created and the user is
-    // notified which fields are taken. If an account is successfully created,
-    // signs into the account.
+    // Clears all error messages. Checks if the inputs are valid and if the
+    // given userID and/or email have been taken. Also checks if the passwords
+    // match and are strong enough. Returns true if all checks pass,
+    // false otherwise.
 
     for (InputField inputField in inputFields) inputField.errorText = "";
     bool isNewAccountValid = true;
 
-    if (!accountCreated) {
-      if (_checkIfEmpty()) isNewAccountValid = false;
+    if (_checkIfEmpty()) {
+      isNewAccountValid = false;
+    } else {
       if (!_checkIfPasswordsMatch()) isNewAccountValid = false;
-      if (!_isEmailValid()) isNewAccountValid = false;
-
-      if (isNewAccountValid) {
-        isNewAccountValid = await _createFirebaseAccount();
-      }
-      if (isNewAccountValid) {
-        isNewAccountValid = await _createAccount(context);
-      }
-      if (isNewAccountValid) accountCreated = true;
+      if (!_checkIfEmailValid()) isNewAccountValid = false;
+      if (!(await _checkIfEmailNotTaken())) isNewAccountValid = false;
+      if (!(await _checkIfUserIdNotTaken())) isNewAccountValid = false;
+      if (!_checkIfPasswordStrongEnough()) isNewAccountValid = false;
     }
 
-    if (accountCreated)
-      await postSignIn(globals.user.uid);
-    else if (firebaseUser != null) {
-      await firebaseUser.delete();
-    }
     notifyListeners();
     return isNewAccountValid;
   }
@@ -105,7 +78,7 @@ class SignUpProvider extends ChangeNotifier {
     return true;
   }
 
-  bool _isEmailValid() {
+  bool _checkIfEmailValid() {
     // Uses regular expressions to check if the given email is formated
     // correctly: "{name}@{email_service}.{domain}", e.g. "john@gmail.com"
 
@@ -113,77 +86,47 @@ class SignUpProvider extends ChangeNotifier {
             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(email.textEditingController.text);
 
-    if (!isEmailValid && email.errorText == "")
-      email.errorText = "Not a valid email address";
+    if (!isEmailValid) email.errorText = "Not a valid email address";
     return isEmailValid;
   }
 
-  Future<bool> _createFirebaseAccount() async {
-    // Creates an account in firebase. If firebase returns any errors, then
-    // updates the appropriate error messages.
-    try {
-      firebaseUser = (await auth.createUserWithEmailAndPassword(
-              email: email.textEditingController.text,
-              password: password.textEditingController.text))
-          .user;
-    } on firebase_auth.FirebaseAuthException catch (error) {
-      switch (error.code) {
-        case "ERROR_WEAK_PASSWORD":
-          password.errorText = "The selected password is too weak.";
-          confirmPassword.textEditingController.clear();
-          break;
-        case "email-already-in-use":
-          email.errorText = "This email is already taken";
-      }
-      return false;
-    }
-    return true;
+  Future<bool> _checkIfUserIdNotTaken() async {
+    bool isUserIDTaken =
+        (await getUsersFromSearchString(username.textEditingController.text))
+            .isEmpty;
+
+    if (!isUserIDTaken) username.errorText = "Username already taken";
+
+    return isUserIDTaken;
   }
 
-  Future<bool> _createAccount(BuildContext context) async {
-    // Sends a post request to the server with all the needed information for a
-    // new account. If the given userID, email, and/or phone have been taken by
-    // another user, updated the appropriate error messages. Otherwise updated
-    // globals.user with the new user data.
+  Future<bool> _checkIfEmailNotTaken() async {
+    // Uses the method fetchSignInMethodsForEmail() to check if the given email
+    // exists in firebase. Returns true if the email is taken, false otherwise.
 
-    Map<dynamic, dynamic> postBody = {
-      "uid": firebaseUser.uid,
-      "userID": username.textEditingController.text,
-      "username": name.textEditingController.text,
-      "email": email.textEditingController.text,
-      // "phone": ""
-      // "phone": phone.textEditingController.text,
-    };
+    bool isEmailNotTaken = (await auth
+            .fetchSignInMethodsForEmail(email.textEditingController.text))
+        .isEmpty;
 
-    var response = await handleRequest(context, postNewAccount(postBody));
+    if (!isEmailNotTaken) email.errorText = "Email is already taken.";
+    return isEmailNotTaken;
+  }
 
-    if (response == null) return false;
+  bool _checkIfPasswordStrongEnough() {
+    bool isPasswordStrongEnough =
+        password.textEditingController.text.length >= 6;
 
-    if (response.containsKey('fieldsTaken')) {
-      if (response['fieldsTaken'].contains("userID"))
-        username.errorText = "This username is already taken";
+    if (!isPasswordStrongEnough) password.errorText = "Password too weak";
 
-      if (response['fieldsTaken'].contains("email"))
-        email.errorText = "This email is already taken";
-
-      // if (response['fieldsTaken'].contains("phone"))
-      //   phone.errorText = "This phone number is already taken";
-
-      return false;
-    } else if (response != null) {
-      globals.user = User.fromJson(response['user']);
-      await globals.accountRepository.setUid(uid: firebaseUser.uid);
-
-      return true;
-    }
-    return false;
+    return isPasswordStrongEnough;
   }
 }
 
 class SignUp extends StatefulWidget {
   // Initializes SignUpProvider() with all the appropraite InputFields. Returns
   // a ListView.builder() with all the InputWidgets. Hides AccountSubmitButton()
-  // when the user starts typing in one of the InputFieldWidgets().
+  // when the user starts typing in one of the InputFieldWidgets(). If the
+  // input fields are valid, sends the user to the agreements page
 
   @override
   _SignUpState createState() => _SignUpState();
@@ -201,19 +144,11 @@ class _SignUpState extends State<SignUp> {
               name: InputField(hintText: "Your Name"),
               email: InputField(hintText: "E-mail"),
               username: InputField(hintText: "username"),
-              // phone: InputField(hintText: "phone number"),
               password: InputField(hintText: "password", obscureText: true),
               confirmPassword:
                   InputField(hintText: "confirm password", obscureText: true),
             ),
         child: Consumer<SignUpProvider>(builder: (context, provider, child) {
-          // provider.name.textEditingController.text = 'John';
-          // provider.email.textEditingController.text = 'john@gmail.com';
-          // provider.username.textEditingController.text = 'John';
-          // provider.phone.textEditingController.text = '5164979872';
-          // provider.password.textEditingController.text = 'test12345';
-          // provider.confirmPassword.textEditingController.text = 'test12345';
-
           return Scaffold(
             appBar: AccountAppBar(height: titleBarHeight),
             body: Center(
@@ -232,13 +167,23 @@ class _SignUpState extends State<SignUp> {
                                 inputField: provider.inputFields[index]);
                           })),
                   if (keyboardActivated == false)
-                    FlatButton(
-                        child: AccountSubmitButton(
-                          buttonName: "Sign Up",
-                        ),
-                        onPressed: () async {
+                    GestureDetector(
+                        child: ForwardArrow(),
+                        onTap: () async {
                           if (await provider.createNewAccount(context))
-                            _pushNextPages();
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => PolicyAgreementPage(
+                                          name: provider
+                                              .name.textEditingController.text,
+                                          email: provider
+                                              .email.textEditingController.text,
+                                          username: provider.username
+                                              .textEditingController.text,
+                                          password: provider.password
+                                              .textEditingController.text,
+                                        )));
                         }),
                 ],
               ),
@@ -246,37 +191,4 @@ class _SignUpState extends State<SignUp> {
           );
         }));
   }
-
-  void _pushNextPages() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => Home(
-                  pageLabel: PageLabel.friends,
-                )));
-
-    Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
-    Navigator.push(context, SlideRightRoute(page: ColorsPage()));
-  }
-}
-
-class SlideRightRoute extends PageRouteBuilder {
-  // Custon PageRouteBuilder. Routes slide to the left when popped.
-  final Widget page;
-
-  SlideRightRoute({this.page})
-      : super(
-            pageBuilder: (BuildContext context, Animation<double> animation,
-                    Animation<double> secondaryAnimation) =>
-                page,
-            transitionsBuilder: (BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child) =>
-                SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(-1, 0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child));
 }

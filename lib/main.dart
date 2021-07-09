@@ -20,10 +20,8 @@ class _MyAppState extends State<MyApp> {
       DeviceOrientation.portraitDown,
     ]);
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Welcome(),
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false, home: Welcome());
+    // home: PolicyAgreementPage());
   }
 }
 
