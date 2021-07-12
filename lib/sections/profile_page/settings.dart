@@ -40,53 +40,64 @@ class _SettingsState extends State<Settings> {
       padding: EdgeInsets.only(top: 40, bottom: 40),
       width: widget.width,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          SettingsProfile(),
-          SettingsButton(
-            buttonName: "Change Profile Picture",
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => Camera(
-                          cameraUsage: CameraUsage.profile,
-                        ))).then((value) {
-              setState(() {});
-            }),
-          ),
-          SettingsButton(
-              buttonName: "Sign Out",
-              onPressed: () async {
-                await showAlertDialog("Are you sure you want to log out?")
-                    .then((confirmLogOut) async {
-                  if (confirmLogOut != null && confirmLogOut) {
-                    await globals.accountRepository.removeUid();
-                    Navigator.popUntil(context, (route) => route.isFirst);
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              SettingsProfile(),
+              SettingsButton(
+                buttonName: "Change Profile Picture",
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => Camera(
+                              cameraUsage: CameraUsage.profile,
+                            ))).then((value) {
+                  setState(() {});
+                }),
+              ),
+              SettingsButton(
+                  buttonName: "Sign Out",
+                  onPressed: () async {
+                    await showAlertDialog("Are you sure you want to log out?")
+                        .then((confirmLogOut) async {
+                      if (confirmLogOut != null && confirmLogOut) {
+                        await globals.accountRepository.removeUid();
+                        Navigator.popUntil(context, (route) => route.isFirst);
 
-                    runApp(MyApp());
-                  }
-                });
-              }),
-          SettingsButton(
-            buttonName: "Choose color",
-            onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ColorsPage()))
-                .then((value) {
-              setState(() {});
-            }),
+                        runApp(MyApp());
+                      }
+                    });
+                  }),
+              SettingsButton(
+                buttonName: "Choose color",
+                onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => ColorsPage()))
+                    .then((value) {
+                  setState(() {});
+                }),
+              ),
+              SettingsButton(
+                buttonName: "Set preferences",
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PreferencesPage())).then((value) {
+                  setState(() {});
+                }),
+              ),
+              SettingsButton(
+                  buttonName: "Delete account",
+                  onPressed: () async => await handleDeleteAccount()),
+            ],
           ),
-          SettingsButton(
-            buttonName: "Set preferences",
-            onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => PreferencesPage()))
-                .then((value) {
-              setState(() {});
-            }),
-          ),
-          SettingsButton(
-              buttonName: "Delete account",
-              onPressed: () async => await handleDeleteAccount())
+          Text(
+            "Contact support at: entropy.developer1@gmail.com",
+            textAlign: TextAlign.center,
+          )
         ],
       ),
     );

@@ -255,18 +255,14 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
                             postComment(provider.post, provider.parentComment,
                                 textController.text));
 
-                        if (response.containsKey("reasonForDenial")) {
-                          switch (response["reasonForDenial"]) {
-                            case "profanity":
-                              {
-                                await showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) =>
-                                        RejectionAlertDialog(
-                                            reasonForRejection:
-                                                "Your comment will not be uploaded due to inappropraite langauge."));
-                              }
-                          }
+                        switch (response["reasonForDenial"]) {
+                          case "profanity":
+                            await showDialog(
+                                context: context,
+                                builder: (BuildContext context) =>
+                                    RejectionAlertDialog(
+                                        reasonForRejection:
+                                            "Your comment will not be uploaded due to inappropraite langauge."));
                         }
 
                         Navigator.pop(context);
