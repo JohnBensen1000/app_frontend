@@ -40,8 +40,26 @@ Future<bool> postDontFollowBack(User user) async {
       'v1/relationships/${user.uid}/following/${globals.user.uid}/', postBody);
 }
 
-Future<bool> blockUser(User user) async {
+Future<bool> postBlockedUser(User user) async {
   Map postBody = {'uid': user.uid};
   return await BaseAPI()
       .post('v1/relationships/${globals.user.uid}/blocked/', postBody);
+}
+
+Future<bool> deleteBlockedUser(User user) async {
+  return await BaseAPI()
+      .delete('v1/relationships/${globals.user.uid}/blocked/${user.uid}/');
+}
+
+Future<List<User>> getBlockedUsers() async {
+  Map response =
+      await BaseAPI().get('v1/relationships/${globals.user.uid}/blocked/');
+
+  List<User> blockedUsers = [];
+
+  for (var userJson in response["blocked"]) {
+    blockedUsers.add(User.fromJson(userJson));
+  }
+
+  return blockedUsers;
 }

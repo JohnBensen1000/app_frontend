@@ -55,5 +55,5 @@ Future<bool> postRecordWatched(String postID, int userRating) async {
 
 Future<bool> reportPost(Post post) async {
   return await globals.baseAPI
-      .post('v1/posts/${post.creator.uid}/${post.postID}/reports/', null);
+      .post('v1/posts/${globals.user.uid}/reports/', {"postID": post.postID});
 }

@@ -8,7 +8,6 @@ import '../../API/methods/posts.dart';
 import '../../API/handle_requests.dart';
 import '../../API/methods/relations.dart';
 import '../../models/post.dart';
-import '../../models/user.dart';
 
 import '../navigation/home_screen.dart';
 import '../post/post_view.dart';
@@ -168,7 +167,7 @@ class _PostListState extends State<PostList> {
                   ]);
                 }),
               );
-            } else
+            } else {
               return Center(
                 child: GestureDetector(
                   child: Container(
@@ -183,6 +182,7 @@ class _PostListState extends State<PostList> {
                   },
                 ),
               );
+            }
           } else {
             return Container();
           }
@@ -406,7 +406,7 @@ class ReportContentAlertDialog extends StatelessWidget {
                   buttonName: "Block this user",
                 ),
                 onTap: () async {
-                  await handleRequest(context, blockUser(post.creator));
+                  await handleRequest(context, postBlockedUser(post.creator));
                   Navigator.pop(context, ActionTaken.blocked);
                 }),
           ],

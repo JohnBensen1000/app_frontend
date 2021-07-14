@@ -12,6 +12,8 @@ import '../camera/camera.dart';
 import '../personalization/choose_color.dart';
 import '../personalization/preferences.dart';
 
+import 'blocked_list.dart';
+
 class Settings extends StatefulWidget {
   // The Settings widget pops out from the left side of the screen. It contains
   // the user's profile, username, and userID. Below that is a list of buttons.
@@ -92,6 +94,10 @@ class _SettingsState extends State<Settings> {
               SettingsButton(
                   buttonName: "Delete account",
                   onPressed: () async => await handleDeleteAccount()),
+              SettingsButton(
+                  buttonName: "Unblock creators",
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => BlockedList()))),
             ],
           ),
           Text(

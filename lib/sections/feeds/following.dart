@@ -28,6 +28,8 @@ class FollowingPage extends StatelessWidget {
       padding: EdgeInsets.only(top: 10),
       child: PostList(
         function: getFollowingPosts,
+
+        // future: handleRequest(context, getFollowingPosts()),
         height: height,
       ),
     );

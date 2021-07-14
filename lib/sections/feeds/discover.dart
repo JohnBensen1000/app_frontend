@@ -25,6 +25,7 @@ class DiscoverPage extends StatelessWidget {
       padding: EdgeInsets.only(top: 10),
       child: PostList(
         function: getRecommendations,
+        // future: handleRequest(context, getRecommendations()),
         height: height,
       ),
     );
