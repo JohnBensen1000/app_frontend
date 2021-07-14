@@ -11,6 +11,7 @@ import '../../models/post.dart';
 
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
+import '../../widgets/alert_dialog_container.dart';
 
 import '../post/post_view.dart';
 import 'settings_drawer.dart';
@@ -143,7 +144,7 @@ class ProfilePageHeader extends StatelessWidget {
                     ),
                   ),
                   if (user.uid != globals.user.uid)
-                    FollowingButton(user: user)
+                    FollowBlockButtons(user: user)
                   else
                     OpenSettingsButton(),
                 ]),
@@ -152,12 +153,16 @@ class ProfilePageHeader extends StatelessWidget {
   }
 }
 
-class FollowingButton extends StatefulWidget {
-  // Button that lets you follow/unfollow someone else. The color/text of the
-  // button is different for if a user is following or not following the
-  // creator.
+class FollowBlockButtons extends StatefulWidget {
+  // Returns a row of two buttons: Follow/Following and Block.
+  // The Follow/Following button allows the user to follow the creator if they
+  // are currently not following them, and allows the user to unfollower the
+  // creator if they are currently following them. This widget is rebuilt every
+  // time this button is pressed. The Block button allows the user to block the
+  // creator. When pressed, an alert dialog is displayed to confirm the user's
+  // decision. When confirmed, the profile page is popped.
 
-  const FollowingButton({
+  const FollowBlockButtons({
     @required this.user,
     Key key,
   }) : super(key: key);
@@ -165,44 +170,71 @@ class FollowingButton extends StatefulWidget {
   final User user;
 
   @override
-  _FollowingButtonState createState() => _FollowingButtonState();
+  _FollowBlockButtonsState createState() => _FollowBlockButtonsState();
 }
 
-class _FollowingButtonState extends State<FollowingButton> {
+class _FollowBlockButtonsState extends State<FollowBlockButtons> {
   bool allowChangeFollow = true;
   bool isFollowing;
 
   @override
   Widget build(BuildContext context) {
-    double height = 28.0;
-    double width = 125.0;
-
-    return FutureBuilder(
-        future: handleRequest(context, getIfFollowing(widget.user)),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            isFollowing = snapshot.data;
-            return GestureDetector(
-              child: ProfilePageHeaderButton(
-                  name: (isFollowing) ? "Following" : "Follow",
-                  color:
-                      (isFollowing) ? Colors.white : widget.user.profileColor,
-                  borderColor: widget.user.profileColor),
-              onTap: () async {
-                if (allowChangeFollow) {
-                  allowChangeFollow = false;
-                  await changeFollowing(context);
-                  allowChangeFollow = true;
-                }
-              },
-            );
-          } else
-            return Container(
-              height: height,
-              width: width,
-            );
-        });
+    return Container(
+      width: 180,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          FutureBuilder(
+              future: handleRequest(context, getIfFollowing(widget.user)),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData) {
+                  isFollowing = snapshot.data;
+                  return GestureDetector(
+                    child: ProfilePageHeaderButton(
+                        name: (isFollowing) ? "Following" : "Follow",
+                        color: (isFollowing)
+                            ? Colors.white
+                            : widget.user.profileColor,
+                        borderColor: widget.user.profileColor,
+                        width: 100),
+                    onTap: () async {
+                      if (allowChangeFollow) {
+                        allowChangeFollow = false;
+                        await changeFollowing(context);
+                        allowChangeFollow = true;
+                      }
+                    },
+                  );
+                } else
+                  return Container(
+                    height: 28.0,
+                    width: 125.0,
+                  );
+              }),
+          GestureDetector(
+            child: ProfilePageHeaderButton(
+              name: "Block",
+              borderColor: Colors.black,
+              color: Colors.white,
+              width: 75,
+            ),
+            onTap: () => showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialogContainer(
+                      dialogText:
+                          "Are you sure you want to block ${widget.user.userID}?");
+                }).then((isBlockingUser) async {
+              if (isBlockingUser) {
+                await handleRequest(context, postBlockedUser(widget.user));
+                Navigator.pop(context);
+              }
+            }),
+          )
+        ],
+      ),
+    );
   }
 
   Future<void> changeFollowing(BuildContext context) async {
@@ -224,6 +256,7 @@ class OpenSettingsButton extends StatelessWidget {
 
     return GestureDetector(
         child: ProfilePageHeaderButton(
+          width: 125,
           name: "Settings",
           color: Colors.grey[200],
           borderColor: Colors.grey[200],
@@ -237,18 +270,20 @@ class ProfilePageHeaderButton extends StatelessWidget {
       {Key key,
       @required this.name,
       @required this.color,
-      @required this.borderColor})
+      @required this.borderColor,
+      @required this.width})
       : super(key: key);
 
   final String name;
   final Color color;
   final Color borderColor;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 28.0,
-      width: 125.0,
+      width: width,
       decoration: BoxDecoration(
           border: Border.all(color: borderColor, width: 2.0),
           color: color,

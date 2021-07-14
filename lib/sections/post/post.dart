@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../widgets/report_button.dart';
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
 import '../../widgets/back_arrow.dart';
@@ -32,14 +33,39 @@ class PostPage extends StatelessWidget {
         ),
         body: Center(
           child: Center(
-            child: PostView(
-              post: post,
-              aspectRatio: globals.goldenRatio,
-              height: 600,
-              postStage: postStage,
-              playOnInit: true,
-              fullPage: true,
-            ),
+            child: Stack(alignment: Alignment.bottomRight, children: [
+              PostView(
+                post: post,
+                aspectRatio: globals.goldenRatio,
+                height: 600,
+                postStage: postStage,
+                playOnInit: true,
+                fullPage: true,
+              ),
+              if (post.creator.uid != globals.user.uid)
+                Container(
+                    padding: EdgeInsets.only(right: 50, bottom: 70),
+                    child: GestureDetector(
+                        child: ReportButton(
+                          width: 50,
+                        ),
+                        onTap: () => showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                        ReportContentAlertDialog(post: post))
+                                .then((actionTaken) {
+                              if (actionTaken != null) {
+                                if (actionTaken == ActionTaken.reported) {
+                                  Navigator.pop(context);
+                                } else if (actionTaken == ActionTaken.blocked) {
+                                  int count = 0;
+                                  Navigator.popUntil(context, (route) {
+                                    return count++ == 2 || route.isFirst;
+                                  });
+                                }
+                              }
+                            }))),
+            ]),
           ),
         ));
   }
