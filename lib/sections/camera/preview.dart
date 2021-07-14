@@ -15,6 +15,7 @@ import '../../API/methods/posts.dart';
 import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
 import '../../widgets/back_arrow.dart';
+import '../../widgets/generic_alert_dialog.dart';
 
 import '../../widgets/loading_icon.dart';
 
@@ -146,21 +147,21 @@ class PreviewPage extends StatelessWidget {
     ]);
   }
 
-  Future<void> _uploadPost(
+  Future<Map> _uploadPost(
       PreviewProvider provider, BuildContext context) async {
-    await handleRequest(
-        context, uploadPost(provider.isImage, false, provider.file));
+    return await handleRequest(
+        context, postNewPost(provider.isImage, false, provider.file));
   }
 
-  Future<void> _uploadProfile(
+  Future<Map> _uploadProfile(
       PreviewProvider provider, BuildContext context) async {
-    await handleRequest(context,
+    return await handleRequest(context,
         globals.postRepository.postProfile(provider.isImage, provider.file));
   }
 
-  Future<void> _sendInChat(
+  Future<Map> _sendInChat(
       PreviewProvider provider, BuildContext context) async {
-    await handleRequest(context,
+    return await handleRequest(context,
         postChatPost(provider.isImage, provider.file, provider.chat.chatID));
   }
 }
@@ -259,11 +260,14 @@ class PreviewButton extends StatefulWidget {
   // pressed, rebuilds the state with showLoadingIcon set to true. This will
   // lead to an AlertDialog being displayed after the widget is rebuilt. This
   // alert dialog will show that the app is waiting for the function to finish.
+  // If the function returns a json object containing a none-null value for
+  // "reasonForRejection", then displays an alert dialog explaning why the
+  // post was rejected.
 
   PreviewButton({@required this.name, @required this.function});
 
   final String name;
-  final Future<void> Function(PreviewProvider, BuildContext) function;
+  final Future<Map> Function(PreviewProvider, BuildContext) function;
 
   @override
   _PreviewButtonState createState() => _PreviewButtonState();
@@ -294,7 +298,16 @@ class _PreviewButtonState extends State<PreviewButton> {
         setState(() {
           showLoadingIcon = true;
         });
-        await widget.function(provider, context);
+        Map response = await widget.function(provider, context);
+
+        switch (response["reasonForRejection"]) {
+          case "NSFW":
+            await showDialog(
+                context: context,
+                builder: (BuildContext context) => GenericAlertDialog(
+                    text:
+                        "Your post has been determined to be inappropriate, so it will not be uploaded."));
+        }
 
         int count = 0;
         Navigator.popUntil(context, (route) {

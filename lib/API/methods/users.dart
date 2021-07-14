@@ -2,13 +2,20 @@ import '../../models/user.dart';
 
 import '../../globals.dart' as globals;
 
+Future<Map> getIfUserIdTaken(String userID) async {
+  var response = await globals.baseAPI
+      .get("v1/users/", queryParameters: {'userID': userID});
+
+  return response;
+}
+
 Future<Map> postNewAccount(Map postBody) async {
   return await globals.baseAPI.post("v1/users/new/", postBody);
 }
 
 Future<List<User>> getUsersFromSearchString(String searchString) async {
   var response = await globals.baseAPI.get(
-      "v1/users/${globals.user.uid}/search/",
+      "v1/users/${(globals.user != null) ? globals.user.uid : ""}/search/",
       queryParameters: {'contains': searchString});
 
   return [

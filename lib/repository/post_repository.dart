@@ -58,7 +58,7 @@ class PostRepository {
     return videoPlayer;
   }
 
-  Future<void> postProfile(bool isImage, File file) async {
+  Future<Map> postProfile(bool isImage, File file) async {
     // When a user posts a new profile, the currently cached profile has to be
     // deleted.
     String postID = globals.user.uid + 'profile';
@@ -70,6 +70,6 @@ class PostRepository {
 
     print(imageProviders.keys);
 
-    await uploadProfilePic(isImage, file);
+    return await uploadProfilePic(isImage, file);
   }
 }

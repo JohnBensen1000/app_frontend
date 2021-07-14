@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/sections/account/agreements.dart';
 import 'package:test_flutter/widgets/forwad_arrow.dart';
 
@@ -50,7 +51,7 @@ class SignUpProvider extends ChangeNotifier {
       if (!_checkIfPasswordsMatch()) isNewAccountValid = false;
       if (!_checkIfEmailValid()) isNewAccountValid = false;
       if (!(await _checkIfEmailNotTaken())) isNewAccountValid = false;
-      if (!(await _checkIfUserIdNotTaken())) isNewAccountValid = false;
+      if (!(await _checkIfUserIdNotTaken(context))) isNewAccountValid = false;
       if (!_checkIfPasswordStrongEnough()) isNewAccountValid = false;
     }
 
@@ -90,14 +91,14 @@ class SignUpProvider extends ChangeNotifier {
     return isEmailValid;
   }
 
-  Future<bool> _checkIfUserIdNotTaken() async {
-    bool isUserIDTaken =
-        (await getUsersFromSearchString(username.textEditingController.text))
-            .isEmpty;
+  Future<bool> _checkIfUserIdNotTaken(BuildContext context) async {
+    Map response = await handleRequest(
+        context, getIfUserIdTaken((username.textEditingController.text)));
+    bool isUserIdNotTaken = !response["isUserIdTaken"];
 
-    if (!isUserIDTaken) username.errorText = "Username already taken";
+    if (!isUserIdNotTaken) username.errorText = "Username already taken";
 
-    return isUserIDTaken;
+    return isUserIdNotTaken;
   }
 
   Future<bool> _checkIfEmailNotTaken() async {

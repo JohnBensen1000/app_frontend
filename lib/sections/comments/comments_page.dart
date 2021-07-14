@@ -6,6 +6,7 @@ import 'package:test_flutter/API/methods/comments.dart';
 import 'package:test_flutter/widgets/back_arrow.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../widgets/generic_alert_dialog.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 
@@ -260,8 +261,8 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
                             await showDialog(
                                 context: context,
                                 builder: (BuildContext context) =>
-                                    RejectionAlertDialog(
-                                        reasonForRejection:
+                                    GenericAlertDialog(
+                                        text:
                                             "Your comment will not be uploaded due to inappropraite langauge."));
                         }
 
@@ -271,31 +272,6 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
               ),
             ],
           ),
-        ));
-  }
-}
-
-class RejectionAlertDialog extends StatelessWidget {
-  // An alert dialog that displays a reason for rejection.
-  const RejectionAlertDialog({@required this.reasonForRejection});
-
-  final String reasonForRejection;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-        backgroundColor: Colors.transparent,
-        content: Container(
-          width: 300,
-          height: 200,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.white.withOpacity(.85)),
-          child: Center(
-              child: Text(
-            reasonForRejection,
-            textAlign: TextAlign.center,
-          )),
         ));
   }
 }

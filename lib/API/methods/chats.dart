@@ -17,7 +17,7 @@ Future<bool> postChatText(String chat, String chatID) async {
       .post('v1/chats/${globals.user.uid}/$chatID/', postBody);
 }
 
-Future<bool> postChatPost(bool isImage, File file, String chatID) async {
+Future<Map> postChatPost(bool isImage, File file, String chatID) async {
   String downloadURL = await uploadFile(file, chatID, isImage);
 
   Map postBody = {

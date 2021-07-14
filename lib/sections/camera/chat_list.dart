@@ -9,6 +9,7 @@ import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
 
 import '../../widgets/loading_icon.dart';
+import '../../widgets/generic_alert_dialog.dart';
 
 class ChatListProvider extends ChangeNotifier {
   // Given a list of chats that the user is part of, keeps track of which chats
@@ -41,10 +42,21 @@ class ChatListProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sharePostInChats() async {
+  Future<void> sharePostInChats(BuildContext context) async {
     for (Chat chat in chatsList) {
       if (isSendingTo[chat]) {
-        await postChatPost(isImage, file, chat.chatID);
+        Map response = await handleRequest(
+            context, postChatPost(isImage, file, chat.chatID));
+
+        switch (response["reasonForRejection"]) {
+          case "NSFW":
+            await showDialog(
+                context: context,
+                builder: (BuildContext context) => GenericAlertDialog(
+                    text:
+                        "Your post has been determined to be inappropriate, so it will not be uploaded."));
+            return;
+        }
       }
     }
   }
@@ -198,7 +210,7 @@ class _SharePostButtonState extends State<SharePostButton> {
                   setState(() {
                     buttonPressed = true;
                   });
-                  await provider.sharePostInChats();
+                  await provider.sharePostInChats(context);
                   int count = 0;
                   Navigator.popUntil(context, (route) {
                     return count++ == 2;
