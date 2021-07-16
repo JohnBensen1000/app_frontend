@@ -7,7 +7,7 @@ import '../../API/methods/chats.dart';
 import '../../API/methods/relations.dart';
 import '../../models/chat.dart';
 
-import 'chat_page.dart';
+import 'direct_message.dart';
 import 'new_followers.dart';
 
 class FriendsProvider extends ChangeNotifier {
@@ -52,6 +52,7 @@ class FriendsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10),
       height: height,
       child: Column(
         children: <Widget>[
@@ -62,18 +63,20 @@ class FriendsPage extends StatelessWidget {
                   itemCount: chatstList.length,
                   itemBuilder: (BuildContext context, int index) {
                     Chat chat = chatstList[index];
-                    return FlatButton(
+                    return GestureDetector(
                       child: ChatWidget(
                         chat: chat,
                       ),
-                      onPressed: () {
+                      onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => ChatPage(
                                     chat: chat,
                                   )),
-                        );
+                        ).then((_) =>
+                            Provider.of<FriendsProvider>(context, listen: false)
+                                .resetState());
                       },
                     );
                   })),

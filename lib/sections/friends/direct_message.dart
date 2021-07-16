@@ -5,6 +5,7 @@ import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';
+import '../../API/methods/relations.dart';
 import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
@@ -62,8 +63,9 @@ class ChatPage extends StatelessWidget {
 }
 
 class ChatPageHeader extends PreferredSize {
-  // Header widget that displays the name of the chat and a button that, when
-  // pressed, returns the user to the FriendsPage().
+  // Displays a button that returns the user to the previous page and a column
+  // that displays that chat icon and chat name. When this column is held down,
+  // the user is given the option to block the other user in the direct message.
 
   ChatPageHeader({
     @required this.height,
@@ -76,7 +78,7 @@ class ChatPageHeader extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.only(top: 30, left: 30),
+        padding: EdgeInsets.only(top: 30, left: 30, right: 30),
         height: height,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -90,13 +92,36 @@ class ChatPageHeader extends PreferredSize {
                 )
               ],
             ),
-            Container(child: chat.chatIcon),
-            Text(
-              chat.chatName,
-              style: TextStyle(fontSize: 20),
-            )
+            GestureDetector(
+              child: Column(
+                children: [
+                  Container(child: chat.chatIcon),
+                  Text(
+                    chat.chatName,
+                    style: TextStyle(fontSize: 20),
+                  )
+                ],
+              ),
+              onLongPress: () async => await blockUser(context),
+            ),
           ],
         ));
+  }
+
+  Future<void> blockUser(BuildContext context) async {
+    ChatPageProvider provider =
+        Provider.of<ChatPageProvider>(context, listen: false);
+
+    await showDialog(
+            context: context,
+            builder: (BuildContext context) => AlertDialogContainer(
+                dialogText: "Do you want to block this user?"))
+        .then((isUserBlocked) async {
+      if (isUserBlocked) {
+        await handleRequest(context, postBlockedUser(provider.chat.members[0]));
+        Navigator.pop(context);
+      }
+    });
   }
 }
 
