@@ -5,6 +5,7 @@ import 'package:video_player/video_player.dart';
 import '../../widgets/report_button.dart';
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
+import '../../models/chat.dart';
 import '../../widgets/back_arrow.dart';
 
 import 'post_view.dart';
@@ -17,7 +18,10 @@ class PostPage extends StatelessWidget {
   // post widget. Initializes videoPlayerController() here if the post is a
   // video.
 
-  PostPage({@required this.post, this.fromChatPage = false});
+  PostPage({
+    @required this.post,
+    this.fromChatPage = false,
+  });
 
   final Post post;
   final bool fromChatPage;
@@ -42,7 +46,7 @@ class PostPage extends StatelessWidget {
                 playOnInit: true,
                 fullPage: true,
               ),
-              if (post.creator.uid != globals.user.uid)
+              if (post.creator.uid != globals.user.uid && fromChatPage == false)
                 Container(
                     padding: EdgeInsets.only(right: 50, bottom: 70),
                     child: GestureDetector(

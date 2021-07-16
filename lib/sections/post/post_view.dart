@@ -200,7 +200,7 @@ class PostViewBody extends StatelessWidget {
               )),
       ]),
       onTap: () {
-        if (!provider.fullPage)
+        if (!provider.fullPage && !provider.fromChatPage)
           Navigator.push(
               context,
               MaterialPageRoute(
