@@ -217,6 +217,7 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
       mainAxisAlignment: chatAxisAlignment,
       children: [
         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
                 child: Container(
