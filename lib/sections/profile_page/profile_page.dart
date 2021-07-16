@@ -179,6 +179,8 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
 
   @override
   Widget build(BuildContext context) {
+    double followButtonWidth = 100;
+
     return Container(
       width: 180,
       child: Row(
@@ -197,7 +199,7 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
                             ? Colors.white
                             : widget.user.profileColor,
                         borderColor: widget.user.profileColor,
-                        width: 100),
+                        width: followButtonWidth),
                     onTap: () async {
                       if (allowChangeFollow) {
                         allowChangeFollow = false;
@@ -209,7 +211,7 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
                 } else
                   return Container(
                     height: 28.0,
-                    width: 125.0,
+                    width: followButtonWidth,
                   );
               }),
           GestureDetector(
