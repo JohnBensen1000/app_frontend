@@ -11,7 +11,7 @@ Future<List<Chat>> getListOfChats() async {
   return [for (var chatJson in response["chats"]) Chat.fromJson(chatJson)];
 }
 
-Future<bool> postChatText(String chat, String chatID) async {
+Future<Map> postChatText(String chat, String chatID) async {
   Map postBody = {'isPost': false, 'text': chat};
   return await BaseAPI()
       .post('v1/chats/${globals.user.uid}/$chatID/', postBody);

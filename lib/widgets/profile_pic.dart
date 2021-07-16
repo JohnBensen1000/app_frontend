@@ -4,6 +4,8 @@ import 'package:test_flutter/API/handle_requests.dart';
 import '../sections/post/post_view.dart';
 import '../models/user.dart';
 import '../API/methods/posts.dart';
+import '../widgets/alert_dialog_container.dart';
+
 import '../globals.dart' as globals;
 
 class Profile extends StatelessWidget {
@@ -47,7 +49,9 @@ class Profile extends StatelessWidget {
 class ProfilePic extends StatelessWidget {
   // Gets the profile post from google stroage and returns a stack of two
   // widgets: a circular profile post and a blue cicular outline that goes
-  // around the profile post.
+  // around the profile post. When the profile is held down for a long time,
+  // the user is asked if they want to report the profile. If the user responds
+  // with 'yes', reports the profile.
 
   ProfilePic({@required this.diameter, @required this.user});
 
@@ -56,51 +60,67 @@ class ProfilePic extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: diameter,
-      height: diameter,
-      child: Stack(
-        children: <Widget>[
-          ClipPath(
-              clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
-              child: FutureBuilder(
-                  future:
-                      globals.profileRepository.getProfilePost(context, user),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done &&
-                        snapshot.hasData)
-                      return PostView(
-                          post: snapshot.data,
+    return GestureDetector(
+      child: Container(
+        width: diameter,
+        height: diameter,
+        child: Stack(
+          children: <Widget>[
+            ClipPath(
+                clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
+                child: FutureBuilder(
+                    future:
+                        globals.profileRepository.getProfilePost(context, user),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData)
+                        return PostView(
+                            post: snapshot.data,
+                            height: diameter,
+                            aspectRatio: 1,
+                            playOnInit: true,
+                            playWithVolume: false,
+                            saveInMemory: true,
+                            postStage: PostStage.onlyPost);
+                      else
+                        return Container(
+                          width: diameter,
                           height: diameter,
-                          aspectRatio: 1,
-                          playOnInit: true,
-                          playWithVolume: false,
-                          saveInMemory: true,
-                          postStage: PostStage.onlyPost);
-                    else
-                      return Container(
-                        width: diameter,
-                        height: diameter,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(
-                              Radius.elliptical(9999.0, 9999.0)),
-                          border: Border.all(
-                              width: .02 * diameter, color: user.profileColor),
-                        ),
-                      );
-                  })),
-          Container(
-              width: diameter,
-              height: diameter,
-              decoration: BoxDecoration(
-                borderRadius:
-                    BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                border:
-                    Border.all(width: .02 * diameter, color: user.profileColor),
-              )),
-        ],
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(
+                                Radius.elliptical(9999.0, 9999.0)),
+                            border: Border.all(
+                                width: .02 * diameter,
+                                color: user.profileColor),
+                          ),
+                        );
+                    })),
+            Container(
+                width: diameter,
+                height: diameter,
+                decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+                  border: Border.all(
+                      width: .02 * diameter, color: user.profileColor),
+                )),
+          ],
+        ),
       ),
+      onLongPress: () async {
+        if (user.uid != globals.user.uid) await reportProfile(context);
+      },
     );
+  }
+
+  Future<void> reportProfile(BuildContext context) async {
+    await (showDialog(
+            context: context,
+            builder: (context) => AlertDialogContainer(
+                dialogText: "Do you want to report this profile picture?")))
+        .then((willReportProfile) {
+      if (willReportProfile) handleRequest(context, postReportProfile(user));
+    });
   }
 }
 

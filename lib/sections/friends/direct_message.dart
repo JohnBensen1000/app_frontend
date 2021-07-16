@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';
@@ -40,7 +41,7 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 170;
+    double headerHeight = 180;
     double footerHeight = 100;
 
     return ChangeNotifierProvider(
@@ -92,17 +93,20 @@ class ChatPageHeader extends PreferredSize {
                 )
               ],
             ),
-            GestureDetector(
-              child: Column(
-                children: [
-                  Container(child: chat.chatIcon),
-                  Text(
-                    chat.chatName,
-                    style: TextStyle(fontSize: 20),
-                  )
-                ],
-              ),
-              onLongPress: () async => await blockUser(context),
+            Column(
+              children: [
+                Container(child: chat.chatIcon),
+                GestureDetector(
+                  child: Container(
+                    padding: EdgeInsets.only(left: 10, right: 10, top: 10),
+                    child: Text(
+                      chat.chatName,
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                  onLongPress: () async => await blockUser(context),
+                )
+              ],
             ),
           ],
         ));
@@ -465,10 +469,21 @@ class _ChatPageFooterState extends State<ChatPageFooter> {
                       setState(() {
                         allowSendChat = false;
                       });
-                      await handleRequest(
+                      Map response = await handleRequest(
                           context,
                           postChatText(
                               _chatController.text, provider.chat.chatID));
+
+                      print(response);
+
+                      switch (response["reasonForRejection"]) {
+                        case "profanity":
+                          await showDialog(
+                              context: context,
+                              builder: (BuildContext context) => GenericAlertDialog(
+                                  text:
+                                      "Your direct message will not be posted due to it containing profanity."));
+                      }
                       _chatController.clear();
                     }
                   }),

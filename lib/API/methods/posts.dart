@@ -53,7 +53,13 @@ Future<bool> postRecordWatched(String postID, int userRating) async {
   return await globals.baseAPI.post('v1/posts/$postID/watched_list/', postJson);
 }
 
-Future<bool> reportPost(Post post) async {
+Future<bool> postReportPost(Post post) async {
   return await globals.baseAPI
       .post('v1/posts/${globals.user.uid}/reports/', {"postID": post.postID});
+}
+
+Future<bool> postReportProfile(User user) async {
+  return await globals.baseAPI.post(
+      'v1/posts/${globals.user.uid}/reports/profile/',
+      {"reportedUser": user.uid});
 }

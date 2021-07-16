@@ -63,7 +63,7 @@ class ReportContentAlertDialog extends StatelessWidget {
                   buttonName: "Report this post",
                 ),
                 onTap: () async {
-                  await handleRequest(context, reportPost(post));
+                  await handleRequest(context, postReportPost(post));
                   Navigator.pop(context, ActionTaken.reported);
                 }),
             GestureDetector(
