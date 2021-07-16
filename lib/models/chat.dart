@@ -55,4 +55,8 @@ class ChatItem {
     else
       this.text = chatItemJson["text"];
   }
+
+  Map toJson() {
+    return (isPost) ? {'uid': uid, 'post': post} : {'uid': uid, 'text': text};
+  }
 }

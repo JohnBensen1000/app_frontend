@@ -9,6 +9,7 @@ import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
 import '../../widgets/back_arrow.dart';
+import '../../widgets/alert_dialog_container.dart';
 
 import '../camera/camera.dart';
 import '../post/post_view.dart';
@@ -149,7 +150,10 @@ class ChatPageBody extends StatelessWidget {
 
 class ChatItemWidget extends StatefulWidget {
   // This widget takes a ChatItem object as an input and determines who sent the
-  // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
+  // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost(). When
+  // pressed for a long time, this widget is rebuild with a report button placed
+  // underneath the chat item. This report button allows the user to report this
+  // chat item.
 
   ChatItemWidget({@required this.chatItem, @required this.user});
 
@@ -165,6 +169,8 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
   @override
   bool get wantKeepAlive => true;
 
+  bool showReportButton = false;
+
   @override
   Widget build(BuildContext context) {
     MainAxisAlignment chatAxisAlignment;
@@ -178,19 +184,86 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
       backgroundColor = widget.user.profileColor;
     }
 
-    return Container(
-        padding: EdgeInsets.only(top: 4, bottom: 4),
-        child: (widget.chatItem.isPost == false)
-            ? ChatItemWidgetText(
-                text: widget.chatItem.text,
-                mainAxisAlignment: chatAxisAlignment,
-                backgroundColor: backgroundColor,
+    return Row(
+      mainAxisAlignment: chatAxisAlignment,
+      children: [
+        Column(
+          children: [
+            GestureDetector(
+                child: Container(
+                  padding: EdgeInsets.only(top: 4, bottom: 4),
+                  child: (widget.chatItem.isPost == false)
+                      ? ChatItemWidgetText(
+                          text: widget.chatItem.text,
+                          backgroundColor: backgroundColor,
+                        )
+                      : ChatItemWidgetPost(
+                          chatItem: widget.chatItem,
+                          height: 240,
+                        ),
+                ),
+                onLongPress: () {
+                  if (widget.chatItem.uid != globals.user.uid)
+                    setState(() {
+                      showReportButton = !showReportButton;
+                    });
+                }),
+            if (showReportButton)
+              Container(
+                margin: EdgeInsets.only(bottom: 5),
+                padding: EdgeInsets.only(left: 5, right: 5),
+                width: 150,
+                height: 30,
+                decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                child: Center(
+                    child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text(
+                      "Report?",
+                    ),
+                    GestureDetector(
+                        child: Text("Yes",
+                            style: TextStyle(color: Colors.red[300])),
+                        onTap: () async => await reportChat(context)),
+                    GestureDetector(
+                        child: Text("No",
+                            style: TextStyle(color: Colors.grey[500])),
+                        onTap: () {
+                          setState(() {
+                            showReportButton = false;
+                          });
+                        })
+                  ],
+                )),
               )
-            : ChatItemWidgetPost(
-                post: Post.fromChatItem(widget.chatItem),
-                height: 200,
-                mainAxisAlignment: chatAxisAlignment,
-              ));
+          ],
+        )
+      ],
+    );
+  }
+
+  Future<void> reportChat(BuildContext context) async {
+    // First sets state to remove the report button. Then displays an alert
+    // dialog confirming that the user wants to report the chat. Then reports
+    // the chat.
+    setState(() {
+      showReportButton = false;
+    });
+
+    ChatPageProvider provider =
+        Provider.of<ChatPageProvider>(context, listen: false);
+
+    await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialogContainer(
+                  dialogText: "Are you sure you want to report this post?");
+            })
+        .then((isReportConfirmed) => handleRequest(context,
+            reportChatItem(provider.chat.chatID, widget.chatItem.toJson())));
   }
 }
 
@@ -199,31 +272,23 @@ class ChatItemWidgetText extends StatelessWidget {
   // string to break the text up into multiple lines to make it easier to read.
 
   final String text;
-  final MainAxisAlignment mainAxisAlignment;
   final Color backgroundColor;
 
-  ChatItemWidgetText({this.text, this.mainAxisAlignment, this.backgroundColor});
+  ChatItemWidgetText({this.text, this.backgroundColor});
 
   @override
   Widget build(BuildContext context) {
     String newChat = breakIntoLines(text, 34, 30);
     return Container(
-      child: Row(
-        mainAxisAlignment: mainAxisAlignment,
-        children: [
-          Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: backgroundColor,
-              ),
-              padding: EdgeInsets.all(10),
-              child: Text(
-                newChat,
-                style: TextStyle(color: Colors.black),
-              )),
-        ],
-      ),
-    );
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+          color: backgroundColor,
+        ),
+        padding: EdgeInsets.all(10),
+        child: Text(
+          newChat,
+          style: TextStyle(color: Colors.black),
+        ));
   }
 
   String breakIntoLines(
@@ -263,26 +328,32 @@ class ChatItemWidgetText extends StatelessWidget {
 class ChatItemWidgetPost extends StatelessWidget {
   // A widget that wraps around a PostView() in order to display it correctly.
 
-  ChatItemWidgetPost(
-      {@required this.post,
-      @required this.height,
-      @required this.mainAxisAlignment});
+  ChatItemWidgetPost({
+    @required this.chatItem,
+    @required this.height,
+  });
 
-  final Post post;
+  final ChatItem chatItem;
   final double height;
-  final MainAxisAlignment mainAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
-    return Row(mainAxisAlignment: mainAxisAlignment, children: <Widget>[
-      PostView(
-        post: post,
-        height: height,
-        aspectRatio: globals.goldenRatio,
-        postStage: PostStage.onlyPost,
-        fromChatPage: true,
-      )
-    ]);
+    ChatPageProvider provider =
+        Provider.of<ChatPageProvider>(context, listen: false);
+
+    Post post = Post(
+        creator: provider.chat.members[0],
+        postID: "",
+        isImage: chatItem.post['isImage'],
+        downloadURL: chatItem.post["downloadURL"]);
+
+    return PostView(
+      post: post,
+      height: height,
+      aspectRatio: globals.goldenRatio,
+      postStage: PostStage.onlyPost,
+      fromChatPage: true,
+    );
   }
 }
 
