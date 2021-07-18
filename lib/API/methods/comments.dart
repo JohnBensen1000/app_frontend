@@ -5,7 +5,8 @@ import '../../models/post.dart';
 import '../../globals.dart' as globals;
 
 Future<List<Comment>> getAllComments(Post post) async {
-  var response = await BaseAPI().get('v1/comments/${post.postID}/');
+  var response = await BaseAPI().get('v1/comments/${post.postID}/',
+      queryParameters: {'uid': globals.user.uid});
 
   List<Comment> commentsList = [];
 

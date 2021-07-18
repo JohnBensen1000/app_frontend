@@ -10,6 +10,7 @@ class GenericAlertDialog extends StatelessWidget {
     return AlertDialog(
         backgroundColor: Colors.transparent,
         content: Container(
+          padding: EdgeInsets.all(10),
           width: 300,
           height: 200,
           decoration: BoxDecoration(

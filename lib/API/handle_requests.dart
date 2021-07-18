@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'baseAPI.dart';
 
+bool alertShown = false;
+
 // An async function that performs an HTTP request is passed here to be
 // completed. That way, if an exception occurs, it is caught here.
 Future<dynamic> handleRequest(BuildContext context, Future future) async {
@@ -14,28 +16,36 @@ Future<dynamic> handleRequest(BuildContext context, Future future) async {
 }
 
 // Determines what kind of exception was thrown and displays the corresponding
-// alert dialog.
+// alert dialog. The boolean alertShown is used to make sure than only on alert
+// is displayed at any given time.
 Future<void> handleException(BuildContext context, Exception exception) async {
-  if (exception is NoInternetException)
-    showDialog(
-      context: context,
-      builder: (context) => NoInternetAlert(),
-    );
-  else if (exception is ClientFailedException)
-    showDialog(
-      context: context,
-      builder: (context) => ClientErrorAlert(),
-    );
-  else if (exception is ServerFailedException)
-    showDialog(
-      context: context,
-      builder: (context) => ServerErrorAlert(),
-    );
-  else
-    showDialog(
-      context: context,
-      builder: (context) => UnknownErrorAlert(),
-    );
+  if (!alertShown) {
+    if (exception is NoInternetException) {
+      alertShown = true;
+      showDialog(
+        context: context,
+        builder: (context) => NoInternetAlert(),
+      ).then((_) => alertShown = false);
+    } else if (exception is ClientFailedException) {
+      alertShown = true;
+      showDialog(
+        context: context,
+        builder: (context) => ClientErrorAlert(),
+      ).then((_) => alertShown = false);
+    } else if (exception is ServerFailedException) {
+      alertShown = true;
+      showDialog(
+        context: context,
+        builder: (context) => ServerErrorAlert(),
+      ).then((_) => alertShown = false);
+    } else {
+      alertShown = true;
+      showDialog(
+        context: context,
+        builder: (context) => UnknownErrorAlert(),
+      ).then((_) => alertShown = false);
+    }
+  }
 }
 
 class ExceptionAlert extends StatelessWidget {

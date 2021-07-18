@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import '../../API/handle_requests.dart';
 import '../../API/methods/posts.dart';
 import '../../models/post.dart';
+import '../../models/comment.dart';
+import '../../models/user.dart';
 import '../../API/methods/relations.dart';
+import '../../API/methods/comments.dart';
 
 class ReportButton extends StatelessWidget {
   ReportButton({@required this.width});
@@ -32,14 +35,16 @@ class ReportButton extends StatelessWidget {
 enum ActionTaken { blocked, reported }
 
 class ReportContentAlertDialog extends StatelessWidget {
-  // Allows the user to report the post or block the creator. When pressed,
-  // makes the appropriate API call for both of these options. Additionally,
-  // makes an API call to record that the user has watched the post if the user
-  // reports the post.
+  // Allows the user to either report a post and/or block a post's creator or
+  // report a comment and/or block a comment's creator. If the variable comment
+  // is null, then the report/block is on a post. If the variable comment is not
+  // null, then the report/block is on a comment. Returns an ActionTaken enum
+  // to show what action was taken.
 
-  ReportContentAlertDialog({@required this.post});
+  ReportContentAlertDialog({this.post, this.comment});
 
   final Post post;
+  final Comment comment;
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +65,15 @@ class ReportContentAlertDialog extends StatelessWidget {
                 child: Text("Problem?", style: TextStyle(fontSize: 22))),
             GestureDetector(
                 child: ReportContentButton(
-                  buttonName: "Report this post",
+                  buttonName: "Report",
                 ),
                 onTap: () async {
-                  await handleRequest(context, postReportPost(post));
+                  if (comment == null) {
+                    await handleRequest(context, postReportPost(post));
+                  } else {
+                    await handleRequest(
+                        context, postReportComment(post, comment));
+                  }
                   Navigator.pop(context, ActionTaken.reported);
                 }),
             GestureDetector(
@@ -71,7 +81,8 @@ class ReportContentAlertDialog extends StatelessWidget {
                   buttonName: "Block this user",
                 ),
                 onTap: () async {
-                  await handleRequest(context, postBlockedUser(post.creator));
+                  User creator = comment == null ? post.creator : comment.user;
+                  await handleRequest(context, postBlockedUser(creator));
                   Navigator.pop(context, ActionTaken.blocked);
                 }),
           ],

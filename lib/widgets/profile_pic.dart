@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
 import '../sections/post/post_view.dart';
 import '../models/user.dart';
@@ -119,7 +120,14 @@ class ProfilePic extends StatelessWidget {
             builder: (context) => AlertDialogContainer(
                 dialogText: "Do you want to report this profile picture?")))
         .then((willReportProfile) {
-      if (willReportProfile) handleRequest(context, postReportProfile(user));
+      if (willReportProfile) {
+        handleRequest(context, postReportProfile(user));
+        showDialog(
+            context: context,
+            builder: (context) => GenericAlertDialog(
+                text:
+                    "Thank you for reporting this user's profile picture. We will review the picture to see if it violates any of our guidelines."));
+      }
     });
   }
 }

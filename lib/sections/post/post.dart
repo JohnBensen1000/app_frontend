@@ -7,6 +7,7 @@ import '../../globals.dart' as globals;
 import '../../models/post.dart';
 import '../../models/chat.dart';
 import '../../widgets/back_arrow.dart';
+import '../../widgets/generic_alert_dialog.dart';
 
 import 'post_view.dart';
 
@@ -57,12 +58,23 @@ class PostPage extends StatelessWidget {
                                     context: context,
                                     builder: (BuildContext context) =>
                                         ReportContentAlertDialog(post: post))
-                                .then((actionTaken) {
+                                .then((actionTaken) async {
                               if (actionTaken != null) {
                                 if (actionTaken == ActionTaken.reported) {
+                                  await showDialog(
+                                      context: context,
+                                      builder: (context) => GenericAlertDialog(
+                                          text:
+                                              "Thank you for reporting this post. We will review it to see if it violates any of our guidelines."));
                                   Navigator.pop(context);
                                 } else if (actionTaken == ActionTaken.blocked) {
+                                  await showDialog(
+                                      context: context,
+                                      builder: (context) => GenericAlertDialog(
+                                          text:
+                                              "You have successfully blocked this user, so you will no longer see any content from them."));
                                   int count = 0;
+
                                   Navigator.popUntil(context, (route) {
                                     return count++ == 2 || route.isFirst;
                                   });

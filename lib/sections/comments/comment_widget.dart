@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/widgets/generic_alert_dialog.dart';
+import 'package:test_flutter/widgets/report_button.dart';
+import 'package:provider/provider.dart';
 
 import '../../widgets/profile_pic.dart';
 import '../../widgets/alert_dialog_container.dart';
@@ -9,10 +11,13 @@ import '../../API/methods/users.dart';
 import '../../API/methods/comments.dart';
 import '../../globals.dart' as globals;
 
+import 'comments_page.dart';
+import 'comments.dart';
+
 class CommentWidget extends StatefulWidget {
   // Displays a comment, the comment's owner's profile and username.  When this
   // widget is held down, an alert dialog will appear asking if the current user
-  // wants to report the comment.
+  // wants to report the comment or block the comment's creator.
   CommentWidget({
     @required this.comment,
     @required this.leftPadding,
@@ -79,13 +84,57 @@ class _CommentWidgetState extends State<CommentWidget>
                 ],
               ),
             )),
-        onLongPress: () => showDialog(
-            context: context,
-            builder: (BuildContext context) =>
-                AlertDialogContainer(dialogText: "Report comment?")).then(
-            (reportContent) => (reportContent != null && reportContent)
-                ? handleRequest(
-                    context, postReportComment(widget.post, widget.comment))
-                : print("Nothing happened")));
+        onLongPress: () async {
+          if (widget.comment.user.uid != globals.user.uid) {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) => ReportContentAlertDialog(
+                      post: widget.post,
+                      comment: widget.comment,
+                    )).then((actionTaken) async {
+              switch (actionTaken) {
+                case ActionTaken.blocked:
+                  await _blockUser();
+                  break;
+                case ActionTaken.reported:
+                  await _reportComment();
+                  break;
+              }
+            });
+          }
+        });
+  }
+
+  Future<void> _blockUser() async {
+    // Displays an alert confirming that the user has blocked the comment's
+    // creator. If the comment widget is found in the comment snackbar, then the
+    // provider is told to reset state. If The comment is found in the comments
+    // page, then pops the page.
+    // THIS IS A HACK: checks to see where the comment is by putting the call to
+    // the provider in a try-except. If there is no exception, the the comment
+    // is in the snackbar. If there is an exception, then the comment is in the
+    // comments page.
+
+    await showDialog(
+        context: context,
+        builder: (context) => GenericAlertDialog(
+            text:
+                "You have sucessfully blocked this user, you will no longer see any content from them."));
+
+    try {
+      Provider.of<CommentsProvider>(context, listen: false).resetState();
+    } on ProviderNotFoundException {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> _reportComment() async {
+    // Simply displays an alert confirming that the user has reported the
+    // comment.
+    await showDialog(
+        context: context,
+        builder: (context) => GenericAlertDialog(
+            text:
+                "Thank you for reporting this comment, we will review it to see if it violates any of our guidelines."));
   }
 }

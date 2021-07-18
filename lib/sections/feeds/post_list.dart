@@ -9,6 +9,7 @@ import '../../API/methods/posts.dart';
 import '../../API/handle_requests.dart';
 import '../../API/methods/relations.dart';
 import '../../models/post.dart';
+import '../../widgets/generic_alert_dialog.dart';
 
 import '../navigation/home_screen.dart';
 import '../post/post_view.dart';
@@ -235,15 +236,31 @@ class _PostListState extends State<PostList> {
                       child: GestureDetector(
                           child: ReportButton(width: 50),
                           onTap: () => showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) =>
-                                      ReportContentAlertDialog(
-                                          post: postList[postListIndex]))
-                              .then((actionTaken) => (actionTaken != null)
-                                  ? actionTaken == ActionTaken.blocked
-                                      ? removePostsFromCreator(provider)
-                                      : removePost(provider)
-                                  : print("No action has been taken"))))
+                                      context: context,
+                                      builder: (BuildContext context) =>
+                                          ReportContentAlertDialog(
+                                              post: postList[postListIndex]))
+                                  .then((actionTaken) async {
+                                if (actionTaken != null) {
+                                  if (actionTaken == ActionTaken.blocked) {
+                                    await showDialog(
+                                        context: context,
+                                        builder: (context) => GenericAlertDialog(
+                                            text:
+                                                "You have successfully blocked this user, so you will no longer see any content from them."));
+
+                                    removePostsFromCreator(provider);
+                                  } else if (actionTaken ==
+                                      ActionTaken.reported) {
+                                    await showDialog(
+                                        context: context,
+                                        builder: (context) => GenericAlertDialog(
+                                            text:
+                                                "Thank you for reporting this post. We will review the post to see if it violates any of our guidelines."));
+                                    removePost(provider);
+                                  }
+                                }
+                              })))
                 ],
               );
 

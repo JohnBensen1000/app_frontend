@@ -12,6 +12,7 @@ import '../../models/post.dart';
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_dialog_container.dart';
+import '../../widgets/generic_alert_dialog.dart';
 
 import '../post/post_view.dart';
 import 'settings_drawer.dart';
@@ -230,6 +231,11 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
                 }).then((isBlockingUser) async {
               if (isBlockingUser) {
                 await handleRequest(context, postBlockedUser(widget.user));
+                await showDialog(
+                    context: context,
+                    builder: (context) => GenericAlertDialog(
+                        text:
+                            "You have successfully blocked this user, so you will no longer see any content from them."));
                 Navigator.pop(context);
               }
             }),

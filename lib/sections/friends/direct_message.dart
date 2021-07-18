@@ -12,6 +12,7 @@ import '../../models/chat.dart';
 import '../../models/post.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_dialog_container.dart';
+import '../../widgets/generic_alert_dialog.dart';
 
 import '../camera/camera.dart';
 import '../post/post_view.dart';
@@ -121,8 +122,13 @@ class ChatPageHeader extends PreferredSize {
             builder: (BuildContext context) => AlertDialogContainer(
                 dialogText: "Do you want to block this user?"))
         .then((isUserBlocked) async {
-      if (isUserBlocked) {
+      if (isUserBlocked != null && isUserBlocked) {
         await handleRequest(context, postBlockedUser(provider.chat.members[0]));
+        await showDialog(
+            context: context,
+            builder: (context) => GenericAlertDialog(
+                text:
+                    "You have successfylly blocked this user, you will no longer have a direct message with them and you will not see any of their content"));
         Navigator.pop(context);
       }
     });
@@ -294,6 +300,14 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
             })
         .then((isReportConfirmed) => handleRequest(context,
             reportChatItem(provider.chat.chatID, widget.chatItem.toJson())));
+
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return GenericAlertDialog(
+              text:
+                  "Thank you for reporting this chat. We will review it to see if it violates any of our guidelines.");
+        });
   }
 }
 
