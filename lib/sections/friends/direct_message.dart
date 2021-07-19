@@ -41,7 +41,7 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 180;
+    double headerHeight = 200;
     double footerHeight = 100;
 
     return ChangeNotifierProvider(
@@ -83,6 +83,7 @@ class ChatPageHeader extends PreferredSize {
         height: height,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.start,

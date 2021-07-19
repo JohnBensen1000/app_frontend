@@ -35,6 +35,7 @@ class InputFieldWidget extends StatelessWidget {
             // offset to center text
             offset: Offset(0, 5),
             child: TextFormField(
+              textAlignVertical: TextAlignVertical.center,
               controller: inputField.textEditingController,
               textAlign: TextAlign.center,
               obscureText: inputField.obscureText,
