@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import '../globals.dart' as globals;
 import '../API/methods/authentication.dart';
 import '../models/user.dart';
-import '../widgets/forwad_arrow.dart';
+import '../widgets/forward_arrow.dart';
 import '../API/handle_requests.dart';
 
 import 'navigation/home_screen.dart';

@@ -149,7 +149,7 @@ class CameraPage extends StatelessWidget {
       children: [
         Container(
             alignment: Alignment.topLeft,
-            padding: EdgeInsets.only(top: 20, left: 5),
+            padding: EdgeInsets.only(top: 40, left: 5),
             child: FlatButton(
                 child: BackArrow(), onPressed: () => Navigator.pop(context))),
         CameraView(

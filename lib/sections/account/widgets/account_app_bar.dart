@@ -12,29 +12,27 @@ class AccountAppBar extends PreferredSize {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Container(
-            width: double.infinity,
-            alignment: Alignment.topLeft,
-            margin: EdgeInsets.only(top: 20, left: 40),
-            child: GestureDetector(
-                child: BackArrow(), onTap: () => Navigator.pop(context)),
+    return Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
+      Container(
+        width: double.infinity,
+        alignment: Alignment.topLeft,
+        margin: EdgeInsets.only(top: 20, left: 40),
+        child: GestureDetector(
+            child: BackArrow(), onTap: () => Navigator.pop(context)),
+      ),
+      Container(
+        width: double.infinity,
+      ),
+      Container(
+        width: 112.0,
+        height: 105.0,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/images/Entropy.PNG'),
+            fit: BoxFit.cover,
           ),
-          Container(
-            width: double.infinity,
-          ),
-          Container(
-            width: 112.0,
-            height: 105.0,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: const AssetImage('assets/images/Entropy.PNG'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-        ]);
+        ),
+      ),
+    ]);
   }
 }
