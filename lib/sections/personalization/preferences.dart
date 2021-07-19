@@ -5,7 +5,7 @@ import 'dart:collection';
 
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/widgets/forwad_arrow.dart';
+import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';

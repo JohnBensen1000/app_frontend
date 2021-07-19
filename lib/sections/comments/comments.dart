@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +9,7 @@ import '../../API/methods/comments.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 import '../../Widgets/loading_icon.dart';
+import '../../Widgets/back_arrow.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'comment_widget.dart';
@@ -39,32 +42,53 @@ class Comments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: height,
-        child: ChangeNotifierProvider(
-            create: (context) => CommentsProvider(),
-            child: Consumer<CommentsProvider>(
-              builder: (context, value, child) => FutureBuilder(
-                future: handleRequest(context, getAllComments(post)),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return CommentsSnackBar(
-                        height: height,
-                        commentsList: snapshot.data,
-                        post: post);
-                  } else {
-                    return Center(
-                        child: StreamBuilder(
-                            stream: LoadingIconTimer().stream,
-                            builder: (context, snapshot) {
-                              return CircularProgressIndicator(
-                                strokeWidth: 3,
-                                value: snapshot.data,
-                              );
-                            }));
-                  }
-                },
-              ),
-            )));
+        height: height + 60,
+        alignment: Alignment.bottomCenter,
+        child: Column(
+          children: [
+            Container(
+                margin: EdgeInsets.only(top: 5, bottom: 10),
+                height: 40,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                        child: Transform.rotate(
+                            angle: -math.pi / 2, child: BackArrow()),
+                        onTap: () =>
+                            Scaffold.of(context).removeCurrentSnackBar()),
+                  ],
+                )),
+            ChangeNotifierProvider(
+                create: (context) => CommentsProvider(),
+                child: Consumer<CommentsProvider>(
+                  builder: (context, value, child) => FutureBuilder(
+                    future: handleRequest(context, getAllComments(post)),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        return Container(
+                          height: height,
+                          child: CommentsSnackBar(
+                              height: height,
+                              commentsList: snapshot.data,
+                              post: post),
+                        );
+                      } else {
+                        return Center(
+                            child: StreamBuilder(
+                                stream: LoadingIconTimer().stream,
+                                builder: (context, snapshot) {
+                                  return CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    value: snapshot.data,
+                                  );
+                                }));
+                      }
+                    },
+                  ),
+                )),
+          ],
+        ));
   }
 }
 
