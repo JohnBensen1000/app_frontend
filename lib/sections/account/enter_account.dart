@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'sign_in.dart';
 import 'sign_up.dart';
+import 'access.dart';
 
 class LogInScreen extends StatelessWidget {
   LogInScreen({
@@ -71,7 +72,7 @@ class LogInScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => SignUp()),
+                    MaterialPageRoute(builder: (context) => AccessCodePage()),
                   );
                 },
                 child: SizedBox(

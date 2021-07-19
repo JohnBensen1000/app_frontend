@@ -34,7 +34,7 @@ class PostPage extends StatelessWidget {
 
     return Scaffold(
         appBar: PostAppBar(
-          height: 40,
+          height: 90,
         ),
         body: Center(
           child: Center(
@@ -100,7 +100,9 @@ class PostAppBar extends PreferredSize {
     return Row(
       children: <Widget>[
         Container(
-          padding: EdgeInsets.only(left: 20, top: 40),
+          height: height,
+          padding: EdgeInsets.only(left: 20, bottom: 10),
+          alignment: Alignment.bottomLeft,
           child: GestureDetector(
             child: BackArrow(),
             onTap: () => Navigator.of(context).pop(),

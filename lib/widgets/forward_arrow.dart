@@ -10,7 +10,7 @@ class ForwardArrow extends StatelessWidget {
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-          color: const Color(0xffffffff),
+          // color: const Color(0xffffffff),
           border: Border.all(width: 2.0, color: const Color(0xff000000)),
         ),
         child: SvgPicture.string(

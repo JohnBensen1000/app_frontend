@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/sections/account/agreements.dart';
-import 'package:test_flutter/widgets/forwad_arrow.dart';
+import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../API/methods/users.dart';
 
