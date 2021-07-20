@@ -9,12 +9,8 @@ import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
 import '../../API/handle_requests.dart';
 import '../../models/post.dart';
-<<<<<<< HEAD
-import '../../widgets/generic_alert_dialog.dart';
-=======
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
->>>>>>> develop
 
 import '../post/post_view.dart';
 
@@ -151,65 +147,6 @@ class _PostListState extends State<PostList> {
     }
   }
 
-<<<<<<< HEAD
-  GestureDetector _buildGestureDetector(
-      PostListProvider provider, int postListIndex, Future<Widget> postView) {
-    // Returns a GestureDetector that contains a post widget and updates the
-    // provider whenever it detects a vertical drag. A button is added that,
-    // when pressed, gives the user the options to block the user or report the
-    // post for inappropriate content. If either of these options are selected,
-    // then removes either the post or all posts from the creator from the post
-    // list.
-
-    return GestureDetector(
-      child: FutureBuilder(
-          future: postView,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done &&
-                snapshot.hasData) {
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  snapshot.data,
-                  Container(
-                      alignment: Alignment.bottomRight,
-                      padding: EdgeInsets.only(right: 65, bottom: 30),
-                      child: GestureDetector(
-                          child: ReportButton(width: 50),
-                          onTap: () => showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) =>
-                                          ReportContentAlertDialog(
-                                              post: postList[postListIndex]))
-                                  .then((actionTaken) async {
-                                if (actionTaken != null) {
-                                  if (actionTaken == ActionTaken.blocked) {
-                                    await showDialog(
-                                        context: context,
-                                        builder: (context) => GenericAlertDialog(
-                                            text:
-                                                "You have successfully blocked this user, so you will no longer see any content from them."));
-
-                                    removePostsFromCreator(provider);
-                                  } else if (actionTaken ==
-                                      ActionTaken.reported) {
-                                    await showDialog(
-                                        context: context,
-                                        builder: (context) => GenericAlertDialog(
-                                            text:
-                                                "Thank you for reporting this post. We will review the post to see if it violates any of our guidelines."));
-                                    removePost(provider);
-                                  }
-                                }
-                              })))
-                ],
-              );
-
-              // return Center(child: snapshot.data);
-            } else {
-              return Center();
-            }
-=======
   Widget _refreshButton() {
     return Center(
       child: GestureDetector(
@@ -222,7 +159,6 @@ class _PostListState extends State<PostList> {
               child: Center(child: Text("Refresh"))),
           onTap: () {
             setState(() {});
->>>>>>> develop
           }),
     );
   }

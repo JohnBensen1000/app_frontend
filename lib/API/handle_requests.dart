@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'baseAPI.dart';
 
-<<<<<<< HEAD
-bool alertShown = false;
-=======
 bool isDialogDisplayed = false;
->>>>>>> develop
 
 // An async function that performs an HTTP request is passed here to be
 // completed. That way, if an exception occurs, it is caught here.
@@ -23,33 +19,6 @@ Future<dynamic> handleRequest(BuildContext context, Future future) async {
 // alert dialog. The boolean alertShown is used to make sure than only on alert
 // is displayed at any given time.
 Future<void> handleException(BuildContext context, Exception exception) async {
-<<<<<<< HEAD
-  if (!alertShown) {
-    if (exception is NoInternetException) {
-      alertShown = true;
-      showDialog(
-        context: context,
-        builder: (context) => NoInternetAlert(),
-      ).then((_) => alertShown = false);
-    } else if (exception is ClientFailedException) {
-      alertShown = true;
-      showDialog(
-        context: context,
-        builder: (context) => ClientErrorAlert(),
-      ).then((_) => alertShown = false);
-    } else if (exception is ServerFailedException) {
-      alertShown = true;
-      showDialog(
-        context: context,
-        builder: (context) => ServerErrorAlert(),
-      ).then((_) => alertShown = false);
-    } else {
-      alertShown = true;
-      showDialog(
-        context: context,
-        builder: (context) => UnknownErrorAlert(),
-      ).then((_) => alertShown = false);
-=======
   if (!isDialogDisplayed) {
     if (exception is NoInternetException) {
       isDialogDisplayed = true;
@@ -75,7 +44,6 @@ Future<void> handleException(BuildContext context, Exception exception) async {
         context: context,
         builder: (context) => UnknownErrorAlert(),
       ).then((value) => isDialogDisplayed = false);
->>>>>>> develop
     }
   }
 }
