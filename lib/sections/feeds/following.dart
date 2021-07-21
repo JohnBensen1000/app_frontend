@@ -2,12 +2,9 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../API/methods/new_content.dart';
-import '../../API/methods/posts.dart';
-import '../../API/methods/relations.dart';
-import '../../models/post.dart';
+import '../../globals.dart' as globals;
 
 import 'post_list.dart';
 
@@ -25,11 +22,9 @@ class FollowingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 10),
+      padding: EdgeInsets.only(top: .0118 * globals.size.height),
       child: PostList(
         function: getFollowingPosts,
-
-        // future: handleRequest(context, getFollowingPosts()),
         height: height,
       ),
     );

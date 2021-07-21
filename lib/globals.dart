@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'API/baseAPI.dart';
 
@@ -27,3 +28,16 @@ ProfileRepository profileRepository = new ProfileRepository();
 AccountRepository accountRepository = new AccountRepository();
 
 BaseAPI baseAPI = new BaseAPI();
+
+class SizeConfig {
+  SizeConfig({@required BuildContext context}) {
+    MediaQueryData _mediaQueryData = MediaQuery.of(context);
+    this.width = _mediaQueryData.size.width;
+    this.height = _mediaQueryData.size.height;
+  }
+
+  double width;
+  double height;
+}
+
+SizeConfig size;

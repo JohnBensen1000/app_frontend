@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../widgets/profile_pic.dart';
 import '../../API/methods/relations.dart';
@@ -36,7 +37,7 @@ class BlockedList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 100;
+    double headerHeight = .118 * globals.size.height;
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return Scaffold(
@@ -73,16 +74,16 @@ class BlockedListHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.bottomCenter,
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
+      padding: EdgeInsets.only(
+          left: .051 * globals.size.width,
+          right: .051 * globals.size.width,
+          bottom: .0118 * globals.size.height),
       height: height,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Container(
-            width: 30,
-            child: GestureDetector(
-                child: BackArrow(), onTap: () => Navigator.pop(context)),
-          ),
+          GestureDetector(
+              child: BackArrow(), onTap: () => Navigator.pop(context)),
         ],
       ),
     );
@@ -104,7 +105,7 @@ class BlockedListBody extends StatelessWidget {
             width: double.infinity,
             height: height,
             child: ListView.builder(
-                padding: EdgeInsets.only(top: 10),
+                padding: EdgeInsets.only(top: .012 * globals.size.height),
                 itemCount: provider.blockedUsers.length,
                 itemBuilder: (context, index) {
                   return BlockedUserWidget(
@@ -130,34 +131,37 @@ class BlockedUserWidget extends StatelessWidget {
         Provider.of<BlockedListProvider>(context, listen: false);
 
     return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10),
+      margin: EdgeInsets.only(
+          top: .012 * globals.size.height, bottom: .012 * globals.size.height),
       width: double.infinity,
-      height: 120,
-      padding: EdgeInsets.all(10),
+      height: .142 * globals.size.height,
+      padding: EdgeInsets.all(.012 * globals.size.height),
       decoration: BoxDecoration(
           border: Border(
               top: BorderSide(color: Colors.grey[400]),
               bottom: BorderSide(color: Colors.grey[400]))),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         GestureDetector(
-            child: Profile(diameter: 70, user: user),
+            child: Profile(diameter: .083 * globals.size.height, user: user),
             onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => ProfilePage(user: user)))),
         GestureDetector(
             child: Container(
-              width: 55,
-              height: 55,
+              width: .065 * globals.size.height,
+              height: .065 * globals.size.height,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(13.0),
+                borderRadius: BorderRadius.circular(.015 * globals.size.height),
                 color: Colors.blueAccent,
                 border: Border.all(width: 1.0, color: const Color(0xffffffff)),
               ),
               child: (Center(
                   child: Text("Unblock",
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 12)))),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: .014 * globals.size.height)))),
             ),
             onTap: () => provider.unBlockUser(context, user)),
       ]),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
+import '../../globals.dart' as globals;
+
 import '../../API/methods/users.dart';
 import '../../models/user.dart';
 import '../../widgets/back_arrow.dart';
@@ -48,7 +50,7 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 120;
+    double headerHeight = .142 * globals.size.height;
 
     return ChangeNotifierProvider(
         create: (context) => SearchPageProvider(),
@@ -95,7 +97,10 @@ class SearchPageHeader extends StatelessWidget {
 
     return Container(
       height: height,
-      padding: EdgeInsets.only(top: 50, left: 20, right: 20),
+      padding: EdgeInsets.only(
+          top: .059 * globals.size.height,
+          left: .0513 * globals.size.width,
+          right: .0513 * globals.size.width),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -104,17 +109,17 @@ class SearchPageHeader extends StatelessWidget {
             onTap: () => Navigator.of(context).pop(),
           ),
           Container(
-              height: 50,
-              width: 300,
+              height: .059 * globals.size.height,
+              width: .76 * globals.size.width,
               child: TextField(
-                decoration: new InputDecoration(
-                    contentPadding: EdgeInsets.all(10),
-                    border: new OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(
-                        const Radius.circular(40.0),
+                decoration: InputDecoration(
+                    contentPadding: EdgeInsets.all(.0118 * globals.size.height),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(globals.size.height),
                       ),
                     ),
-                    hintText: "Who Are you looking for?"),
+                    hintText: "Who are you looking for?"),
                 onChanged: (text) =>
                     provider.searchForCreators(context, _searchController.text),
                 controller: _searchController,
@@ -140,21 +145,22 @@ class SearchResultWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new FlatButton(
+    return GestureDetector(
       child: Container(
-          margin: EdgeInsets.only(bottom: 20),
+          padding: EdgeInsets.only(left: .05 * globals.size.width),
+          margin: EdgeInsets.only(bottom: .0237 * globals.size.height),
           width: double.infinity,
-          height: 120,
+          height: .142 * globals.size.height,
           decoration: new BoxDecoration(
             border: Border(
                 top: BorderSide(color: Colors.grey[400]),
                 bottom: BorderSide(color: Colors.grey[400])),
           ),
           child: Profile(
-            diameter: 80,
+            diameter: .0947 * globals.size.height,
             user: creator,
           )),
-      onPressed: () {
+      onTap: () {
         Provider.of<SearchPageProvider>(context, listen: false)
             .clearSearchList();
         _searchController.clear();

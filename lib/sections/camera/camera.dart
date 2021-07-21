@@ -110,12 +110,10 @@ class Camera extends StatelessWidget {
   Camera({
     @required this.cameraUsage,
     this.chat,
-    this.height = 600,
   });
 
   final CameraUsage cameraUsage;
   final Chat chat;
-  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -133,15 +131,15 @@ class CameraPage extends StatelessWidget {
   CameraPage({
     @required this.cameraUsage,
     this.chat,
-    this.height = 600,
   });
 
   final CameraUsage cameraUsage;
   final Chat chat;
-  final double height;
 
   @override
   Widget build(BuildContext context) {
+    double height = .711 * globals.size.height;
+
     CameraProvider provider =
         Provider.of<CameraProvider>(context, listen: false);
     return Column(
@@ -149,22 +147,23 @@ class CameraPage extends StatelessWidget {
       children: [
         Container(
             alignment: Alignment.topLeft,
-            padding: EdgeInsets.only(top: 40, left: 5),
-            child: FlatButton(
-                child: BackArrow(), onPressed: () => Navigator.pop(context))),
+            padding: EdgeInsets.only(
+                top: .047 * globals.size.height,
+                left: .0128 * globals.size.width),
+            child: GestureDetector(
+                child: BackArrow(), onTap: () => Navigator.pop(context))),
         CameraView(
           height: height,
         ),
         Container(
-          padding: EdgeInsets.only(top: 5),
+          padding: EdgeInsets.only(top: .0059 * globals.size.height),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 alignment: Alignment.bottomLeft,
                 child: Container(
-                    width: 105,
-                    height: 105,
+                    width: .269 * globals.size.width,
                     child: Center(
                       child: GestureDetector(
                           child: Button(
@@ -174,9 +173,9 @@ class CameraPage extends StatelessWidget {
                               (provider.cameraIndex + 1) % 2),
                     )),
               ),
-              PostButton(diameter: 105),
+              PostButton(diameter: .269 * globals.size.width),
               Container(
-                width: 105,
+                width: .269 * globals.size.width,
               )
             ],
           ),

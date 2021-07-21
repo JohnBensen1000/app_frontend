@@ -29,7 +29,8 @@ class Chat {
 
     if (this.isDirectMessage) {
       this.chatName = this.members[0].username;
-      this.chatIcon = ProfilePic(diameter: 85, user: this.members[0]);
+      this.chatIcon = ProfilePic(
+          diameter: .11 * globals.size.height, user: this.members[0]);
       this.color = this.members[0].profileColor;
     } else {
       this.chatName = chatJson['chatName'];

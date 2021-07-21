@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:adobe_xd/pinned.dart';
 
 class BackArrow extends StatelessWidget {
-  BackArrow({this.size = 3});
-
-  final double size;
-
   @override
   Widget build(BuildContext context) {
+    double size = 3;
+
     return Container(
       color: Colors.transparent,
       child: SizedBox(

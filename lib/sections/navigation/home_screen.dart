@@ -109,7 +109,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    double appBarHeight = 110;
+    double appBarHeight = .12 * globals.size.height;
     double bodyHeight = MediaQuery.of(context).size.height - appBarHeight;
 
     return MultiProvider(
@@ -146,9 +146,10 @@ class HomeAppBar extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.only(top: .05 * globals.size.height),
       color: Colors.white,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           HomeAppBarButtons(),
           HomeAppBarNavigation(),
@@ -171,10 +172,13 @@ class HomeAppBarButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     ResetStateProvider provider =
         Provider.of<ResetStateProvider>(context, listen: false);
-    double buttonsWidth = 50;
+    double buttonsWidth = .12 * globals.size.width;
 
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.only(
+          left: .0512 * globals.size.width,
+          right: .0512 * globals.size.width,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -183,7 +187,7 @@ class HomeAppBarButtons extends StatelessWidget {
             ),
             GestureDetector(
                 child: Container(
-                    height: 58,
+                    height: .065 * globals.size.height,
                     child: Image.asset('assets/images/Entropy.PNG')),
                 onTap: () => Navigator.push(
                     context,
@@ -191,7 +195,7 @@ class HomeAppBarButtons extends StatelessWidget {
                         builder: (context) =>
                             ProfilePage(user: globals.user)))),
             Container(
-              height: 55,
+              height: .0652 * globals.size.height,
               width: buttonsWidth,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -235,10 +239,10 @@ class IconContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 44.0,
-      height: 23.0,
+      width: .12 * globals.size.width,
+      height: .0273 * globals.size.height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(globals.size.height),
         color: const Color(0xffffffff),
         border: Border.all(width: 1.0, color: const Color(0xff000000)),
       ),
@@ -263,9 +267,10 @@ class HomeAppBarNavigation extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         Container(
-          width: 240,
+          width: .58 * globals.size.width,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -286,17 +291,21 @@ class HomeAppBarNavigation extends StatelessWidget {
         ),
         Container(
           child: Transform.translate(
-            offset: Offset(0, -10),
+            offset: Offset(0, -.0118 * globals.size.height),
             child: Container(
-              width: 212.0,
-              height: 7.0,
+              width: .55 * globals.size.width,
+              height: .00829 * globals.size.height,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4.0),
+                borderRadius: BorderRadius.circular(globals.size.height),
                 color: const Color(0xffffffff),
                 border: Border.all(width: 1.0, color: const Color(0xff707070)),
               ),
               child: Transform.translate(
-                offset: Offset(max(-1.0, min(-provider.offset, 1.0)) * 84.0, 0),
+                offset: Offset(
+                    max(-1.0, min(-provider.offset, 1.0)) *
+                        .223 *
+                        globals.size.width,
+                    0),
                 child: SvgPicture.string(
                   _svg_cayeaa,
                   allowDrawingOutsideViewBox: true,
@@ -323,19 +332,24 @@ class NavigationButton extends StatelessWidget {
           ? Color(0xFF000000)
           : Color(0x73000000);
 
-      return TextButton(
-        child: Text(
-          pageName,
-          style: TextStyle(
-            fontFamily: '.AppleSystemUIFont',
-            fontSize: 15,
-            color: textColor,
+      return Container(
+        child: GestureDetector(
+          child: Container(
+            height: .04 * globals.size.height,
+            child: Text(
+              pageName,
+              style: TextStyle(
+                fontFamily: '.AppleSystemUIFont',
+                fontSize: .0178 * globals.size.height,
+                color: textColor,
+              ),
+              textAlign: TextAlign.left,
+            ),
           ),
-          textAlign: TextAlign.left,
+          onTap: () {
+            provider.setMainPage(pageLabel);
+          },
         ),
-        onPressed: () {
-          provider.setMainPage(pageLabel);
-        },
       );
     });
   }

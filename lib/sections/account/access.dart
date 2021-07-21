@@ -6,6 +6,7 @@ import 'package:test_flutter/sections/account/agreements.dart';
 import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../API/methods/access.dart';
+import '../../globals.dart' as globals;
 
 import 'sign_up.dart';
 import 'widgets/input_field.dart';
@@ -33,9 +34,10 @@ class _AccessCodePageState extends State<AccessCodePage> {
     bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
 
     return Scaffold(
-        appBar: AccountAppBar(height: 160),
+        appBar: AccountAppBar(height: .21 * globals.size.height),
         body: Container(
-          padding: EdgeInsets.only(top: 40, bottom: 120),
+          padding: EdgeInsets.only(
+              top: .05 * globals.size.height, bottom: .1 * globals.size.height),
           width: double.infinity,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -45,7 +47,7 @@ class _AccessCodePageState extends State<AccessCodePage> {
                 children: [
                   InputFieldWidget(inputField: accessCodeField),
                   Container(
-                    width: 240,
+                    width: .6 * globals.size.width,
                     child: Text(
                       "Enter the access code to create an account.",
                       textAlign: TextAlign.center,

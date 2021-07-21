@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
 import 'widgets/account_app_bar.dart';
 import 'widgets/input_field.dart';
@@ -45,11 +46,10 @@ class _SignInState extends State<SignIn> {
     // passwordInputField.textEditingController.text = 'test12345';
 
     return Scaffold(
-        appBar: AccountAppBar(
-          height: 140,
-        ),
+        appBar: AccountAppBar(height: .21 * globals.size.height),
         body: Padding(
-          padding: const EdgeInsets.only(top: 40, bottom: 80),
+          padding: EdgeInsets.only(
+              top: .04 * globals.size.height, bottom: .1 * globals.size.height),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -60,6 +60,11 @@ class _SignInState extends State<SignIn> {
                   children: [
                     InputFieldWidget(inputField: emailInputField),
                     InputFieldWidget(inputField: passwordInputField),
+                    GestureDetector(
+                        child: Container(
+                            child: Text("Forgot password?",
+                                style: TextStyle(color: Colors.grey[500]))),
+                        onTap: () => _resetPassword())
                   ],
                 ),
               ),
@@ -68,35 +73,23 @@ class _SignInState extends State<SignIn> {
                     child: AccountSubmitButton(
                       buttonName: "Sign In",
                     ),
-                    onTap: () async {
-                      if (await _signIn()) {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => Home(
-                                      pageLabel: PageLabel.friends,
-                                    )));
-                      } else {
-                        setState(() {});
-                      }
-                    }),
+                    onTap: () => _signIn()),
             ],
           ),
         ));
   }
 
-  Future<bool> _signIn() async {
+  Future<void> _signIn() async {
     // Signs into firebase account. If any errors, updates appropraite error
-    // messages. Returns true if successfully authenticated with firebase and
-    // backend, false otherwise. After authenticating with backend, backend
-    // returns a user model for the signed-in user. The variable, global.users
-    // is set to this user model.
+    // messages. If no errors, sets the global user the newly signed in user,
+    // and pushes the user to the next page. If there are errors, updates the
+    // state with the appropriate error messages.
 
     passwordInputField.errorText = "";
     emailInputField.errorText = "";
 
     try {
-      if (!areInputsValid()) return false;
+      if (!_areInputsValid()) return;
 
       firebase_auth.User firebaseUser = (await auth.signInWithEmailAndPassword(
         email: emailInputField.textEditingController.text,
@@ -107,18 +100,38 @@ class _SignInState extends State<SignIn> {
       globals.user = User.fromJson(response['user']);
       await globals.accountRepository.setUid(uid: firebaseUser.uid);
 
-      return true;
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => Home(
+                    pageLabel: PageLabel.friends,
+                  )));
     } on firebase_auth.FirebaseAuthException catch (error) {
-      switch (error.code) {
-        case "user-not-found":
-          emailInputField.errorText = "This email is not recognized";
-          break;
-      }
-      return false;
+      _displayErrorMessages(error.code);
     }
   }
 
-  bool areInputsValid() {
+  Future<void> _resetPassword() async {
+    // If the given email exists in firebase, sends a password reset email to
+    // the user. Displays an alert dialog to confirm that the email has been
+    // sent. If any errors occur, display appropraite error messages.
+
+    passwordInputField.errorText = "";
+    emailInputField.errorText = "";
+    try {
+      await auth.sendPasswordResetEmail(
+          email: emailInputField.textEditingController.text);
+      showDialog(
+          context: context,
+          builder: (context) => GenericAlertDialog(
+              text:
+                  "An email has been sent to you address that will allow you to reset your email"));
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      _displayErrorMessages(error.code);
+    }
+  }
+
+  bool _areInputsValid() {
     // Checks if inputs are empty.
 
     bool isEmpty = false;
@@ -131,8 +144,38 @@ class _SignInState extends State<SignIn> {
       isEmpty = true;
     }
 
+    setState(() {});
+
     if (isEmpty) return false;
 
     return true;
+  }
+
+  void _displayErrorMessages(String errorCode) {
+    // Goes through each possible error and displays the appropriate error
+    // message.
+
+    switch (errorCode) {
+      case "wrong-password":
+        passwordInputField.errorText = "Wrong password";
+        break;
+      case "missing-email":
+        emailInputField.errorText = "No input";
+        break;
+      case "user-not-found":
+        emailInputField.errorText =
+            "There is no user associated with this email";
+        break;
+      case "invalid-email":
+        emailInputField.errorText = "This email is not valid";
+        break;
+      case "too-many-requests":
+        passwordInputField.errorText =
+            "You have reached your attempt limit, please try again later";
+        break;
+      default:
+        print(" [Firebase authentication error code]: $errorCode");
+    }
+    setState(() {});
   }
 }

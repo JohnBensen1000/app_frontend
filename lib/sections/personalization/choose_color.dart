@@ -35,8 +35,8 @@ class ColorsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 180;
-    double footerHeight = 340;
+    double headerHeight = .2 * globals.size.height;
+    double footerHeight = .35 * globals.size.height;
     double bodyHeight =
         MediaQuery.of(context).size.height - headerHeight - footerHeight;
 
@@ -78,7 +78,9 @@ class ChooseColorHeader extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 30, left: 40),
+              padding: EdgeInsets.only(
+                  top: .04 * globals.size.height,
+                  left: .09 * globals.size.width),
               child: GestureDetector(
                 child: BackArrow(),
                 onTap: () => Navigator.pop(context),
@@ -90,7 +92,7 @@ class ChooseColorHeader extends StatelessWidget {
           'Pick your style',
           style: TextStyle(
             fontFamily: 'Helvetica Neue',
-            fontSize: 49,
+            fontSize: .058 * globals.size.height,
             color: const Color(0xff000000),
           ),
           textAlign: TextAlign.left,
@@ -107,13 +109,13 @@ class ChooseColorBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<ChooseColorWidget> chooseColorWidgets = new List<ChooseColorWidget>();
+    List<ChooseColorWidget> chooseColorWidgets = [];
 
     globals.colorsMap
         .forEach((key, value) => chooseColorWidgets.add(ChooseColorWidget(
               colorKey: key,
               color: value,
-              height: 110,
+              height: .13 * globals.size.height,
             )));
 
     return Container(
@@ -184,50 +186,53 @@ class ChooseColorFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ColorsProvider>(
         builder: (context, provider, child) => Container(
-              padding: EdgeInsets.only(bottom: 40),
+              padding: EdgeInsets.only(bottom: .05 * globals.size.height),
               height: height,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: .1 * globals.size.width),
                     child: Text(
                       'The color you select will be used throughout your entire profile.',
                       style: TextStyle(
                         fontFamily: 'Helvetica Neue',
-                        fontSize: 15,
+                        fontSize: .018 * globals.size.height,
                         color: const Color(0xff000000),
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  GestureDetector(
-                      child: Container(
-                        height: 35,
-                        width: 105,
-                        margin: EdgeInsets.all(40),
-                        decoration: BoxDecoration(
-                            border: Border.all(
-                                color: (provider.chosenColorKey != null)
-                                    ? globals.colorsMap[provider.chosenColorKey]
-                                    : Colors.grey[400],
-                                width: 2),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(20))),
-                        child: Center(
-                          child: Text("Set Color"),
-                        ),
-                      ),
-                      onTap: () async {
-                        await handleRequest(
-                            context, postNewColor(provider.chosenColorKey));
-                        globals.user.profileColor =
-                            globals.colorsMap[provider.chosenColorKey];
-                        Navigator.pop(context);
-                      }),
                   Container(
-                      height: 100,
-                      child: Image.asset('assets/images/Entropy.PNG'))
+                    padding: EdgeInsets.only(top: .05 * globals.size.height),
+                    child: GestureDetector(
+                        child: Container(
+                          height: .04 * globals.size.height,
+                          width: .28 * globals.size.width,
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: (provider.chosenColorKey != null)
+                                      ? globals
+                                          .colorsMap[provider.chosenColorKey]
+                                      : Colors.grey[400],
+                                  width: 2),
+                              borderRadius: BorderRadius.all(
+                                  Radius.circular(globals.size.height))),
+                          child: Center(
+                            child: Text("Set Color"),
+                          ),
+                        ),
+                        onTap: () async {
+                          if (provider.chosenColorKey != null) {
+                            await handleRequest(
+                                context, postNewColor(provider.chosenColorKey));
+                            globals.user.profileColor =
+                                globals.colorsMap[provider.chosenColorKey];
+                            Navigator.pop(context);
+                          }
+                        }),
+                  ),
                 ],
               ),
             ));

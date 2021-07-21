@@ -39,8 +39,8 @@ class PreferencesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 160;
-    double footerHeight = 160;
+    double headerHeight = .2 * globals.size.height;
+    double footerHeight = .2 * globals.size.height;
     double bodyHeight =
         MediaQuery.of(context).size.height - headerHeight - footerHeight;
 
@@ -56,12 +56,13 @@ class PreferencesPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         PreferencesHeader(
-                          scaling: .80,
+                          scaling: .0009 * globals.size.height,
                           height: headerHeight,
                         ),
                         PreferencesBody(
                           height: bodyHeight,
-                          widgetMargin: 5,
+                          // widgetMargin: 5,
+                          widgetMargin: .0065 * globals.size.height,
                         ),
                         PreferenceFooter(height: footerHeight)
                       ],
@@ -96,9 +97,14 @@ class PreferencesHeader extends StatelessWidget {
           children: [
             Container(
                 width: double.infinity,
-                margin: EdgeInsets.only(top: 40, left: 20),
+                margin: EdgeInsets.only(
+                    top: .05 * globals.size.height,
+                    left: .05 * globals.size.width,
+                    bottom: .01 * globals.size.height,
+                    right: .01 * globals.size.width),
                 alignment: Alignment.topLeft,
-                child: BackArrow()),
+                child: GestureDetector(
+                    child: BackArrow(), onTap: () => Navigator.pop(context))),
             Stack(children: <Widget>[
               Transform.translate(
                 offset: Offset(scaling * -0.2, scaling * 26.0),
@@ -185,7 +191,7 @@ class PreferencesBody extends StatelessWidget {
 
   List<Widget> buildWidgets(
       double widgetHeight, HashMap<String, bool> isPreferenceSelected) {
-    List<PreferencesWidget> widgets = new List<PreferencesWidget>();
+    List<PreferencesWidget> widgets = [];
 
     isPreferenceSelected.forEach((key, value) => widgets.add(PreferencesWidget(
         height: widgetHeight,
@@ -322,7 +328,7 @@ class PreferenceFooter extends StatelessWidget {
         child: GestureDetector(
             child: ForwardArrow(),
             onTap: () async {
-              List<String> updatePreferences = new List<String>();
+              List<String> updatePreferences = [];
 
               provider.isPreferenceSelected.forEach((field, isSelected) {
                 if (isSelected) updatePreferences.add(field);

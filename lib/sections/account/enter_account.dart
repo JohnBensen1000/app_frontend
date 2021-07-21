@@ -1,6 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
+import '../../globals.dart' as globals;
+
 import 'sign_in.dart';
 import 'sign_up.dart';
 import 'access.dart';
@@ -14,109 +16,104 @@ class LogInScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            width: double.infinity,
-          ),
-          Container(
-            padding: EdgeInsets.only(bottom: 20),
-            child: SizedBox(
-              width: 346.0,
-              child: Text(
-                'Lets Get You Started',
-                style: TextStyle(
-                  fontFamily: 'Rockwell',
-                  fontSize: 30,
-                  color: const Color(0xff000000),
-                  letterSpacing: -0.72,
-                  height: 0.8,
-                ),
-                textAlign: TextAlign.center,
+      body: Center(
+        child: Container(
+          height: .5 * globals.size.height,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                width: double.infinity,
               ),
-            ),
-          ),
-
-          Container(
-            padding: EdgeInsets.only(bottom: 20),
-            child: Container(
-              width: 256.0,
-              height: 256.0,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: const AssetImage('assets/images/Entropy.PNG'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-          Container(
-            child: Container(
-              width: 276.0,
-              height: 42.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25.0),
-                color: const Color(0xffffffff),
-                border: Border.all(width: 1.0, color: Colors.grey[400]),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0x29000000),
-                    offset: Offset(0, 3),
-                    blurRadius: 6,
-                  ),
-                ],
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AccessCodePage()),
-                  );
-                },
+              Container(
                 child: SizedBox(
-                  width: 266.0,
                   child: Text(
-                    'Create an Account ',
+                    'Lets Get You Started',
                     style: TextStyle(
-                      fontFamily: 'Devanagari Sangam MN',
-                      fontSize: 27,
-                      color: const Color(0xff707070),
+                      fontFamily: 'Rockwell',
+                      fontSize: .075 * globals.size.width,
+                      color: const Color(0xff000000),
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
               ),
-            ),
-          ),
-
-          SizedBox(
-              width: 202.0,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SignIn()));
-                },
-                child: Text(
-                  'Already have an account? ',
-                  style: TextStyle(
-                    fontFamily: 'Devanagari Sangam MN',
-                    fontSize: 15,
-                    color: const Color(0xff000000),
-                    shadows: [
-                      Shadow(
-                        color: const Color(0x29000000),
-                        offset: Offset(0, 3),
-                        blurRadius: 6,
-                      )
-                    ],
+              Container(
+                child: Container(
+                  width: .5 * globals.size.width,
+                  height: .5 * globals.size.width,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: const AssetImage('assets/images/Entropy.PNG'),
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              )),
-          // Adobe XD layer: 'Status Bar' (group)
-        ],
+              ),
+              Column(
+                children: [
+                  GestureDetector(
+                      child: Container(
+                        child: Container(
+                          width: .75 * globals.size.width,
+                          height: .05 * globals.size.height,
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.circular(globals.size.height),
+                            color: const Color(0xffffffff),
+                            border:
+                                Border.all(width: 1.0, color: Colors.grey[400]),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0x29000000),
+                                blurRadius: .01 * globals.size.width,
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Create an Account ',
+                              style: TextStyle(
+                                fontFamily: 'Devanagari Sangam MN',
+                                fontSize: .033 * globals.size.height,
+                                color: const Color(0xff707070),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => AccessCodePage()),
+                        );
+                      }),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => SignIn()));
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(.005 * globals.size.height),
+                      child: Text(
+                        'Already have an account? ',
+                        style: TextStyle(
+                          fontFamily: 'Devanagari Sangam MN',
+                          fontSize: .016 * globals.size.height,
+                          color: const Color(0xff000000),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
       ),
     );
   }

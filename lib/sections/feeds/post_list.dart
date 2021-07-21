@@ -151,11 +151,12 @@ class _PostListState extends State<PostList> {
     return Center(
       child: GestureDetector(
           child: Container(
-              width: 80,
-              height: 30,
+              width: .205 * globals.size.width,
+              height: .0355 * globals.size.height,
               decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.all(Radius.circular(20))),
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(globals.size.height))),
               child: Center(child: Text("Refresh"))),
           onTap: () {
             setState(() {});

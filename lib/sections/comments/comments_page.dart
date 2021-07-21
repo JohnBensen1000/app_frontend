@@ -6,6 +6,7 @@ import 'package:test_flutter/API/methods/comments.dart';
 import 'package:test_flutter/widgets/back_arrow.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../globals.dart' as globals;
 import '../../widgets/generic_alert_dialog.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
@@ -48,63 +49,56 @@ class CommentsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    double height = .6 * MediaQuery.of(context).size.height;
+    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    double height = MediaQuery.of(context).size.height - keyboardHeight;
     double width = MediaQuery.of(context).size.height;
 
-    double headerHeight = 130;
-    double footerHeight = 60;
+    double headerHeight = .3 * height;
+    double footerHeight = .14 * height;
 
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: ChangeNotifierProvider(
-            create: (context) => CommentsPageProvider(
-                post: post,
-                commentsList: commentsList,
-                parentComment: parentComment),
-            child: Column(
-              children: [
-                Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: <Widget>[
-                    Container(
-                        child: PostView(
-                      post: post,
-                      height: height,
-                      aspectRatio: height / width,
-                      postStage: PostStage.onlyPost,
-                      playOnInit: false,
-                    )),
-                    Container(
-                      width: width,
-                      height: height,
-                      color: Colors.white.withOpacity(.7),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                        ),
-                        CommentsPageHeader(
-                          height: headerHeight,
-                        ),
-                        CommentsPageBody(
-                          height: height - headerHeight - footerHeight,
-                          parentCommentOffset: (parentComment != null)
-                              ? parentComment.level + 1
-                              : 0,
-                        ),
-                        CommentsPageFooter(
-                          videoPlayerController: null,
-                          height: footerHeight,
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            )));
+      body: ChangeNotifierProvider(
+          create: (context) => CommentsPageProvider(
+              post: post,
+              commentsList: commentsList,
+              parentComment: parentComment),
+          child: Stack(
+            children: <Widget>[
+              // PostView(
+              //   post: post,
+              //   height: height,
+              //   aspectRatio: height / width,
+              //   postStage: PostStage.onlyPost,
+              //   playOnInit: false,
+              // ),
+              Container(
+                width: width,
+                height: height,
+                color: Colors.white.withOpacity(.7),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: double.infinity,
+                  ),
+                  CommentsPageHeader(
+                    height: headerHeight,
+                  ),
+                  CommentsPageBody(
+                    height: height - headerHeight - footerHeight,
+                    parentCommentOffset:
+                        (parentComment != null) ? parentComment.level + 1 : 0,
+                  ),
+                  CommentsPageFooter(
+                    videoPlayerController: null,
+                    height: footerHeight,
+                  )
+                ],
+              ),
+            ],
+          )),
+    );
   }
 }
 
@@ -131,7 +125,7 @@ class CommentsPageHeader extends StatelessWidget {
                     color: Colors.grey[500].withOpacity(.7), width: 1))),
         width: double.infinity,
         alignment: Alignment.bottomCenter,
-        padding: EdgeInsets.only(top: 35),
+        padding: EdgeInsets.only(top: .0414 * globals.size.height),
         height: height,
         child: Column(children: [
           Row(
@@ -139,7 +133,8 @@ class CommentsPageHeader extends StatelessWidget {
             children: [
               GestureDetector(
                 child: Container(
-                    margin: EdgeInsets.only(left: 20), child: BackArrow()),
+                    margin: EdgeInsets.only(left: .0513 * globals.size.width),
+                    child: BackArrow()),
                 onTap: () => Navigator.pop(context),
               ),
             ],
@@ -169,16 +164,16 @@ class CommentsPageBody extends StatelessWidget {
     CommentsPageProvider provider =
         Provider.of<CommentsPageProvider>(context, listen: false);
 
-    double paddingPerLevel = 40;
+    double paddingPerLevel = .103 * globals.size.width;
 
     return Container(
         height: height,
         child: ListView.builder(
-            padding: EdgeInsets.only(top: 10),
+            padding: EdgeInsets.only(top: .0118 * globals.size.height),
             itemCount: provider.commentsList.length,
             itemBuilder: (context, index) {
               return Container(
-                margin: EdgeInsets.only(bottom: 5),
+                margin: EdgeInsets.only(bottom: .0059 * globals.size.height),
                 child: CommentWidget(
                     post: provider.post,
                     comment: provider.commentsList[index],
@@ -220,26 +215,29 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
 
     return Container(
         height: widget.height,
-        padding: EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.only(bottom: .0118 * globals.size.height),
+        alignment: Alignment.center,
         child: AddCommentButton(
           child: Stack(
             children: [
-              TextFormField(
-                style: TextStyle(
-                  fontFamily: 'SF Pro Text',
-                  fontSize: 20,
-                  color: const Color(0x69000000),
-                  letterSpacing: -0.48,
-                  height: 1.1,
+              Container(
+                child: TextFormField(
+                  style: TextStyle(
+                    fontFamily: 'SF Pro Text',
+                    fontSize: .025 * globals.size.height,
+                    color: const Color(0x69000000),
+                  ),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.only(
+                        top: 0, bottom: .009 * globals.size.height),
+                    border: InputBorder.none,
+                  ),
+                  autofocus: true,
+                  controller: textController,
                 ),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                ),
-                autofocus: true,
-                controller: textController,
               ),
               Container(
-                padding: EdgeInsets.only(right: 12),
+                padding: EdgeInsets.only(right: .0307 * globals.size.width),
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
                     child: SvgPicture.string(

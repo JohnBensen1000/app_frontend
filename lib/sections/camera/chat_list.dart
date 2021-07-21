@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
+import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
 
@@ -75,7 +76,7 @@ class ChatListSnackBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: 200,
+        height: .237 * globals.size.height,
         child: FutureBuilder(
           future: handleRequest(context, getListOfChats()),
           builder: (context, snapshot) {
@@ -86,7 +87,7 @@ class ChatListSnackBar extends StatelessWidget {
                 child: Column(
                   children: [
                     Container(
-                      height: 150,
+                      height: .178 * globals.size.height,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: snapshot.data.length,
@@ -120,8 +121,8 @@ class ChatListWidget extends StatelessWidget {
     return Consumer<ChatListProvider>(
       builder: (context, provider, child) => GestureDetector(
           child: Container(
-            padding: EdgeInsets.all(10),
-            margin: EdgeInsets.all(5),
+            padding: EdgeInsets.all(.0118 * globals.size.height),
+            margin: EdgeInsets.all(.0059 * globals.size.height),
             decoration: BoxDecoration(
                 color: (provider.isSendingTo[chat])
                     ? new Color.fromRGBO(155, 155, 155, 0.5)
@@ -131,12 +132,13 @@ class ChatListWidget extends StatelessWidget {
                       ? Colors.grey[600]
                       : Colors.grey[400],
                 ),
-                borderRadius: BorderRadius.all(Radius.circular(20))),
+                borderRadius: BorderRadius.all(
+                    Radius.circular(.0237 * globals.size.height))),
             child: Column(
               children: [
                 chat.chatIcon,
                 Container(
-                  padding: EdgeInsets.only(top: 10),
+                  padding: EdgeInsets.only(top: .0118 * globals.size.height),
                   child: Text(
                     chat.chatName,
                     style: TextStyle(color: Colors.black),
@@ -183,20 +185,21 @@ class _SharePostButtonState extends State<SharePostButton> {
     return Consumer<ChatListProvider>(
         builder: (context, provider, child) => GestureDetector(
             child: Container(
-                width: 200,
-                height: 40,
+                width: .513 * globals.size.width,
+                height: .047 * globals.size.height,
                 decoration: BoxDecoration(
                     border: Border.all(
                       color: Colors.grey[600],
                     ),
-                    borderRadius: BorderRadius.all(Radius.circular(15))),
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(.0178 * globals.size.height))),
                 child: Center(
                     child: Text("Send To ${provider.numChatsSelected} Chats",
                         style: TextStyle(
                           color: (provider.numChatsSelected > 0)
                               ? Colors.black
                               : Colors.grey[400],
-                          fontSize: 20,
+                          fontSize: .024 * globals.size.height,
                         )))),
             onTap: () async {
               if (!buttonPressed) {
@@ -229,11 +232,12 @@ class NoChatsSelectedAlert extends StatelessWidget {
     return AlertDialog(
         backgroundColor: Colors.transparent,
         content: Container(
-          height: 75,
-          width: 100,
+          height: .0889 * globals.size.height,
+          width: .256 * globals.size.width,
           decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(16))),
+              borderRadius: BorderRadius.all(
+                  Radius.circular(.0189 * globals.size.height))),
           child: Center(
             child: Text("You have not selected any chats.",
                 textAlign: TextAlign.center,

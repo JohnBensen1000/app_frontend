@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
+import '../../globals.dart' as globals;
 import '../../API/methods/comments.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
@@ -42,13 +43,15 @@ class Comments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: height + 60,
+        height: height + .0711 * globals.size.height,
         alignment: Alignment.bottomCenter,
         child: Column(
           children: [
             Container(
-                margin: EdgeInsets.only(top: 5, bottom: 10),
-                height: 40,
+                margin: EdgeInsets.only(
+                    top: 0.0059 * globals.size.height,
+                    bottom: 0.0118 * globals.size.height),
+                height: .047 * globals.size.height,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -143,7 +146,7 @@ class CommentsSection extends StatelessWidget {
     CommentsProvider provider =
         Provider.of<CommentsProvider>(context, listen: false);
 
-    double paddingPerLevel = 40;
+    double paddingPerLevel = .103 * globals.size.width;
 
     return Container(
       height: height,
@@ -157,21 +160,25 @@ class CommentsSection extends StatelessWidget {
               double leftPadding = paddingPerLevel * comment.level;
 
               return Container(
-                margin: EdgeInsets.only(bottom: 5),
+                margin: EdgeInsets.only(bottom: .0059 * globals.size.height),
                 child: Column(
                   children: <Widget>[
                     CommentWidget(
                         post: post, comment: comment, leftPadding: leftPadding),
                     Container(
-                      padding: EdgeInsets.only(left: 20 + leftPadding),
+                      padding: EdgeInsets.only(
+                          left: .0513 * globals.size.width + leftPadding),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Container(
-                            padding: EdgeInsets.only(right: 20),
+                            padding: EdgeInsets.only(
+                                right: .0513 * globals.size.width),
                             child: GestureDetector(
                               child: Center(
-                                child: Text("Reply"),
+                                child: Text("Reply",
+                                    style: TextStyle(
+                                        fontSize: .015 * globals.size.height)),
                               ),
                               onTap: () => Navigator.push(
                                       context,
@@ -233,10 +240,8 @@ class AddComment extends StatelessWidget {
             'Add a comment',
             style: TextStyle(
               fontFamily: 'SF Pro Text',
-              fontSize: 20,
+              fontSize: .0237 * globals.size.height,
               color: const Color(0x69000000),
-              letterSpacing: -0.48,
-              height: 1.1,
             ),
           ),
         ),

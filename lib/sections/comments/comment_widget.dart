@@ -39,8 +39,8 @@ class _CommentWidgetState extends State<CommentWidget>
 
   @override
   Widget build(BuildContext context) {
-    double profilePicSize = 40.0;
-    double profilePicPadding = 5.0;
+    double profilePicSize = .0474 * globals.size.height;
+    double profilePicPadding = .0059 * globals.size.height;
     double margin = 2.5;
     double width = MediaQuery.of(context).size.width;
 
@@ -69,12 +69,13 @@ class _CommentWidgetState extends State<CommentWidget>
                           widget.leftPadding -
                           (2 * profilePicPadding + profilePicSize) -
                           2 * margin -
-                          10,
+                          .012 * globals.size.height,
                       alignment: Alignment.topLeft,
                       child: RichText(
                           text: new TextSpan(
                               style: new TextStyle(
-                                  fontSize: 13, color: Colors.black),
+                                  fontSize: .0154 * globals.size.height,
+                                  color: Colors.black),
                               children: <TextSpan>[
                             TextSpan(
                                 text: "${widget.comment.user.username} ",

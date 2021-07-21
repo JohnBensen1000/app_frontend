@@ -42,8 +42,8 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 200;
-    double footerHeight = 100;
+    double headerHeight = .236 * globals.size.height;
+    double footerHeight = .14 * globals.size.height;
 
     return ChangeNotifierProvider(
         create: (context) => ChatPageProvider(
@@ -80,7 +80,10 @@ class ChatPageHeader extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.only(top: 30, left: 30, right: 30),
+        padding: EdgeInsets.only(
+            top: .0355 * globals.size.height,
+            left: .0769 * globals.size.width,
+            right: .0769 * globals.size.width),
         height: height,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -100,10 +103,13 @@ class ChatPageHeader extends PreferredSize {
                 Container(child: chat.chatIcon),
                 GestureDetector(
                   child: Container(
-                    padding: EdgeInsets.only(left: 10, right: 10, top: 10),
+                    padding: EdgeInsets.only(
+                        left: .0256 * globals.size.width,
+                        right: .0256 * globals.size.width,
+                        top: .0118 * globals.size.height),
                     child: Text(
                       chat.chatName,
-                      style: TextStyle(fontSize: 20),
+                      style: TextStyle(fontSize: .0237 * globals.size.height),
                     ),
                   ),
                   onLongPress: () async => await blockUser(context),
@@ -164,9 +170,11 @@ class ChatPageBody extends StatelessWidget {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: .0513 * globals.size.width),
                   child: ListView.builder(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: EdgeInsets.symmetric(
+                          vertical: .0237 * globals.size.height),
                       reverse: true,
                       itemCount: snapshot.data.length,
                       itemBuilder: (context, index) {
@@ -228,7 +236,9 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
           children: [
             GestureDetector(
                 child: Container(
-                  padding: EdgeInsets.only(top: 4, bottom: 4),
+                  padding: EdgeInsets.only(
+                      top: .0047 * globals.size.height,
+                      bottom: .0047 * globals.size.height),
                   child: (widget.chatItem.isPost == false)
                       ? ChatItemWidgetText(
                           text: widget.chatItem.text,
@@ -236,7 +246,7 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
                         )
                       : ChatItemWidgetPost(
                           chatItem: widget.chatItem,
-                          height: 240,
+                          height: .284 * globals.size.height,
                         ),
                 ),
                 onLongPress: () {
@@ -247,13 +257,16 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
                 }),
             if (showReportButton)
               Container(
-                margin: EdgeInsets.only(bottom: 5),
-                padding: EdgeInsets.only(left: 5, right: 5),
-                width: 150,
-                height: 30,
+                margin: EdgeInsets.only(bottom: .0059 * globals.size.height),
+                padding: EdgeInsets.only(
+                    left: .0128 * globals.size.width,
+                    right: .0128 * globals.size.width),
+                width: .385 * globals.size.width,
+                height: .0355 * globals.size.height,
                 decoration: BoxDecoration(
                     color: Colors.grey[200],
-                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(.0237 * globals.size.height))),
                 child: Center(
                     child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -326,7 +339,8 @@ class ChatItemWidgetText extends StatelessWidget {
     String newChat = breakIntoLines(text, 34, 30);
     return Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
+          borderRadius:
+              BorderRadius.all(Radius.circular(.0237 * globals.size.height)),
           color: backgroundColor,
         ),
         padding: EdgeInsets.all(10),
@@ -430,17 +444,20 @@ class _ChatPageFooterState extends State<ChatPageFooter> {
     provider = Provider.of<ChatPageProvider>(context, listen: false);
 
     return Container(
+      padding: EdgeInsets.only(top: .01 * globals.size.height),
       height: widget.height,
       child: Column(children: <Widget>[
         Container(
-          width: 350.0,
+          width: .897 * globals.size.width,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(23.0),
+            borderRadius: BorderRadius.circular(globals.size.width),
             color: const Color(0xffffffff),
             border: Border.all(width: 1.0, color: const Color(0xff707070)),
           ),
           child: Container(
-            padding: EdgeInsets.only(left: 10.0, right: 10.0),
+            padding: EdgeInsets.only(
+                left: .0256 * globals.size.width,
+                right: .0256 * globals.size.width),
             child: TextField(
               controller: _chatController,
               decoration: InputDecoration(
@@ -461,7 +478,7 @@ class _ChatPageFooterState extends State<ChatPageFooter> {
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.symmetric(vertical: .0118 * globals.size.height),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[

@@ -102,21 +102,25 @@ class PreviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double height = 600;
+    double height = .711 * globals.size.height;
 
     return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
       Container(
           alignment: Alignment.topLeft,
-          padding: EdgeInsets.only(top: 40, left: 5),
-          child: FlatButton(
-              child: BackArrow(), onPressed: () => Navigator.pop(context))),
+          padding: EdgeInsets.only(
+              top: .047 * globals.size.height,
+              left: .0128 * globals.size.width),
+          child: GestureDetector(
+              child: BackArrow(), onTap: () => Navigator.pop(context))),
       PreviewView(height: height),
       Consumer<PreviewProvider>(builder: (context, provider, child) {
         CameraUsage cameraUsage = provider.cameraUsage;
 
         if (provider.showOptions)
           return Container(
-              padding: EdgeInsets.only(top: 40, bottom: 40),
+              padding: EdgeInsets.only(
+                  top: .047 * globals.size.height,
+                  bottom: .047 * globals.size.height),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
@@ -341,7 +345,9 @@ class ShareButton extends StatelessWidget {
                 duration: Duration(days: 365),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(30))),
-                padding: EdgeInsets.only(left: 5, right: 5),
+                padding: EdgeInsets.only(
+                    left: .0128 * globals.size.width,
+                    right: .0128 * globals.size.width),
                 content: ChatListSnackBar(
                   isImage: provider.isImage,
                   file: provider.file,

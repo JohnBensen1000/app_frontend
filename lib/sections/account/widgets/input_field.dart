@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../globals.dart' as globals;
+
 class InputField {
   // Object that contains the state of an individual InputFieldWidget.
   final String hintText;
@@ -24,16 +26,16 @@ class InputFieldWidget extends StatelessWidget {
     return Column(
       children: <Widget>[
         Container(
-          width: 308.0,
-          height: 46.0,
+          width: .789 * globals.size.width,
+          height: .0545 * globals.size.height,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(23.0),
+            borderRadius: BorderRadius.circular(globals.size.height),
             color: const Color(0xffffffff),
             border: Border.all(width: 1.0, color: const Color(0xff707070)),
           ),
           child: Transform.translate(
             // offset to center text
-            offset: Offset(0, 5),
+            offset: Offset(0, .0059 * globals.size.height),
             child: TextFormField(
               textAlignVertical: TextAlignVertical.center,
               controller: inputField.textEditingController,
@@ -42,11 +44,11 @@ class InputFieldWidget extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: inputField.hintText,
                 border: InputBorder.none,
-                errorStyle: TextStyle(fontSize: 12),
+                errorStyle: TextStyle(fontSize: .0142 * globals.size.height),
               ),
               style: TextStyle(
                 fontFamily: 'Devanagari Sangam MN',
-                fontSize: 20,
+                fontSize: .0237 * globals.size.height,
                 color: const Color(0xc1000000),
               ),
             ),
@@ -55,7 +57,8 @@ class InputFieldWidget extends StatelessWidget {
         Container(
             child: Text(
           inputField.errorText,
-          style: TextStyle(color: Colors.red, fontSize: 12.0),
+          style: TextStyle(
+              color: Colors.red, fontSize: .0142 * globals.size.height),
         ))
       ],
     );

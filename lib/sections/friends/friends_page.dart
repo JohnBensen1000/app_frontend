@@ -52,18 +52,18 @@ class FriendsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10),
+      padding: EdgeInsets.symmetric(horizontal: .0256 * globals.size.width),
       height: height,
       child: Column(
         children: <Widget>[
           NewFollowersAlert(),
           Expanded(
-              child: ListView.builder(
-                  padding: EdgeInsets.only(top: 20),
-                  itemCount: chatstList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    Chat chat = chatstList[index];
-                    return GestureDetector(
+            child: ListView.builder(
+                padding: EdgeInsets.only(top: .0237 * globals.size.height),
+                itemCount: chatstList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  Chat chat = chatstList[index];
+                  return GestureDetector(
                       child: ChatWidget(
                         chat: chat,
                       ),
@@ -74,12 +74,18 @@ class FriendsPage extends StatelessWidget {
                               builder: (context) => ChatPage(
                                     chat: chat,
                                   )),
-                        ).then((_) =>
-                            Provider.of<FriendsProvider>(context, listen: false)
-                                .resetState());
-                      },
-                    );
-                  })),
+                        ).then(
+                          (resetState) {
+                            if (resetState != null && resetState) {
+                              Provider.of<FriendsProvider>(context,
+                                      listen: false)
+                                  .resetState();
+                            }
+                          },
+                        );
+                      });
+                }),
+          )
         ],
       ),
     );
@@ -129,14 +135,15 @@ class _NewFollowersAlertState extends State<NewFollowersAlert> {
             newFollowingText = "New Followers: ${snapshot.data.length}";
 
             return Padding(
-                padding: const EdgeInsets.only(bottom: 5),
+                padding: EdgeInsets.only(bottom: .0059 * globals.size.height),
                 child: GestureDetector(
                     child: Container(
-                      height: 20,
-                      width: 200,
+                      height: .0237 * globals.size.height,
+                      width: .513 * globals.size.width,
                       decoration: BoxDecoration(
                           border: Border.all(color: Colors.black, width: 2),
-                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                          borderRadius: BorderRadius.all(
+                              Radius.circular(globals.size.height))),
                       child: Center(child: Text(newFollowingText)),
                     ),
                     onTap: () => Navigator.push(
@@ -164,22 +171,23 @@ class ChatWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+      padding: EdgeInsets.fromLTRB(
+          0, .0059 * globals.size.height, 0, .0059 * globals.size.height),
       child: Container(
-          width: 359.0,
-          height: 118.0,
+          width: .921 * globals.size.width,
+          height: .140 * globals.size.height,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(61.0),
+            borderRadius: BorderRadius.circular(globals.size.height),
             border: Border.all(width: 2.0, color: chat.color),
             color: Colors.white,
           ),
           child: Container(
-            padding: EdgeInsets.only(left: 20),
+            padding: EdgeInsets.only(left: .0513 * globals.size.width),
             child: Row(
               children: <Widget>[
                 chat.chatIcon,
                 Container(
-                  padding: EdgeInsets.only(left: 10),
+                  padding: EdgeInsets.only(left: .0256 * globals.size.width),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -187,10 +195,8 @@ class ChatWidget extends StatelessWidget {
                         chat.chatName,
                         style: TextStyle(
                           fontFamily: 'SF Pro Text',
-                          fontSize: 24,
+                          fontSize: .0284 * globals.size.height,
                           color: const Color(0xff000000),
-                          letterSpacing: -0.36,
-                          height: 1.4666666666666666,
                         ),
                         textAlign: TextAlign.left,
                       ),
