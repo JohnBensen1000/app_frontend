@@ -138,7 +138,7 @@ class ChatListWidget extends StatelessWidget {
               children: [
                 chat.chatIcon,
                 Container(
-                  padding: EdgeInsets.only(top: .0118 * globals.size.height),
+                  padding: EdgeInsets.only(top: .01 * globals.size.height),
                   child: Text(
                     chat.chatName,
                     style: TextStyle(color: Colors.black),
