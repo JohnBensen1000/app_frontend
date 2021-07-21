@@ -110,7 +110,7 @@ class SearchPageHeader extends StatelessWidget {
           ),
           Container(
               height: .059 * globals.size.height,
-              width: .769 * globals.size.width,
+              width: .76 * globals.size.width,
               child: TextField(
                 decoration: InputDecoration(
                     contentPadding: EdgeInsets.all(.0118 * globals.size.height),

@@ -109,7 +109,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    double appBarHeight = .13 * globals.size.height;
+    double appBarHeight = .12 * globals.size.height;
     double bodyHeight = MediaQuery.of(context).size.height - appBarHeight;
 
     return MultiProvider(
@@ -146,9 +146,10 @@ class HomeAppBar extends PreferredSize {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.only(top: .05 * globals.size.height),
       color: Colors.white,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           HomeAppBarButtons(),
           HomeAppBarNavigation(),
@@ -174,7 +175,10 @@ class HomeAppBarButtons extends StatelessWidget {
     double buttonsWidth = .12 * globals.size.width;
 
     return Container(
-        padding: EdgeInsets.symmetric(horizontal: .0512 * globals.size.width),
+        padding: EdgeInsets.only(
+          left: .0512 * globals.size.width,
+          right: .0512 * globals.size.width,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -183,7 +187,7 @@ class HomeAppBarButtons extends StatelessWidget {
             ),
             GestureDetector(
                 child: Container(
-                    height: .059 * globals.size.height,
+                    height: .065 * globals.size.height,
                     child: Image.asset('assets/images/Entropy.PNG')),
                 onTap: () => Navigator.push(
                     context,
@@ -263,9 +267,10 @@ class HomeAppBarNavigation extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         Container(
-          width: .65 * globals.size.width,
+          width: .58 * globals.size.width,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -327,19 +332,24 @@ class NavigationButton extends StatelessWidget {
           ? Color(0xFF000000)
           : Color(0x73000000);
 
-      return TextButton(
-        child: Text(
-          pageName,
-          style: TextStyle(
-            fontFamily: '.AppleSystemUIFont',
-            fontSize: .0178 * globals.size.height,
-            color: textColor,
+      return Container(
+        child: GestureDetector(
+          child: Container(
+            height: .04 * globals.size.height,
+            child: Text(
+              pageName,
+              style: TextStyle(
+                fontFamily: '.AppleSystemUIFont',
+                fontSize: .0178 * globals.size.height,
+                color: textColor,
+              ),
+              textAlign: TextAlign.left,
+            ),
           ),
-          textAlign: TextAlign.left,
+          onTap: () {
+            provider.setMainPage(pageLabel);
+          },
         ),
-        onPressed: () {
-          provider.setMainPage(pageLabel);
-        },
       );
     });
   }

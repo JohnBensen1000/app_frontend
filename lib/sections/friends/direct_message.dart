@@ -41,8 +41,8 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = .237 * globals.size.height;
-    double footerHeight = .118 * globals.size.height;
+    double headerHeight = .236 * globals.size.height;
+    double footerHeight = .14 * globals.size.height;
 
     return ChangeNotifierProvider(
         create: (context) => ChatPageProvider(
@@ -430,6 +430,7 @@ class _ChatPageFooterState extends State<ChatPageFooter> {
     provider = Provider.of<ChatPageProvider>(context, listen: false);
 
     return Container(
+      padding: EdgeInsets.only(top: .01 * globals.size.height),
       height: widget.height,
       child: Column(children: <Widget>[
         Container(

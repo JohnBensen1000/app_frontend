@@ -57,54 +57,48 @@ class CommentsPage extends StatelessWidget {
     double footerHeight = .14 * height;
 
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: ChangeNotifierProvider(
-            create: (context) => CommentsPageProvider(
-                post: post,
-                commentsList: commentsList,
-                parentComment: parentComment),
-            child: Column(
-              children: [
-                Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: <Widget>[
-                    // PostView(
-                    //   post: post,
-                    //   height: height,
-                    //   aspectRatio: height / width,
-                    //   postStage: PostStage.onlyPost,
-                    //   playOnInit: false,
-                    // ),
-                    Container(
-                      width: width,
-                      height: height,
-                      color: Colors.white.withOpacity(.7),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                        ),
-                        CommentsPageHeader(
-                          height: headerHeight,
-                        ),
-                        CommentsPageBody(
-                          height: height - headerHeight - footerHeight,
-                          parentCommentOffset: (parentComment != null)
-                              ? parentComment.level + 1
-                              : 0,
-                        ),
-                        CommentsPageFooter(
-                          videoPlayerController: null,
-                          height: footerHeight,
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            )));
+      body: ChangeNotifierProvider(
+          create: (context) => CommentsPageProvider(
+              post: post,
+              commentsList: commentsList,
+              parentComment: parentComment),
+          child: Stack(
+            children: <Widget>[
+              // PostView(
+              //   post: post,
+              //   height: height,
+              //   aspectRatio: height / width,
+              //   postStage: PostStage.onlyPost,
+              //   playOnInit: false,
+              // ),
+              Container(
+                width: width,
+                height: height,
+                color: Colors.white.withOpacity(.7),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: double.infinity,
+                  ),
+                  CommentsPageHeader(
+                    height: headerHeight,
+                  ),
+                  CommentsPageBody(
+                    height: height - headerHeight - footerHeight,
+                    parentCommentOffset:
+                        (parentComment != null) ? parentComment.level + 1 : 0,
+                  ),
+                  CommentsPageFooter(
+                    videoPlayerController: null,
+                    height: footerHeight,
+                  )
+                ],
+              ),
+            ],
+          )),
+    );
   }
 }
 

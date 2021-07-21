@@ -12,7 +12,7 @@ import 'navigation/home_screen.dart';
 
 import 'account/enter_account.dart';
 
-class Welcome extends StatelessWidget {
+class Welcome extends StatefulWidget {
   // Checks to see if the current device is signed in on. If it is, then saves
   // the user data to globals.user and sends the user to the home screen.
   // Otherwise sends the user to WelcomePage().
@@ -21,11 +21,12 @@ class Welcome extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    globals.size = globals.SizeConfig(context: context);
-    // print("width: ${globals.size.width} height: ${globals.size.height}");
-    print("Welcome");
+  _WelcomeState createState() => _WelcomeState();
+}
 
+class _WelcomeState extends State<Welcome> {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: const Color(0xffffffff),
         body: FutureBuilder(
@@ -36,8 +37,11 @@ class Welcome extends StatelessWidget {
                   future: globals.accountRepository.getUser(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done) {
+                      globals.size = globals.SizeConfig(context: context);
+
                       if (snapshot.hasData) {
                         globals.user = snapshot.data;
+
                         return Home();
                       } else
                         return LogInScreen();

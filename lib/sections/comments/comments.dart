@@ -175,20 +175,22 @@ class CommentsSection extends StatelessWidget {
                             padding: EdgeInsets.only(
                                 right: .0513 * globals.size.width),
                             child: GestureDetector(
-                                child: Center(
-                                  child: Text("Reply"),
-                                ),
-                                onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => CommentsPage(
-                                              post: post,
-                                              commentsList: getSubComments(
-                                                  commentsList, comment),
-                                              parentComment: comment,
-                                            )))
-                                // .then((value) => provider.resetState()),
-                                ),
+                              child: Center(
+                                child: Text("Reply",
+                                    style: TextStyle(
+                                        fontSize: .015 * globals.size.height)),
+                              ),
+                              onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => CommentsPage(
+                                                post: post,
+                                                commentsList: getSubComments(
+                                                    commentsList, comment),
+                                                parentComment: comment,
+                                              )))
+                                  .then((value) => provider.resetState()),
+                            ),
                           ),
                         ],
                       ),
@@ -233,27 +235,25 @@ class AddComment extends StatelessWidget {
       height: height,
       alignment: Alignment.center,
       child: GestureDetector(
-          child: AddCommentButton(
-            child: Text(
-              'Add a comment',
-              style: TextStyle(
-                fontFamily: 'SF Pro Text',
-                fontSize: .0237 * globals.size.height,
-                color: const Color(0x69000000),
-              ),
+        child: AddCommentButton(
+          child: Text(
+            'Add a comment',
+            style: TextStyle(
+              fontFamily: 'SF Pro Text',
+              fontSize: .0237 * globals.size.height,
+              color: const Color(0x69000000),
             ),
           ),
-          onTap: () async => await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => CommentsPage(
-                          post: post,
-                          commentsList: commentsList,
-                          parentComment: null,
-                        )),
-              )
-          // ))).then((value) => provider.resetState()),
-          ),
+        ),
+        onTap: () async => await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => CommentsPage(
+                      post: post,
+                      commentsList: commentsList,
+                      parentComment: null,
+                    ))).then((value) => provider.resetState()),
+      ),
     );
   }
 }

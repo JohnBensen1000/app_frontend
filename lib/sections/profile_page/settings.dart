@@ -154,10 +154,10 @@ class SettingsProfile extends StatelessWidget {
       children: <Widget>[
         Padding(
             padding: EdgeInsets.only(
-                top: .024 * globals.size.height,
-                bottom: .024 * globals.size.height),
+                top: .02 * globals.size.height,
+                bottom: .02 * globals.size.height),
             child: ProfilePic(
-              diameter: .24 * globals.size.height,
+              diameter: .21 * globals.size.height,
               user: globals.user,
             )),
         Text(
@@ -183,23 +183,21 @@ class SettingsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FlatButton(
-      child: Padding(
-        padding: EdgeInsets.only(
-            top: .012 * globals.size.height,
-            bottom: .012 * globals.size.height),
-        child: Container(
-          width: .536 * globals.size.width,
-          height: .036 * globals.size.height,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(globals.size.height),
-            color: const Color(0xffffffff),
-            border: Border.all(width: 1.0, color: const Color(0xff707070)),
-          ),
-          child: Center(child: Text(buttonName)),
+    return GestureDetector(
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: .01 * globals.size.height),
+        width: .536 * globals.size.width,
+        height: .036 * globals.size.height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(globals.size.height),
+          color: const Color(0xffffffff),
+          border: Border.all(width: 1.0, color: const Color(0xff707070)),
         ),
+        child: Center(
+            child: Text(buttonName,
+                style: TextStyle(fontSize: .018 * globals.size.height))),
       ),
-      onPressed: onPressed,
+      onTap: onPressed,
     );
   }
 }

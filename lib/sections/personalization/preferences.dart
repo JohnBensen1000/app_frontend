@@ -56,7 +56,7 @@ class PreferencesPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         PreferencesHeader(
-                          scaling: .001 * globals.size.height,
+                          scaling: .0009 * globals.size.height,
                           height: headerHeight,
                         ),
                         PreferencesBody(
@@ -99,10 +99,12 @@ class PreferencesHeader extends StatelessWidget {
                 width: double.infinity,
                 margin: EdgeInsets.only(
                     top: .05 * globals.size.height,
-                    left: .05 * globals.size.width),
-                // margin: EdgeInsets.only(top: 40, left: 20),
+                    left: .05 * globals.size.width,
+                    bottom: .01 * globals.size.height,
+                    right: .01 * globals.size.width),
                 alignment: Alignment.topLeft,
-                child: BackArrow()),
+                child: GestureDetector(
+                    child: BackArrow(), onTap: () => Navigator.pop(context))),
             Stack(children: <Widget>[
               Transform.translate(
                 offset: Offset(scaling * -0.2, scaling * 26.0),
