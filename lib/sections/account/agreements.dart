@@ -167,9 +167,10 @@ class PolicyAgreementPage extends StatelessWidget {
       BuildContext context, PolicyAgreementProvider provider) async {
     // Goes through each policyAgreement and checks if the user has accepted. If
     // the user accepted all the policies, creates a new account for the user,
-    // then pushes the user to the choose color page and preferences page.
-    // If the user has not agreed to all the policies, shows an alert dialog
-    // telling the user that they still have to agree to all the policies.
+    // then, if no error occur in creating the new account, pushes the user to
+    // the choose color page and preferences page. If the user has not agreed to
+    // all the policies, shows an alert dialog telling the user that they still
+    // have to agree to all the policies.
 
     bool areAgreementsAccepted = true;
 
@@ -180,17 +181,17 @@ class PolicyAgreementPage extends StatelessWidget {
       }
     }
     if (areAgreementsAccepted) {
-      await _createAccount(context);
+      if (await _createAccount(context)) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Home(
+                      pageLabel: PageLabel.friends,
+                    )));
 
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Home(
-                    pageLabel: PageLabel.friends,
-                  )));
-
-      Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
-      Navigator.push(context, SlideRightRoute(page: ColorsPage()));
+        Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
+        Navigator.push(context, SlideRightRoute(page: ColorsPage()));
+      }
     } else {
       showDialog(
           context: context,
@@ -198,9 +199,11 @@ class PolicyAgreementPage extends StatelessWidget {
     }
   }
 
-  Future<void> _createAccount(BuildContext context) async {
+  Future<bool> _createAccount(BuildContext context) async {
     // Creates a firebase account and an account in the database. Then sets
-    // globals.user to the newly created account.
+    // globals.user to the newly created account. If an error occurs in creating
+    // the account on the backend, deletes the firebase account and returns
+    // false. Returns true otherwise.
 
     firebase_auth.User firebaseUser =
         (await auth.createUserWithEmailAndPassword(
@@ -217,9 +220,14 @@ class PolicyAgreementPage extends StatelessWidget {
     };
 
     var response = await handleRequest(context, postNewAccount(newAccount));
-
-    globals.user = User.fromJson(response['user']);
-    await globals.accountRepository.setUid(uid: firebaseUser.uid);
+    if (response != null) {
+      globals.user = User.fromJson(response['user']);
+      await globals.accountRepository.setUid(uid: firebaseUser.uid);
+      return true;
+    } else {
+      await firebaseUser.delete();
+      return false;
+    }
   }
 }
 
