@@ -58,12 +58,12 @@ class FriendsPage extends StatelessWidget {
         children: <Widget>[
           NewFollowersAlert(),
           Expanded(
-              child: ListView.builder(
-                  padding: EdgeInsets.only(top: .0237 * globals.size.height),
-                  itemCount: chatstList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    Chat chat = chatstList[index];
-                    return GestureDetector(
+            child: ListView.builder(
+                padding: EdgeInsets.only(top: .0237 * globals.size.height),
+                itemCount: chatstList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  Chat chat = chatstList[index];
+                  return GestureDetector(
                       child: ChatWidget(
                         chat: chat,
                       ),
@@ -74,12 +74,18 @@ class FriendsPage extends StatelessWidget {
                               builder: (context) => ChatPage(
                                     chat: chat,
                                   )),
-                        ).then((_) =>
-                            Provider.of<FriendsProvider>(context, listen: false)
-                                .resetState());
-                      },
-                    );
-                  })),
+                        ).then(
+                          (resetState) {
+                            if (resetState != null && resetState) {
+                              Provider.of<FriendsProvider>(context,
+                                      listen: false)
+                                  .resetState();
+                            }
+                          },
+                        );
+                      });
+                }),
+          )
         ],
       ),
     );

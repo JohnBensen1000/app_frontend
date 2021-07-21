@@ -130,7 +130,7 @@ class ChatPageHeader extends PreferredSize {
         .then((isUserBlocked) async {
       if (isUserBlocked) {
         await handleRequest(context, postBlockedUser(provider.chat.members[0]));
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     });
   }
