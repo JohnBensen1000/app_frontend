@@ -24,6 +24,7 @@ class Welcome extends StatelessWidget {
   Widget build(BuildContext context) {
     globals.size = globals.SizeConfig(context: context);
     // print("width: ${globals.size.width} height: ${globals.size.height}");
+    print("Welcome");
 
     return Scaffold(
         backgroundColor: const Color(0xffffffff),

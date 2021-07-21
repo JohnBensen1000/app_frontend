@@ -171,7 +171,7 @@ class HomeAppBarButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     ResetStateProvider provider =
         Provider.of<ResetStateProvider>(context, listen: false);
-    double buttonsWidth = .059 * globals.size.height;
+    double buttonsWidth = .12 * globals.size.width;
 
     return Container(
         padding: EdgeInsets.symmetric(horizontal: .0512 * globals.size.width),
@@ -235,7 +235,7 @@ class IconContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: .0758 * globals.size.height,
+      width: .12 * globals.size.width,
       height: .0273 * globals.size.height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(globals.size.height),
@@ -265,7 +265,7 @@ class HomeAppBarNavigation extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Container(
-          width: .284 * globals.size.height,
+          width: .65 * globals.size.width,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -288,7 +288,7 @@ class HomeAppBarNavigation extends StatelessWidget {
           child: Transform.translate(
             offset: Offset(0, -.0118 * globals.size.height),
             child: Container(
-              width: .251 * globals.size.height,
+              width: .55 * globals.size.width,
               height: .00829 * globals.size.height,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(globals.size.height),
@@ -298,8 +298,8 @@ class HomeAppBarNavigation extends StatelessWidget {
               child: Transform.translate(
                 offset: Offset(
                     max(-1.0, min(-provider.offset, 1.0)) *
-                        .0995 *
-                        globals.size.height,
+                        .223 *
+                        globals.size.width,
                     0),
                 child: SvgPicture.string(
                   _svg_cayeaa,
@@ -332,7 +332,7 @@ class NavigationButton extends StatelessWidget {
           pageName,
           style: TextStyle(
             fontFamily: '.AppleSystemUIFont',
-            fontSize: 15,
+            fontSize: .0178 * globals.size.height,
             color: textColor,
           ),
           textAlign: TextAlign.left,

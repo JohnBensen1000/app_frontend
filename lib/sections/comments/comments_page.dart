@@ -49,12 +49,12 @@ class CommentsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    double height = .6 * MediaQuery.of(context).size.height;
+    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    double height = MediaQuery.of(context).size.height - keyboardHeight;
     double width = MediaQuery.of(context).size.height;
 
-    double headerHeight = .154 * globals.size.height;
-    double footerHeight = .0711 * globals.size.height;
+    double headerHeight = .3 * height;
+    double footerHeight = .14 * height;
 
     return Scaffold(
         resizeToAvoidBottomInset: false,
@@ -68,14 +68,13 @@ class CommentsPage extends StatelessWidget {
                 Stack(
                   alignment: Alignment.bottomCenter,
                   children: <Widget>[
-                    Container(
-                        child: PostView(
-                      post: post,
-                      height: height,
-                      aspectRatio: height / width,
-                      postStage: PostStage.onlyPost,
-                      playOnInit: false,
-                    )),
+                    // PostView(
+                    //   post: post,
+                    //   height: height,
+                    //   aspectRatio: height / width,
+                    //   postStage: PostStage.onlyPost,
+                    //   playOnInit: false,
+                    // ),
                     Container(
                       width: width,
                       height: height,
@@ -223,20 +222,25 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
     return Container(
         height: widget.height,
         padding: EdgeInsets.only(bottom: .0118 * globals.size.height),
+        alignment: Alignment.center,
         child: AddCommentButton(
           child: Stack(
             children: [
-              TextFormField(
-                style: TextStyle(
-                  fontFamily: 'SF Pro Text',
-                  fontSize: .0237 * globals.size.height,
-                  color: const Color(0x69000000),
+              Container(
+                child: TextFormField(
+                  style: TextStyle(
+                    fontFamily: 'SF Pro Text',
+                    fontSize: .025 * globals.size.height,
+                    color: const Color(0x69000000),
+                  ),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.only(
+                        top: 0, bottom: .009 * globals.size.height),
+                    border: InputBorder.none,
+                  ),
+                  autofocus: true,
+                  controller: textController,
                 ),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                ),
-                autofocus: true,
-                controller: textController,
               ),
               Container(
                 padding: EdgeInsets.only(right: .0307 * globals.size.width),
