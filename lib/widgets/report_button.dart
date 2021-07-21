@@ -4,6 +4,7 @@ import '../../API/handle_requests.dart';
 import '../../API/methods/posts.dart';
 import '../../models/post.dart';
 import '../../API/methods/relations.dart';
+import '../globals.dart' as globals;
 
 class ReportButton extends StatelessWidget {
   ReportButton({@required this.width});
@@ -14,16 +15,18 @@ class ReportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         width: width,
-        height: 20.0,
+        height: .0237 * globals.size.hashCode,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(13.0),
+          borderRadius: BorderRadius.circular(.0154 * globals.size.height),
           color: const Color(0xffffffff),
           border: Border.all(width: 1.0, color: const Color(0xff707070)),
         ),
         child: Center(
           child: Text(
             "Report",
-            style: TextStyle(color: const Color(0x67000000), fontSize: 10),
+            style: TextStyle(
+                color: const Color(0x67000000),
+                fontSize: .0118 * globals.size.height),
           ),
         ));
   }
@@ -46,18 +49,20 @@ class ReportContentAlertDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: Colors.transparent,
       content: Container(
-        width: 200,
-        height: 200,
+        width: .513 * globals.size.width,
+        height: .237 * globals.size.height,
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
             color: Colors.grey[300].withOpacity(.9),
-            borderRadius: BorderRadius.all(Radius.circular(25))),
+            borderRadius:
+                BorderRadius.all(Radius.circular(.029 * globals.size.height))),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
-                margin: EdgeInsets.all(10),
-                child: Text("Problem?", style: TextStyle(fontSize: 22))),
+                margin: EdgeInsets.all(.0118 * globals.size.height),
+                child: Text("Problem?",
+                    style: TextStyle(fontSize: .0261 * globals.size.height))),
             GestureDetector(
                 child: ReportContentButton(
                   buttonName: "Report this post",
@@ -96,13 +101,14 @@ class ReportContentButton extends StatelessWidget {
     Color backgroundColor = Colors.white.withOpacity(.8);
     return GestureDetector(
       child: Container(
-          margin: EdgeInsets.all(5),
-          width: 160,
-          height: 40,
+          margin: EdgeInsets.all(.0059 * globals.size.height),
+          width: .41 * globals.size.width,
+          height: .047 * globals.size.height,
           decoration: BoxDecoration(
               color: backgroundColor,
               border: Border.all(color: Colors.grey[700], width: 1),
-              borderRadius: BorderRadius.all(Radius.circular(25))),
+              borderRadius: BorderRadius.all(
+                  Radius.circular(.029 * globals.size.height))),
           child: Center(
             child: Text(buttonName),
           )),

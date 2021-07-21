@@ -6,6 +6,7 @@ import 'package:test_flutter/sections/account/agreements.dart';
 import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../API/methods/users.dart';
+import '../../globals.dart' as globals;
 
 import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';
@@ -136,9 +137,12 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
-    double titleBarHeight = 160;
-    double height = MediaQuery.of(context).size.height;
+    double titleBarHeight = .21;
+    double forwardButtonHeight = .15;
+
     bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
+
+    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return ChangeNotifierProvider(
         create: (_) => SignUpProvider(
@@ -151,16 +155,19 @@ class _SignUpState extends State<SignUp> {
             ),
         child: Consumer<SignUpProvider>(builder: (context, provider, child) {
           return Scaffold(
-            appBar: AccountAppBar(height: titleBarHeight),
+            appBar: AccountAppBar(height: titleBarHeight * globals.size.height),
             body: Center(
               child: Column(
                 children: <Widget>[
                   Container(
-                      padding: EdgeInsets.only(top: 20),
+                      padding: EdgeInsets.only(
+                        top: .05 * globals.size.height,
+                      ),
                       height: (keyboardActivated)
-                          ? height / 2 - titleBarHeight
-                          : height - titleBarHeight - 200,
-                      width: 400,
+                          ? (1 - titleBarHeight) * globals.size.height -
+                              keyboardHeight
+                          : (1 - titleBarHeight - forwardButtonHeight) *
+                              globals.size.height,
                       child: ListView.builder(
                           itemCount: provider.inputFields.length,
                           itemBuilder: (BuildContext context, int index) {
@@ -168,24 +175,28 @@ class _SignUpState extends State<SignUp> {
                                 inputField: provider.inputFields[index]);
                           })),
                   if (keyboardActivated == false)
-                    GestureDetector(
-                        child: ForwardArrow(),
-                        onTap: () async {
-                          if (await provider.createNewAccount(context))
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => PolicyAgreementPage(
-                                          name: provider
-                                              .name.textEditingController.text,
-                                          email: provider
-                                              .email.textEditingController.text,
-                                          username: provider.username
-                                              .textEditingController.text,
-                                          password: provider.password
-                                              .textEditingController.text,
-                                        )));
-                        }),
+                    Container(
+                      height: forwardButtonHeight * globals.size.height,
+                      alignment: Alignment.topCenter,
+                      child: GestureDetector(
+                          child: ForwardArrow(),
+                          onTap: () async {
+                            if (await provider.createNewAccount(context))
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => PolicyAgreementPage(
+                                            name: provider.name
+                                                .textEditingController.text,
+                                            email: provider.email
+                                                .textEditingController.text,
+                                            username: provider.username
+                                                .textEditingController.text,
+                                            password: provider.password
+                                                .textEditingController.text,
+                                          )));
+                          }),
+                    ),
                 ],
               ),
             ),

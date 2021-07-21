@@ -109,7 +109,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    double appBarHeight = 110;
+    double appBarHeight = .13 * globals.size.height;
     double bodyHeight = MediaQuery.of(context).size.height - appBarHeight;
 
     return MultiProvider(
@@ -171,10 +171,10 @@ class HomeAppBarButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     ResetStateProvider provider =
         Provider.of<ResetStateProvider>(context, listen: false);
-    double buttonsWidth = 50;
+    double buttonsWidth = .059 * globals.size.height;
 
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: .0512 * globals.size.width),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -183,7 +183,7 @@ class HomeAppBarButtons extends StatelessWidget {
             ),
             GestureDetector(
                 child: Container(
-                    height: 58,
+                    height: .059 * globals.size.height,
                     child: Image.asset('assets/images/Entropy.PNG')),
                 onTap: () => Navigator.push(
                     context,
@@ -191,7 +191,7 @@ class HomeAppBarButtons extends StatelessWidget {
                         builder: (context) =>
                             ProfilePage(user: globals.user)))),
             Container(
-              height: 55,
+              height: .0652 * globals.size.height,
               width: buttonsWidth,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -235,10 +235,10 @@ class IconContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 44.0,
-      height: 23.0,
+      width: .0758 * globals.size.height,
+      height: .0273 * globals.size.height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(globals.size.height),
         color: const Color(0xffffffff),
         border: Border.all(width: 1.0, color: const Color(0xff000000)),
       ),
@@ -265,7 +265,7 @@ class HomeAppBarNavigation extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Container(
-          width: 240,
+          width: .284 * globals.size.height,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -286,17 +286,21 @@ class HomeAppBarNavigation extends StatelessWidget {
         ),
         Container(
           child: Transform.translate(
-            offset: Offset(0, -10),
+            offset: Offset(0, -.0118 * globals.size.height),
             child: Container(
-              width: 212.0,
-              height: 7.0,
+              width: .251 * globals.size.height,
+              height: .00829 * globals.size.height,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4.0),
+                borderRadius: BorderRadius.circular(globals.size.height),
                 color: const Color(0xffffffff),
                 border: Border.all(width: 1.0, color: const Color(0xff707070)),
               ),
               child: Transform.translate(
-                offset: Offset(max(-1.0, min(-provider.offset, 1.0)) * 84.0, 0),
+                offset: Offset(
+                    max(-1.0, min(-provider.offset, 1.0)) *
+                        .0995 *
+                        globals.size.height,
+                    0),
                 child: SvgPicture.string(
                   _svg_cayeaa,
                   allowDrawingOutsideViewBox: true,

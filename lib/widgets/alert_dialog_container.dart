@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../globals.dart' as globals;
+
 class AlertDialogContainer extends StatelessWidget {
   // A generic alert dialog used for confirming certain actions. Displays a
   // question (given by the String dialogText). Displays two buttons, 'yes' and
@@ -21,20 +23,24 @@ class AlertDialogContainer extends StatelessWidget {
       content: Container(
         child: Center(
           child: Container(
-            height: 160,
-            width: 320,
+            height: .189 * globals.size.height,
+            width: .821 * globals.size.width,
             decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(25))),
+                borderRadius: BorderRadius.all(
+                    Radius.circular(.0296 * globals.size.height))),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                    padding: EdgeInsets.only(bottom: 20, left: 25, right: 25),
+                    padding: EdgeInsets.only(
+                        bottom: .0237 * globals.size.height,
+                        left: .064 * globals.size.width,
+                        right: .064 * globals.size.width),
                     child: Text(
                       dialogText,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: .0189 * globals.size.height),
                     )),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -45,7 +51,7 @@ class AlertDialogContainer extends StatelessWidget {
                       onTap: () => Navigator.pop(context, true),
                     ),
                     Container(
-                      width: 20,
+                      width: .0518 * globals.size.width,
                     ),
                     GestureDetector(
                       child: AlertDialogContainerButton(
@@ -77,8 +83,8 @@ class AlertDialogContainerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: 95,
-        height: 36,
+        width: .244 * globals.size.width,
+        height: .0427 * globals.size.height,
         decoration: BoxDecoration(
             color: color, borderRadius: BorderRadius.all(Radius.circular(14))),
         child: Center(child: Text(text)));

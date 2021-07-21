@@ -45,11 +45,10 @@ class _SignInState extends State<SignIn> {
     // passwordInputField.textEditingController.text = 'test12345';
 
     return Scaffold(
-        appBar: AccountAppBar(
-          height: 140,
-        ),
+        appBar: AccountAppBar(height: .21 * globals.size.height),
         body: Padding(
-          padding: const EdgeInsets.only(top: 40, bottom: 80),
+          padding: EdgeInsets.only(
+              top: .04 * globals.size.height, bottom: .1 * globals.size.height),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

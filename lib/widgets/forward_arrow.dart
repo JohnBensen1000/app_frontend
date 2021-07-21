@@ -1,13 +1,15 @@
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/material.dart';
 
+import '../globals.dart' as globals;
+
 class ForwardArrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: 58.0,
-        height: 58.0,
-        padding: EdgeInsets.all(10),
+        width: .0687 * globals.size.height,
+        height: .0687 * globals.size.height,
+        padding: EdgeInsets.all(.0118 * globals.size.height),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
           // color: const Color(0xffffffff),

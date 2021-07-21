@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_player/video_player.dart';
@@ -134,7 +133,7 @@ class PostViewHeader extends StatelessWidget {
 
     return GestureDetector(
       child: Container(
-        padding: EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.only(bottom: .0118 * globals.size.height),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
@@ -351,20 +350,8 @@ class PostViewFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // ReportButton(
-          //   width: 70,
-          // ),
-          CommentsButton(),
-          // Container(
-          //   width: 70,
-          // )
-        ],
-      ),
+      padding: EdgeInsets.only(top: .0118 * globals.size.height),
+      child: CommentsButton(),
     );
   }
 }
@@ -382,11 +369,11 @@ class _CommentsButtonState extends State<CommentsButton> {
     if (showCommentsButton == true)
       return GestureDetector(
           child: Container(
-              padding: EdgeInsets.only(top: 3),
-              width: 146.0,
-              height: 25.0,
+              padding: EdgeInsets.only(top: .00355 * globals.size.height),
+              width: .374 * globals.size.width,
+              height: .0296 * globals.size.height,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(13.0),
+                borderRadius: BorderRadius.circular(globals.size.height),
                 color: const Color(0xffffffff),
                 border: Border.all(width: 3.0, color: const Color(0xff707070)),
               ),
@@ -394,10 +381,8 @@ class _CommentsButtonState extends State<CommentsButton> {
                 'View Comments',
                 style: TextStyle(
                   fontFamily: 'SF Pro Text',
-                  fontSize: 10,
+                  fontSize: .0118 * globals.size.height,
                   color: const Color(0x67000000),
-                  letterSpacing: -0.004099999964237213,
-                  height: 1.2,
                 ),
                 textAlign: TextAlign.center,
               )),
@@ -411,12 +396,15 @@ class _CommentsButtonState extends State<CommentsButton> {
                   backgroundColor: Colors.white.withOpacity(.7),
                   duration: Duration(days: 365),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(30))),
-                  padding: EdgeInsets.only(left: 5, right: 5),
+                      borderRadius: BorderRadius.all(
+                          Radius.circular(.0355 * globals.size.height))),
+                  padding: EdgeInsets.only(
+                      left: .0128 * globals.size.width,
+                      right: .0128 * globals.size.width),
                   content: Comments(
                     post: Provider.of<PostViewProvider>(context, listen: false)
                         .post,
-                    height: 450,
+                    height: .533 * globals.size.height,
                   ),
                 ))
                 .closed

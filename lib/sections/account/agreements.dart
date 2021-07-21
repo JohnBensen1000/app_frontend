@@ -80,7 +80,9 @@ class PolicyAgreementPage extends StatelessWidget {
             builder: (context, provider, child) => Scaffold(
                 backgroundColor: const Color(0xffffffff),
                 body: Container(
-                  padding: EdgeInsets.only(bottom: 100),
+                  padding: EdgeInsets.only(
+                      top: .04 * globals.size.height,
+                      bottom: .11 * globals.size.height),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -90,12 +92,11 @@ class PolicyAgreementPage extends StatelessWidget {
                         'Just one more thing…',
                         style: TextStyle(
                           fontFamily: 'Devanagari Sangam MN',
-                          fontSize: 35,
+                          fontSize: .041 * globals.size.height,
                           color: const Color(0xff000000),
                           shadows: [
                             Shadow(
                               color: const Color(0x29000000),
-                              offset: Offset(0, 3),
                               blurRadius: 6,
                             )
                           ],
@@ -110,24 +111,26 @@ class PolicyAgreementPage extends StatelessWidget {
                             .toList(),
                       )),
                       Container(
-                          height: 90.0,
-                          width: 250.0,
+                          height: .1 * globals.size.height,
+                          width: .6 * globals.size.width,
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: provider.policyAgreements
                                 .map((policyAgreement) => AgreementButton(
                                     policyAgreement: policyAgreement,
-                                    boxHeight: 37.0))
+                                    boxHeight: .04 * globals.size.height))
                                 .toList(),
                           )),
                       Container(
                         child: Column(
                           children: [
                             Container(
-                              padding: EdgeInsets.only(bottom: 20),
+                              padding: EdgeInsets.only(
+                                  bottom: .0237 * globals.size.height),
                               child: Container(
-                                width: 128.0,
-                                height: 128.0,
+                                width: .15 * globals.size.height,
+                                height: .15 * globals.size.height,
                                 decoration: BoxDecoration(
                                   image: DecorationImage(
                                     image: const AssetImage(
@@ -138,7 +141,7 @@ class PolicyAgreementPage extends StatelessWidget {
                               ),
                             ),
                             Container(
-                              width: 200,
+                              width: .7 * globals.size.width,
                               child: Text(
                                 "Click the logo while in the app to get to your profile page",
                                 textAlign: TextAlign.center,
@@ -234,7 +237,7 @@ class AgreementLink extends StatelessWidget {
         "Click here to read the ${policyAgreement.policyName} policy",
         style: TextStyle(
           fontFamily: 'Devanagari Sangam MN',
-          fontSize: 22,
+          fontSize: .026 * globals.size.height,
           color: const Color(0xff00b1ff),
         ),
         textAlign: TextAlign.center,
@@ -282,14 +285,14 @@ class AgreementButton extends StatelessWidget {
               provider.resetState();
             }),
         Container(
-          padding: EdgeInsets.only(left: 10),
+          padding: EdgeInsets.only(left: .02 * globals.size.width),
           height: boxHeight,
           child: Center(
             child: Text(
               "Agree to ${policyAgreement.policyName} policy",
               style: TextStyle(
                 fontFamily: 'Helvetica Neue',
-                fontSize: 19,
+                fontSize: .021 * globals.size.height,
                 color: const Color(0xff000000),
               ),
               textAlign: TextAlign.left,
@@ -312,17 +315,18 @@ class AgreementsAlertDialog extends StatelessWidget {
       elevation: 0,
       backgroundColor: Colors.transparent,
       content: Container(
-        height: 160,
-        width: 320,
-        padding: EdgeInsets.all(20),
+        height: .2 * globals.size.height,
+        width: .5 * globals.size.width,
+        padding: EdgeInsets.all(.02 * globals.size.height),
         decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(25))),
+            borderRadius:
+                BorderRadius.all(Radius.circular(.03 * globals.size.height))),
         child: Center(
             child: Text(
           "You must agree to all the policies before creating your account.",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: .02 * globals.size.height),
         )),
       ),
     );

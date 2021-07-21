@@ -22,6 +22,9 @@ class Welcome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    globals.size = globals.SizeConfig(context: context);
+    // print("width: ${globals.size.width} height: ${globals.size.height}");
+
     return Scaffold(
         backgroundColor: const Color(0xffffffff),
         body: FutureBuilder(
@@ -36,7 +39,7 @@ class Welcome extends StatelessWidget {
                         globals.user = snapshot.data;
                         return Home();
                       } else
-                        return WelcomePage();
+                        return LogInScreen();
                     } else
                       return Center(
                         child: Container(
@@ -50,74 +53,5 @@ class Welcome extends StatelessWidget {
                       child: Image.asset('assets/images/Entropy.jpg')),
                 );
             }));
-    // body: FutureBuilder(
-    //     future: handleRequest(context, getIfDeviceSignedInOn()),
-    //     builder: (context, snapshot) {
-    //       if (snapshot.connectionState == ConnectionState.done &&
-    //           snapshot.hasData) {
-    //         Map response = snapshot.data;
-    //         if (response['signedIn']) {
-    //           globals.user = User.fromJson(response['user']);
-    //           return Home(
-    //             pageLabel: PageLabel.following,
-    //           );
-    //         } else {
-    //           return WelcomePage();
-    //         }
-    //       } else {
-    //         return Center(
-    //           child: Container(
-    //               child: Image.asset('assets/images/Entropy.jpg')),
-    //         );
-    //       }
-    //     }));
-  }
-}
-
-class WelcomePage extends StatelessWidget {
-  const WelcomePage({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Container(
-              margin: EdgeInsets.only(bottom: 100),
-              height: 150,
-              child: Image.asset('assets/images/Entropy.PNG')),
-          SizedBox(
-            width: double.infinity,
-            child: Text(
-              'Welcome To Entropy ',
-              style: TextStyle(
-                fontFamily: 'Rockwell',
-                fontSize: 35,
-                color: const Color(0xff000000),
-                letterSpacing: -0.84,
-                height: 0.6285714285714286,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 140),
-            child: FlatButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        settings: RouteSettings(name: "/enterAccount"),
-                        builder: (context) => LogInScreen()),
-                  );
-                },
-                child: ForwardArrow()),
-          ),
-        ],
-      ),
-    );
   }
 }

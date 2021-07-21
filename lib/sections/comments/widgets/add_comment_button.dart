@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../globals.dart' as globals;
+
 class AddCommentButton extends StatelessWidget {
   AddCommentButton({@required this.child});
 
@@ -8,15 +10,15 @@ class AddCommentButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 343.0,
-      height: 52.0,
+      width: .879 * globals.size.width,
+      height: .0616 * globals.size.height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26.0),
+        borderRadius: BorderRadius.circular(globals.size.height),
         color: const Color(0xffffffff),
         border: Border.all(width: 1.0, color: const Color(0xff000000)),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 12),
+        padding: EdgeInsets.only(left: .031 * globals.size.width),
         child: Container(alignment: Alignment.centerLeft, child: child),
       ),
     );

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/methods/relations.dart';
 
+import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../widgets/profile_pic.dart';
+import '../../widgets/back_arrow.dart';
 
 import '../profile_page/profile_page.dart';
 
@@ -75,14 +77,14 @@ class NewFollowersAppBar extends PreferredSize {
         Center(
             child: Text(
           "New Followers",
-          style: TextStyle(fontSize: 18),
+          style: TextStyle(fontSize: .0213 * globals.size.height),
         )),
         Container(
-            padding: EdgeInsets.only(top: 40, left: 20),
+            padding: EdgeInsets.only(
+                top: .0474 * globals.size.height,
+                left: .0513 * globals.size.width),
             child: GestureDetector(
-              child: Text(
-                "Back",
-              ),
+              child: BackArrow(),
               onTap: () => Navigator.pop(context),
             )),
       ],
@@ -97,21 +99,25 @@ class NewFollower extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Size profileSize = new Size(180, 80);
-    Size acceptDeclineSize = new Size(110, 50);
+    Size profileSize =
+        new Size(.213 * globals.size.height, .205 * globals.size.width);
+    Size acceptDeclineSize =
+        new Size(.13 * globals.size.height, .128 * globals.size.width);
 
     return Container(
-        margin: EdgeInsets.only(top: 10, bottom: 10),
+        margin: EdgeInsets.only(
+            top: .0118 * globals.size.height,
+            bottom: .0118 * globals.size.height),
         decoration: BoxDecoration(
             border: Border(
                 top: BorderSide(color: Colors.grey[400]),
                 bottom: BorderSide(color: Colors.grey[400]))),
-        height: 150,
+        height: .178 * globals.size.height,
         child: CustomMultiChildLayout(
           delegate: NewFollowerDelegate(
               profileSize: profileSize,
               acceptDeclineSize: acceptDeclineSize,
-              padding: 20),
+              padding: .0237 * globals.size.height),
           children: [
             LayoutId(
                 id: 0,
@@ -177,7 +183,8 @@ class NewFollowerProfile extends StatelessWidget {
               user: newFollower,
             ),
             Text(newFollower.username,
-                textAlign: TextAlign.left, style: TextStyle(fontSize: 16)),
+                textAlign: TextAlign.left,
+                style: TextStyle(fontSize: .0189 * globals.size.height)),
           ],
         ),
       ),
@@ -267,14 +274,16 @@ class AcceptDeclineButton extends StatelessWidget {
       width: size.height,
       height: size.height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(13.0),
+        borderRadius: BorderRadius.circular(.0154 * globals.size.height),
         color: color,
         border: Border.all(width: 1.0, color: const Color(0xffffffff)),
       ),
       child: (Center(
           child: Text(name,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 12)))),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: .0142 * globals.size.height)))),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../globals.dart' as globals;
+
 class Button extends StatelessWidget {
   const Button({
     Key key,
@@ -11,15 +13,17 @@ class Button extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 90,
-      height: 45,
+      width: .231 * globals.size.width,
+      height: .0533 * globals.size.height,
       decoration: new BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderRadius:
+            BorderRadius.all(Radius.circular(.0118 * globals.size.height)),
         color: Colors.grey[200],
       ),
       child: Center(
           child: Text(buttonName,
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 18))),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: .0213 * globals.size.height))),
     );
   }
 }

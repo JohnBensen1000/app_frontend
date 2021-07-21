@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:adobe_xd/pinned.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../globals.dart' as globals;
+
 class AccountSubmitButton extends StatelessWidget {
   AccountSubmitButton({@required this.buttonName});
 
@@ -10,8 +12,8 @@ class AccountSubmitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 174.0,
-      height: 52.0,
+      width: .446 * globals.size.width,
+      height: .0616 * globals.size.height,
       child: Stack(
         children: <Widget>[
           Row(
@@ -21,7 +23,7 @@ class AccountSubmitButton extends StatelessWidget {
                 buttonName,
                 style: TextStyle(
                   fontFamily: 'Devanagari Sangam MN',
-                  fontSize: 35,
+                  fontSize: .0415 * globals.size.height,
                   color: const Color(0xff000000),
                 ),
                 textAlign: TextAlign.center,
@@ -29,8 +31,9 @@ class AccountSubmitButton extends StatelessWidget {
             ],
           ),
           Pinned.fromSize(
-            bounds: Rect.fromLTWH(0.0, 51.5, 174.0, 0.0),
-            size: Size(174.0, 51.5),
+            bounds: Rect.fromLTWH(0.0, .061 * globals.size.height,
+                .206 * globals.size.height, 0.0),
+            size: Size(.206 * globals.size.height, .061 * globals.size.height),
             pinLeft: true,
             pinRight: true,
             pinBottom: true,
@@ -38,8 +41,9 @@ class AccountSubmitButton extends StatelessWidget {
             child: Stack(
               children: <Widget>[
                 Pinned.fromSize(
-                  bounds: Rect.fromLTWH(0.0, 0.0, 174.0, 1.0),
-                  size: Size(174.0, 0.0),
+                  bounds:
+                      Rect.fromLTWH(0.0, 0.0, .206 * globals.size.height, 1.0),
+                  size: Size(.206 * globals.size.height, 0.0),
                   pinLeft: true,
                   pinRight: true,
                   pinTop: true,

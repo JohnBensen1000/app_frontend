@@ -39,8 +39,8 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = 350;
-    double settingsWidth = 275;
+    double headerHeight = .42 * globals.size.height;
+    double settingsWidth = .7 * globals.size.width;
 
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
@@ -60,8 +60,8 @@ class ProfilePage extends StatelessWidget {
                   ProfilePostBody(
                       user: user,
                       height: bodyHeight,
-                      sidePadding: 20,
-                      betweenPadding: 5),
+                      sidePadding: .05 * globals.size.width,
+                      betweenPadding: .01 * globals.size.width),
                 ],
               ),
             ),
@@ -91,20 +91,22 @@ class ProfilePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.only(
+            bottom: .02 * globals.size.height, top: .045 * globals.size.height),
         height: height,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              padding: EdgeInsets.only(top: 40, left: 20, bottom: 20),
+              padding: EdgeInsets.only(
+                top: .01 * globals.size.height,
+                left: .06 * globals.size.width,
+              ),
               child: Row(
                 children: <Widget>[
-                  Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Center(child: BackArrow()))),
+                  GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Center(child: BackArrow())),
                 ],
               ),
             ),
@@ -112,14 +114,14 @@ class ProfilePageHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Consumer<ProfileProvider>(
-                      builder: (context, provider, child) =>
-                          ProfilePic(diameter: 148, user: user)),
+                      builder: (context, provider, child) => ProfilePic(
+                          diameter: .18 * globals.size.height, user: user)),
                   Container(
                     child: Text(
                       '${user.username}',
                       style: TextStyle(
                         fontFamily: 'Helvetica Neue',
-                        fontSize: 25,
+                        fontSize: .03 * globals.size.height,
                         color: const Color(0xff000000),
                       ),
                       textAlign: TextAlign.left,
@@ -130,14 +132,14 @@ class ProfilePageHeader extends StatelessWidget {
                       '@${user.userID}',
                       style: TextStyle(
                         fontFamily: 'Helvetica Neue',
-                        fontSize: 12,
+                        fontSize: .016 * globals.size.height,
                         color: Colors.grey[400],
                       ),
                       textAlign: TextAlign.left,
                     ),
                   ),
                   Container(
-                    height: 20,
+                    height: .02 * globals.size.height,
                     child: SvgPicture.string(
                       _svg_jmyh3o,
                       allowDrawingOutsideViewBox: true,
@@ -179,10 +181,10 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
 
   @override
   Widget build(BuildContext context) {
-    double followButtonWidth = 100;
+    double followButtonWidth = .26 * globals.size.width;
 
     return Container(
-      width: 180,
+      width: .47 * globals.size.width,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -210,7 +212,6 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
                   );
                 } else
                   return Container(
-                    height: 28.0,
                     width: followButtonWidth,
                   );
               }),
@@ -219,7 +220,7 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
               name: "Block",
               borderColor: Colors.black,
               color: Colors.white,
-              width: 75,
+              width: .19 * globals.size.width,
             ),
             onTap: () => showDialog(
                 context: context,
@@ -258,7 +259,7 @@ class OpenSettingsButton extends StatelessWidget {
 
     return GestureDetector(
         child: ProfilePageHeaderButton(
-          width: 125,
+          width: .26 * globals.size.width,
           name: "Settings",
           color: Colors.grey[200],
           borderColor: Colors.grey[200],
@@ -284,18 +285,18 @@ class ProfilePageHeaderButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 28.0,
+      height: .034 * globals.size.height,
       width: width,
       decoration: BoxDecoration(
           border: Border.all(color: borderColor, width: 2.0),
           color: color,
-          borderRadius: BorderRadius.all(Radius.circular(20))),
+          borderRadius: BorderRadius.all(Radius.circular(globals.size.height))),
       child: Center(
         child: Text(
           name,
           style: TextStyle(
             fontFamily: 'Helvetica Neue',
-            fontSize: 20,
+            fontSize: .024 * globals.size.height,
             color: const Color(0xff000000),
           ),
         ),
@@ -356,7 +357,7 @@ class _ProfilePostBodyState extends State<ProfilePostBody> {
                 child: SizedBox(
                   height: widget.height,
                   child: new ListView.builder(
-                    padding: EdgeInsets.only(top: 10),
+                    padding: EdgeInsets.only(top: .01 * globals.size.height),
                     itemCount: profilePostsList.length,
                     itemBuilder: (BuildContext context, int index) {
                       return PostBodyWidget(child: profilePostsList[index]);

@@ -39,7 +39,8 @@ class _SettingsState extends State<Settings> {
           right: BorderSide(width: 1.0, color: Colors.black),
         ),
       ),
-      padding: EdgeInsets.only(top: 40, bottom: 40),
+      padding: EdgeInsets.only(
+          top: .047 * globals.size.height, bottom: .047 * globals.size.height),
       width: widget.width,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -152,18 +153,21 @@ class SettingsProfile extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
         Padding(
-            padding: const EdgeInsets.only(top: 20, bottom: 20),
+            padding: EdgeInsets.only(
+                top: .024 * globals.size.height,
+                bottom: .024 * globals.size.height),
             child: ProfilePic(
-              diameter: 200,
+              diameter: .24 * globals.size.height,
               user: globals.user,
             )),
         Text(
           globals.user.username,
-          style: TextStyle(fontSize: 32),
+          style: TextStyle(fontSize: .038 * globals.size.height),
         ),
         Text(
           "@${globals.user.userID}",
-          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+          style: TextStyle(
+              fontSize: .014 * globals.size.height, color: Colors.grey[500]),
         ),
       ],
     );
@@ -181,12 +185,14 @@ class SettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FlatButton(
       child: Padding(
-        padding: EdgeInsets.only(top: 10, bottom: 10),
+        padding: EdgeInsets.only(
+            top: .012 * globals.size.height,
+            bottom: .012 * globals.size.height),
         child: Container(
-          width: 209.0,
-          height: 30.0,
+          width: .536 * globals.size.width,
+          height: .036 * globals.size.height,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.0),
+            borderRadius: BorderRadius.circular(globals.size.height),
             color: const Color(0xffffffff),
             border: Border.all(width: 1.0, color: const Color(0xff707070)),
           ),

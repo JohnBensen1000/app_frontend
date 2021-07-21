@@ -6,6 +6,7 @@ import 'package:test_flutter/API/methods/comments.dart';
 import 'package:test_flutter/widgets/back_arrow.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../globals.dart' as globals;
 import '../../widgets/generic_alert_dialog.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
@@ -52,8 +53,8 @@ class CommentsPage extends StatelessWidget {
     double height = .6 * MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.height;
 
-    double headerHeight = 130;
-    double footerHeight = 60;
+    double headerHeight = .154 * globals.size.height;
+    double footerHeight = .0711 * globals.size.height;
 
     return Scaffold(
         resizeToAvoidBottomInset: false,
@@ -131,7 +132,7 @@ class CommentsPageHeader extends StatelessWidget {
                     color: Colors.grey[500].withOpacity(.7), width: 1))),
         width: double.infinity,
         alignment: Alignment.bottomCenter,
-        padding: EdgeInsets.only(top: 35),
+        padding: EdgeInsets.only(top: .0414 * globals.size.height),
         height: height,
         child: Column(children: [
           Row(
@@ -139,7 +140,8 @@ class CommentsPageHeader extends StatelessWidget {
             children: [
               GestureDetector(
                 child: Container(
-                    margin: EdgeInsets.only(left: 20), child: BackArrow()),
+                    margin: EdgeInsets.only(left: .0513 * globals.size.width),
+                    child: BackArrow()),
                 onTap: () => Navigator.pop(context),
               ),
             ],
@@ -169,16 +171,16 @@ class CommentsPageBody extends StatelessWidget {
     CommentsPageProvider provider =
         Provider.of<CommentsPageProvider>(context, listen: false);
 
-    double paddingPerLevel = 40;
+    double paddingPerLevel = .103 * globals.size.width;
 
     return Container(
         height: height,
         child: ListView.builder(
-            padding: EdgeInsets.only(top: 10),
+            padding: EdgeInsets.only(top: .0118 * globals.size.height),
             itemCount: provider.commentsList.length,
             itemBuilder: (context, index) {
               return Container(
-                margin: EdgeInsets.only(bottom: 5),
+                margin: EdgeInsets.only(bottom: .0059 * globals.size.height),
                 child: CommentWidget(
                     post: provider.post,
                     comment: provider.commentsList[index],
@@ -220,17 +222,15 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
 
     return Container(
         height: widget.height,
-        padding: EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.only(bottom: .0118 * globals.size.height),
         child: AddCommentButton(
           child: Stack(
             children: [
               TextFormField(
                 style: TextStyle(
                   fontFamily: 'SF Pro Text',
-                  fontSize: 20,
+                  fontSize: .0237 * globals.size.height,
                   color: const Color(0x69000000),
-                  letterSpacing: -0.48,
-                  height: 1.1,
                 ),
                 decoration: InputDecoration(
                   border: InputBorder.none,
@@ -239,7 +239,7 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
                 controller: textController,
               ),
               Container(
-                padding: EdgeInsets.only(right: 12),
+                padding: EdgeInsets.only(right: .0307 * globals.size.width),
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
                     child: SvgPicture.string(
