@@ -139,7 +139,7 @@ class _PostListState extends State<PostList> {
     } else {
       return PostView(
         post: postList[index],
-        height: .75 * widget.height,
+        height: .78 * widget.height,
         aspectRatio: globals.goldenRatio,
         postStage: PostStage.fullWidget,
         playOnInit: true,

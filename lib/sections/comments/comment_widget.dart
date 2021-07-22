@@ -69,7 +69,7 @@ class _CommentWidgetState extends State<CommentWidget>
                           widget.leftPadding -
                           (2 * profilePicPadding + profilePicSize) -
                           2 * margin -
-                          .012 * globals.size.height,
+                          .03 * globals.size.width,
                       alignment: Alignment.topLeft,
                       child: RichText(
                           text: new TextSpan(

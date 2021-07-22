@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
@@ -87,11 +88,11 @@ class HomeScreenProvider extends ChangeNotifier {
 }
 
 class Home extends StatefulWidget {
-  // Main page of the app. Consists of two parts: HomeAppBar() and HomePage().
+  // Main page of the app. Consists of two parts: HomeHeader() and HomePage().
   // HomePage() consists of the discover, friends, and following pages. The
   // user could navigate through these pages by sliding left or right. The
-  // HomeAppBar() allows the user to navigate to different parts of the app,
-  // including the settings, search, and camera pages. HomeAppBar() also
+  // HomeHeader() allows the user to navigate to different parts of the app,
+  // including the settings, search, and camera pages. HomeHeader() also
   // displays which of the three pages from HomePage() that the user is on.
 
   final PageLabel pageLabel;
@@ -109,8 +110,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    double appBarHeight = .12 * globals.size.height;
-    double bodyHeight = MediaQuery.of(context).size.height - appBarHeight;
+    double headerHeight = .18 * globals.size.height;
+    double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return MultiProvider(
         providers: [
@@ -123,22 +124,22 @@ class _HomeState extends State<Home> {
         ],
         child: Scaffold(
           backgroundColor: const Color(0xffffffff),
-          appBar: HomeAppBar(
-            height: appBarHeight,
+          appBar: HomeHeader(
+            height: headerHeight,
           ),
           body: Container(child: HomePage(height: bodyHeight)),
         ));
   }
 }
 
-class HomeAppBar extends PreferredSize {
-  // Divided into two parts: HomeAppBarButtons() and HomeAppBarNavigation().
+class HomeHeader extends PreferredSize {
+  // Divided into two parts: HomeHeaderButtons() and HomeHeaderNavigation().
   // both of these widgets allow the user to navigate to different parts of the
   // app.
 
   final double height;
 
-  HomeAppBar({this.height});
+  HomeHeader({this.height});
 
   @override
   Size get preferredSize => Size.fromHeight(height);
@@ -147,24 +148,25 @@ class HomeAppBar extends PreferredSize {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(top: .05 * globals.size.height),
+      height: height,
       color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          HomeAppBarButtons(),
-          HomeAppBarNavigation(),
+          HomeHeaderButtons(),
+          HomeHeaderNavigation(),
         ],
       ),
     );
   }
 }
 
-class HomeAppBarButtons extends StatelessWidget {
+class HomeHeaderButtons extends StatelessWidget {
   // Has buttons for nagivating to the profile search, and camera pages. When
   // the user returns from the search and camera pages, provider.resetState() is
   // called.
 
-  const HomeAppBarButtons({
+  const HomeHeaderButtons({
     Key key,
   }) : super(key: key);
 
@@ -251,13 +253,13 @@ class IconContainer extends StatelessWidget {
   }
 }
 
-class HomeAppBarNavigation extends StatelessWidget {
+class HomeHeaderNavigation extends StatelessWidget {
   // A row of three buttons that allow the user to navigate between the
   // discover, friends, and following pages. Also shows which page the user is
   // currently on. Has a bar that slides horizontally as the user swipes left
   // or right.
 
-  const HomeAppBarNavigation({
+  const HomeHeaderNavigation({
     Key key,
   }) : super(key: key);
 
@@ -303,8 +305,8 @@ class HomeAppBarNavigation extends StatelessWidget {
               child: Transform.translate(
                 offset: Offset(
                     max(-1.0, min(-provider.offset, 1.0)) *
-                        .223 *
-                        globals.size.width,
+                        .225 *
+                        (globals.size.width - 12),
                     0),
                 child: SvgPicture.string(
                   _svg_cayeaa,
