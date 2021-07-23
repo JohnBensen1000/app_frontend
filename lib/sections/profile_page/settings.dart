@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/API/methods/authentication.dart';
 import 'package:test_flutter/API/methods/users.dart';
 
 import '../../globals.dart' as globals;
@@ -68,6 +69,7 @@ class _SettingsState extends State<Settings> {
                     await showAlertDialog("Are you sure you want to log out?")
                         .then((confirmLogOut) async {
                       if (confirmLogOut != null && confirmLogOut) {
+                        await handleRequest(context, postSignOut());
                         await globals.accountRepository.removeUid();
                         Navigator.popUntil(context, (route) => route.isFirst);
 

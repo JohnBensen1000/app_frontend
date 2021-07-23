@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../globals.dart' as globals;
 
 import '../../API/methods/users.dart';
+import '../../API/methods/authentication.dart';
+
 import '../../models/user.dart';
 
 import '../navigation/home_screen.dart';
@@ -200,10 +203,11 @@ class PolicyAgreementPage extends StatelessWidget {
   }
 
   Future<bool> _createAccount(BuildContext context) async {
-    // Creates a firebase account and an account in the database. Then sets
-    // globals.user to the newly created account. If an error occurs in creating
-    // the account on the backend, deletes the firebase account and returns
-    // false. Returns true otherwise.
+    // Creates a firebase account and an account in the database. Asks the user
+    // for permission to send push notifications. Then sets globals.user to the
+    // newly created account. If an error occurs in creating the account on the
+    // backend, deletes the firebase account and returns false. Returns true
+    // otherwise.
 
     firebase_auth.User firebaseUser =
         (await auth.createUserWithEmailAndPassword(
@@ -221,6 +225,9 @@ class PolicyAgreementPage extends StatelessWidget {
 
     var response = await handleRequest(context, postNewAccount(newAccount));
     if (response != null) {
+      await FirebaseMessaging.instance.requestPermission();
+
+      await handleRequest(context, postSignIn(firebaseUser.uid));
       globals.user = User.fromJson(response['user']);
       await globals.accountRepository.setUid(uid: firebaseUser.uid);
       return true;
