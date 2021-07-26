@@ -12,12 +12,15 @@ class Chat {
   List<User> members;
   Widget chatIcon;
   Color color;
+  bool isUpdated;
 
   HashMap membersMap = new HashMap<String, User>();
 
   Chat.fromJson(Map chatJson) {
     this.chatID = chatJson["chatID"];
     this.isDirectMessage = chatJson["isDirectMessage"];
+    this.isUpdated = chatJson["isUpdated"];
+
     this.members = [
       for (Map userJson in chatJson['members']) User.fromJson(userJson)
     ];

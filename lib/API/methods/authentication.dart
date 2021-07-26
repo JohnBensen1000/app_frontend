@@ -5,12 +5,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 FirebaseMessaging messaging = FirebaseMessaging.instance;
 
 Future<Map> postSignIn(String uid) async {
-  AuthorizationStatus authStatus =
-      (await messaging.getNotificationSettings()).authorizationStatus;
+  // AuthorizationStatus authStatus =
+  //     (await messaging.getNotificationSettings()).authorizationStatus;
 
-  String deviceToken = (authStatus == AuthorizationStatus.authorized)
-      ? await messaging.getToken()
-      : null;
+  // String deviceToken = (authStatus == AuthorizationStatus.authorized)
+  //     ? await messaging.getToken()
+  //     : null;
+
+  String deviceToken = await messaging.getToken();
 
   return await BaseAPI().post("v1/authentication/$uid/signedInStatus/",
       {'signIn': true, 'deviceToken': deviceToken});

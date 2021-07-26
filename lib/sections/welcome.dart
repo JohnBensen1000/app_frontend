@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../globals.dart' as globals;
 import '../API/methods/authentication.dart';
@@ -30,7 +31,7 @@ class _WelcomeState extends State<Welcome> {
     return Scaffold(
         backgroundColor: const Color(0xffffffff),
         body: FutureBuilder(
-            future: Firebase.initializeApp(),
+            future: registerNotifications(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return FutureBuilder(
@@ -58,5 +59,23 @@ class _WelcomeState extends State<Welcome> {
                       child: Image.asset('assets/images/Entropy.jpg')),
                 );
             }));
+  }
+
+  Future<void> registerNotifications() async {
+    await Firebase.initializeApp();
+
+    FirebaseMessaging _messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await _messaging.requestPermission();
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      // print("Permission granted: ${await _messaging.getToken()}");
+
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
   }
 }

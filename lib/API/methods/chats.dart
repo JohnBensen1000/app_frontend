@@ -35,3 +35,8 @@ Future<Map> postChatPost(bool isImage, File file, String chatID) async {
   return await BaseAPI()
       .post('v1/chats/${globals.user.uid}/$chatID/', postBody);
 }
+
+Future<bool> postIsUpdated(String chatID) async {
+  return await BaseAPI()
+      .post('v1/chats/${globals.user.uid}/$chatID/updated/', {});
+}

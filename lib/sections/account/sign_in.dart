@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/generic_alert_dialog.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'widgets/account_app_bar.dart';
 import 'widgets/input_field.dart';
@@ -96,6 +97,11 @@ class _SignInState extends State<SignIn> {
         password: passwordInputField.textEditingController.text,
       ))
           .user;
+
+      if ((await messaging.getNotificationSettings()).authorizationStatus !=
+          AuthorizationStatus.authorized)
+        await FirebaseMessaging.instance.requestPermission();
+
       Map response = await handleRequest(context, postSignIn(firebaseUser.uid));
       globals.user = User.fromJson(response['user']);
       await globals.accountRepository.setUid(uid: firebaseUser.uid);

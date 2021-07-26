@@ -17,16 +17,24 @@ import '../../widgets/generic_alert_dialog.dart';
 import '../camera/camera.dart';
 import '../post/post_view.dart';
 
+enum PopAction { removeChat, moveToTop }
+
 class ChatPageProvider extends ChangeNotifier {
-  // Contains variables used throughout the entire page.
+  // Contains variables used throughout the entire page. The boolean,
+  // hasSentChat is set to true when the user sends a new chat. This value will
+  // be returned to the friends page.
+
+  CollectionReference chatCollection;
+  Chat chat;
+
+  bool hasSentChat;
 
   ChatPageProvider({
     @required this.chatCollection,
     @required this.chat,
-  });
-
-  CollectionReference chatCollection;
-  Chat chat;
+  }) {
+    hasSentChat = false;
+  }
 }
 
 class ChatPage extends StatelessWidget {
@@ -42,25 +50,30 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = .236 * globals.size.height;
+    double headerHeight = .25 * globals.size.height;
     double footerHeight = .14 * globals.size.height;
 
     return ChangeNotifierProvider(
         create: (context) => ChatPageProvider(
             chatCollection: FirebaseFirestore.instance.collection("Chats"),
             chat: chat),
-        child: Scaffold(
-            body: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            ChatPageHeader(
-              chat: chat,
-              height: headerHeight,
-            ),
-            ChatPageBody(),
-            ChatPageFooter(height: footerHeight),
-          ],
-        )));
+        child: WillPopScope(
+          onWillPop: () async {
+            return true;
+          },
+          child: Scaffold(
+              body: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              ChatPageHeader(
+                chat: chat,
+                height: headerHeight,
+              ),
+              ChatPageBody(),
+              ChatPageFooter(height: footerHeight),
+            ],
+          )),
+        ));
   }
 }
 
@@ -79,6 +92,9 @@ class ChatPageHeader extends PreferredSize {
 
   @override
   Widget build(BuildContext context) {
+    ChatPageProvider provider =
+        Provider.of<ChatPageProvider>(context, listen: false);
+
     return Container(
         padding: EdgeInsets.only(
             top: .0355 * globals.size.height,
@@ -94,7 +110,8 @@ class ChatPageHeader extends PreferredSize {
               children: [
                 GestureDetector(
                   child: BackArrow(),
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => Navigator.pop(context,
+                      provider.hasSentChat ? PopAction.moveToTop : null),
                 )
               ],
             ),
@@ -136,7 +153,7 @@ class ChatPageHeader extends PreferredSize {
             builder: (context) => GenericAlertDialog(
                 text:
                     "You have successfylly blocked this user, you will no longer have a direct message with them and you will not see any of their content"));
-        Navigator.pop(context);
+        Navigator.pop(context, PopAction.removeChat);
       }
     });
   }
@@ -145,7 +162,11 @@ class ChatPageHeader extends PreferredSize {
 class ChatPageBody extends StatelessWidget {
   // Sets up a streambuilder that listens to the Firestore collection that holds
   // this chat. Updates whenever a new chat item is upload to firestore. Returns
-  // a list view of all chat items in order.
+  // a list view of all chat items in order. Every time a new chat is sent,
+  // checks if the new chat was sent by the current user or another chat member.
+  // If it was sent by another chat member, sends a request to the server
+  // confirming that the user has recieved the chat. if the chat was sent by the
+  // user, sets provider.hasSentChat to true.
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +190,13 @@ class ChatPageBody extends StatelessWidget {
             }),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
+                List<ChatItemWidget> chatItemWidgets = snapshot.data;
+
+                if (chatItemWidgets[0].chatItem.uid != globals.user.uid)
+                  handleRequest(context, postIsUpdated(provider.chat.chatID));
+                else
+                  provider.hasSentChat = true;
+
                 return Container(
                   padding: EdgeInsets.symmetric(
                       horizontal: .0513 * globals.size.width),
@@ -179,7 +207,7 @@ class ChatPageBody extends StatelessWidget {
                       itemCount: snapshot.data.length,
                       itemBuilder: (context, index) {
                         if (snapshot.data.length > 0) {
-                          return snapshot.data[index];
+                          return chatItemWidgets[index];
                         } else {
                           return Container();
                         }
@@ -506,8 +534,6 @@ class _ChatPageFooterState extends State<ChatPageFooter> {
                           context,
                           postChatText(
                               _chatController.text, provider.chat.chatID));
-
-                      print(response);
 
                       switch (response["reasonForRejection"]) {
                         case "profanity":

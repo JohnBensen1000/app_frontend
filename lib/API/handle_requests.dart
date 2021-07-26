@@ -39,11 +39,11 @@ Future<void> handleException(BuildContext context, Exception exception) async {
         builder: (context) => ServerErrorAlert(),
       ).then((value) => isDialogDisplayed = false);
     } else {
-      isDialogDisplayed = true;
-      showDialog(
-        context: context,
-        builder: (context) => UnknownErrorAlert(),
-      ).then((value) => isDialogDisplayed = false);
+      // isDialogDisplayed = true;
+      // showDialog(
+      //   context: context,
+      //   builder: (context) => UnknownErrorAlert(),
+      // ).then((value) => isDialogDisplayed = false);
     }
   }
 }
