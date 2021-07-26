@@ -108,8 +108,9 @@ class PreviewPage extends StatelessWidget {
       Container(
           alignment: Alignment.topLeft,
           padding: EdgeInsets.only(
-              top: .047 * globals.size.height,
-              left: .0128 * globals.size.width),
+              top: .06 * globals.size.height,
+              left: .04 * globals.size.width,
+              bottom: .02 * globals.size.height),
           child: GestureDetector(
               child: BackArrow(), onTap: () => Navigator.pop(context))),
       PreviewView(height: height),
@@ -313,9 +314,10 @@ class _PreviewButtonState extends State<PreviewButton> {
                         "Your post has been determined to be inappropriate, so it will not be uploaded."));
         }
 
+        int numPops = (provider.cameraUsage == CameraUsage.profile) ? 3 : 2;
         int count = 0;
         Navigator.popUntil(context, (route) {
-          return count++ == 2;
+          return count++ == numPops;
         });
       },
     );

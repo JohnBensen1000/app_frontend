@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/sections/camera/camera.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -17,6 +18,7 @@ import '../personalization/choose_color.dart';
 import '../personalization/preferences.dart';
 
 import 'widgets/account_submit_button.dart';
+import 'widgets/account_app_bar.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
@@ -171,9 +173,9 @@ class PolicyAgreementPage extends StatelessWidget {
     // Goes through each policyAgreement and checks if the user has accepted. If
     // the user accepted all the policies, creates a new account for the user,
     // then, if no error occur in creating the new account, pushes the user to
-    // the choose color page and preferences page. If the user has not agreed to
-    // all the policies, shows an alert dialog telling the user that they still
-    // have to agree to all the policies.
+    // the a list of pages that will customize their account. If the user has
+    // not agreed to all the policies, shows an alert dialog telling the user
+    // that they still have to agree to all the policies.
 
     bool areAgreementsAccepted = true;
 
@@ -194,6 +196,7 @@ class PolicyAgreementPage extends StatelessWidget {
 
         Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
         Navigator.push(context, SlideRightRoute(page: ColorsPage()));
+        Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
       }
     } else {
       showDialog(
@@ -368,4 +371,71 @@ class SlideRightRoute extends PageRouteBuilder {
                       end: Offset.zero,
                     ).animate(animation),
                     child: child));
+}
+
+class TakeProfilePage extends StatelessWidget {
+  // Returns a page that asks the user if they want to take a profile picture.
+  // Then displays two options: take profile and skip.
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AccountAppBar(height: .21 * globals.size.height),
+        body: Container(
+          height: .22 * globals.size.height,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: double.infinity,
+              ),
+              Container(
+                child: Text("Would you like to take your profile picture?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: .03 * globals.size.height)),
+              ),
+              GestureDetector(
+                child: TakeProfileButton(
+                  buttonName: "Take profile picture",
+                ),
+                onTap: () => Navigator.push(
+                    context,
+                    SlideRightRoute(
+                        page: Camera(
+                      cameraUsage: CameraUsage.profile,
+                    ))).then((_) => Navigator.pop(context)),
+              ),
+              GestureDetector(
+                  child: TakeProfileButton(
+                    buttonName: "Skip",
+                  ),
+                  onTap: () => Navigator.pop(context)),
+            ],
+          ),
+        ));
+  }
+}
+
+class TakeProfileButton extends StatelessWidget {
+  // Simply a widget for displaying an option of the take profile page.
+
+  TakeProfileButton({@required this.buttonName});
+
+  final String buttonName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        height: .05 * globals.size.height,
+        width: .8 * globals.size.width,
+        decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[400], width: 2),
+            borderRadius:
+                BorderRadius.all(Radius.circular(globals.size.height))),
+        child: Center(
+            child: Text(buttonName,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: .02 * globals.size.height))));
+  }
 }

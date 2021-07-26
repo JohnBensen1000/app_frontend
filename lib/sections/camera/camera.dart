@@ -120,7 +120,10 @@ class Camera extends StatelessWidget {
     return Scaffold(
         body: ChangeNotifierProvider(
             create: (_) => CameraProvider(cameraUsage: cameraUsage, chat: chat),
-            child: CameraPage(cameraUsage: cameraUsage, chat: chat)));
+            child: CameraPage(
+              cameraUsage: cameraUsage,
+              chat: chat,
+            )));
   }
 }
 
@@ -148,8 +151,9 @@ class CameraPage extends StatelessWidget {
         Container(
             alignment: Alignment.topLeft,
             padding: EdgeInsets.only(
-                top: .047 * globals.size.height,
-                left: .0128 * globals.size.width),
+                top: .06 * globals.size.height,
+                left: .04 * globals.size.width,
+                bottom: .02 * globals.size.height),
             child: GestureDetector(
                 child: BackArrow(), onTap: () => Navigator.pop(context))),
         CameraView(
