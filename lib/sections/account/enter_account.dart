@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 import '../../globals.dart' as globals;
+import '../../widgets/wide_button.dart';
 
 import 'sign_in.dart';
 import 'sign_up.dart';
@@ -54,35 +55,8 @@ class LogInScreen extends StatelessWidget {
               Column(
                 children: [
                   GestureDetector(
-                      child: Container(
-                        child: Container(
-                          width: .75 * globals.size.width,
-                          height: .05 * globals.size.height,
-                          decoration: BoxDecoration(
-                            borderRadius:
-                                BorderRadius.circular(globals.size.height),
-                            color: const Color(0xffffffff),
-                            border:
-                                Border.all(width: 1.0, color: Colors.grey[400]),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0x29000000),
-                                blurRadius: .01 * globals.size.width,
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Create an Account ',
-                              style: TextStyle(
-                                fontFamily: 'Devanagari Sangam MN',
-                                fontSize: .033 * globals.size.height,
-                                color: const Color(0xff707070),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
+                      child: WideButton(
+                        buttonName: "Create an account",
                       ),
                       onTap: () {
                         Navigator.push(

@@ -7,11 +7,10 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../globals.dart' as globals;
-
 import '../../API/methods/users.dart';
 import '../../API/methods/authentication.dart';
-
 import '../../models/user.dart';
+import '../../widgets/wide_button.dart';
 
 import '../navigation/home_screen.dart';
 import '../personalization/choose_color.dart';
@@ -382,60 +381,46 @@ class TakeProfilePage extends StatelessWidget {
     return Scaffold(
         appBar: AccountAppBar(height: .21 * globals.size.height),
         body: Container(
-          height: .22 * globals.size.height,
+          padding: EdgeInsets.only(top: .03 * globals.size.height),
+          height: .24 * globals.size.height,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: double.infinity,
-              ),
-              Container(
                 child: Text("Would you like to take your profile picture?",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: .03 * globals.size.height)),
               ),
-              GestureDetector(
-                child: TakeProfileButton(
-                  buttonName: "Take profile picture",
-                ),
-                onTap: () => Navigator.push(
-                    context,
-                    SlideRightRoute(
-                        page: Camera(
-                      cameraUsage: CameraUsage.profile,
-                    ))).then((_) => Navigator.pop(context)),
+              Container(
+                width: double.infinity,
               ),
-              GestureDetector(
-                  child: TakeProfileButton(
-                    buttonName: "Skip",
-                  ),
-                  onTap: () => Navigator.pop(context)),
+              Container(
+                height: .11 * globals.size.height,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      child: WideButton(
+                        buttonName: "Take profile picture",
+                      ),
+                      onTap: () => Navigator.push(
+                          context,
+                          SlideRightRoute(
+                              page: Camera(
+                            cameraUsage: CameraUsage.profile,
+                          ))).then((_) => Navigator.pop(context)),
+                    ),
+                    GestureDetector(
+                        child: WideButton(
+                          buttonName: "Skip",
+                        ),
+                        onTap: () => Navigator.pop(context)),
+                  ],
+                ),
+              )
             ],
           ),
         ));
-  }
-}
-
-class TakeProfileButton extends StatelessWidget {
-  // Simply a widget for displaying an option of the take profile page.
-
-  TakeProfileButton({@required this.buttonName});
-
-  final String buttonName;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-        height: .05 * globals.size.height,
-        width: .8 * globals.size.width,
-        decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[400], width: 2),
-            borderRadius:
-                BorderRadius.all(Radius.circular(globals.size.height))),
-        child: Center(
-            child: Text(buttonName,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: .02 * globals.size.height))));
   }
 }
