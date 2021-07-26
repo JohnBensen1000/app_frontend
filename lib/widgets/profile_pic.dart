@@ -64,62 +64,56 @@ class ProfilePic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        child: Container(
-          width: diameter,
-          height: diameter,
-          child: Stack(
-            children: <Widget>[
-              ClipPath(
-                  clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
-                  child: FutureBuilder(
-                      future: globals.profileRepository
-                          .getProfilePost(context, user),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData)
-                          return PostView(
-                              post: snapshot.data,
-                              height: diameter,
-                              aspectRatio: 1,
-                              playOnInit: true,
-                              playWithVolume: false,
-                              saveInMemory: true,
-                              postStage: PostStage.onlyPost);
-                        else
-                          return Container(
-                            width: diameter,
+      child: Container(
+        width: diameter,
+        height: diameter,
+        child: Stack(
+          children: <Widget>[
+            ClipPath(
+                clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
+                child: FutureBuilder(
+                    future:
+                        globals.profileRepository.getProfilePost(context, user),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData)
+                        return PostView(
+                            post: snapshot.data,
                             height: diameter,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(
-                                  Radius.elliptical(9999.0, 9999.0)),
-                              border: Border.all(
-                                  width: .02 * diameter,
-                                  color: user.profileColor),
-                            ),
-                          );
-                      })),
-              Container(
-                  width: diameter,
-                  height: diameter,
-                  decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                    border: Border.all(
-                        width: .02 * diameter, color: user.profileColor),
-                  )),
-            ],
-          ),
+                            aspectRatio: 1,
+                            playOnInit: true,
+                            playWithVolume: false,
+                            saveInMemory: true,
+                            postStage: PostStage.onlyPost);
+                      else
+                        return Container(
+                          width: diameter,
+                          height: diameter,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(
+                                Radius.elliptical(9999.0, 9999.0)),
+                            border: Border.all(
+                                width: .02 * diameter,
+                                color: user.profileColor),
+                          ),
+                        );
+                    })),
+            Container(
+                width: diameter,
+                height: diameter,
+                decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+                  border: Border.all(
+                      width: .02 * diameter, color: user.profileColor),
+                )),
+          ],
         ),
-        onLongPress: () async {
-          if (user.uid != globals.user.uid) await reportProfile(context);
-        },
-        onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => ProfilePage(
-                        user: user,
-                      )),
-            ));
+      ),
+      onLongPress: () async {
+        if (user.uid != globals.user.uid) await reportProfile(context);
+      },
+    );
   }
 
   Future<void> reportProfile(BuildContext context) async {

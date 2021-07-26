@@ -16,6 +16,7 @@ import '../../widgets/generic_alert_dialog.dart';
 
 import '../camera/camera.dart';
 import '../post/post_view.dart';
+import '../profile_page/profile_page.dart';
 
 enum PopAction { removeChat, moveToTop }
 
@@ -115,24 +116,34 @@ class ChatPageHeader extends PreferredSize {
                 )
               ],
             ),
-            Column(
-              children: [
-                Container(child: chat.chatIcon),
-                GestureDetector(
-                  child: Container(
-                    padding: EdgeInsets.only(
-                        left: .0256 * globals.size.width,
-                        right: .0256 * globals.size.width,
-                        top: .0118 * globals.size.height),
-                    child: Text(
-                      chat.chatName,
-                      style: TextStyle(fontSize: .0237 * globals.size.height),
-                    ),
-                  ),
-                  onLongPress: () async => await blockUser(context),
-                )
-              ],
-            ),
+            GestureDetector(
+                child: Column(
+                  children: [
+                    Container(child: chat.chatIcon),
+                    GestureDetector(
+                      child: Container(
+                        padding: EdgeInsets.only(
+                            left: .0256 * globals.size.width,
+                            right: .0256 * globals.size.width,
+                            top: .0118 * globals.size.height),
+                        child: Text(
+                          chat.chatName,
+                          style:
+                              TextStyle(fontSize: .0237 * globals.size.height),
+                        ),
+                      ),
+                      onLongPress: () async => await blockUser(context),
+                    )
+                  ],
+                ),
+                onTap: () {
+                  if (chat.isDirectMessage)
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                ProfilePage(user: chat.members[0])));
+                })
           ],
         ));
   }
