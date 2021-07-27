@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/sections/profile_page/profile_drawer.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
@@ -16,24 +17,24 @@ import '../../widgets/alert_dialog_container.dart';
 import '../../widgets/generic_alert_dialog.dart';
 
 import '../post/post_view.dart';
-import 'settings_drawer.dart';
+import '../../widgets/custom_drawer.dart';
 
 class ProfileProvider extends ChangeNotifier {
   // Simply keeps track of if the setting should be open or closed.
-  bool _isSettingsOpen = false;
+  bool _isProfileDrawerOpen = false;
 
-  bool get isSettingsOpen => _isSettingsOpen;
+  bool get isProfileDrawerOpen => _isProfileDrawerOpen;
 
-  set isSettingsOpen(newIsSettingsOpen) {
-    _isSettingsOpen = newIsSettingsOpen;
+  set isProfileDrawerOpen(newIsProfileDrawerOpen) {
+    _isProfileDrawerOpen = newIsProfileDrawerOpen;
     notifyListeners();
   }
 }
 
 class ProfilePage extends StatelessWidget {
-  // Returns a stack of the profile page and the settings drawer. Only displays
-  // the settings drawer if it has been opened. The settings drawer contains
-  // a Settings widget that is placed on top of the profile page (hence the need
+  // Returns a stack of the profile page and the profile drawer. Only displays
+  // the profile drawer if it has been opened. The profile drawer contains
+  // a profile widget that is placed on top of the profile page (hence the need
   // for a stack).
   ProfilePage({@required this.user});
 
@@ -42,7 +43,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double headerHeight = .42 * globals.size.height;
-    double settingsWidth = .7 * globals.size.width;
+    double profileDrawerWidth = .7 * globals.size.width;
 
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
@@ -68,9 +69,14 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             Consumer<ProfileProvider>(
-                builder: (context, provider, child) => (provider.isSettingsOpen)
-                    ? SettingsDrawer(width: settingsWidth)
-                    : Container())
+                builder: (context, provider, child) =>
+                    (provider.isProfileDrawerOpen)
+                        ? CustomDrawer(
+                            width: profileDrawerWidth,
+                            child: ProfileDrawer(
+                              width: profileDrawerWidth,
+                            ))
+                        : Container())
           ],
         )));
   }
@@ -150,7 +156,7 @@ class ProfilePageHeader extends StatelessWidget {
                   if (user.uid != globals.user.uid)
                     FollowBlockButtons(user: user)
                   else
-                    OpenSettingsButton(),
+                    OpenProfileDrawerButton(),
                 ]),
           ],
         ));
@@ -258,7 +264,7 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
   }
 }
 
-class OpenSettingsButton extends StatelessWidget {
+class OpenProfileDrawerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ProfileProvider provider =
@@ -266,12 +272,12 @@ class OpenSettingsButton extends StatelessWidget {
 
     return GestureDetector(
         child: ProfilePageHeaderButton(
-          width: .26 * globals.size.width,
-          name: "Settings",
-          color: Colors.grey[200],
-          borderColor: Colors.grey[200],
+          width: .32 * globals.size.width,
+          name: "Edit Profile",
+          color: Colors.transparent,
+          borderColor: Colors.grey[400],
         ),
-        onTap: () => provider.isSettingsOpen = true);
+        onTap: () => provider.isProfileDrawerOpen = true);
   }
 }
 

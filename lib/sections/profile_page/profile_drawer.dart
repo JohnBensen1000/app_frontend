@@ -1,0 +1,197 @@
+import 'package:flutter/material.dart';
+import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/API/methods/users.dart';
+
+import '../../globals.dart' as globals;
+import '../../widgets/profile_pic.dart';
+import '../../main.dart';
+import '../../widgets/alert_dialog_container.dart';
+import '../../widgets/custom_drawer.dart';
+
+import '../camera/camera.dart';
+
+import '../personalization/choose_color.dart';
+import '../personalization/preferences.dart';
+
+// import 'blocked_list.dart';
+
+class ProfileDrawer extends StatefulWidget {
+  // The profile widget pops out from the left side of the screen. It contains
+  // the user's profile picture and a list of buttons. Each button allows the
+  // user to change a different aspect of their their profile.
+
+  ProfileDrawer({
+    @required this.width,
+    Key key,
+  }) : super(key: key);
+
+  final double width;
+
+  @override
+  _ProfileDrawerState createState() => _ProfileDrawerState();
+}
+
+class _ProfileDrawerState extends State<ProfileDrawer> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          right: BorderSide(width: 1.0, color: Colors.black),
+        ),
+      ),
+      padding: EdgeInsets.only(
+          top: .047 * globals.size.height, bottom: .1 * globals.size.height),
+      width: widget.width,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ProfileDrawerHeader(),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Column(
+                  children: [
+                    CustomDrawerButton(
+                      buttonName: "Choose color",
+                      onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ColorsPage()))
+                          .then((value) {
+                        setState(() {});
+                      }),
+                    ),
+                    CustomDrawerButton(
+                        buttonName: "Set preferences",
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => PreferencesPage()))),
+                  ],
+                ),
+                Column(
+                  children: [
+                    CustomDrawerButton(
+                        buttonName: "Sign Out",
+                        onPressed: () async {
+                          await showAlertDialog(
+                                  "Are you sure you want to log out?")
+                              .then((confirmLogOut) async {
+                            if (confirmLogOut != null && confirmLogOut) {
+                              await handleRequest(
+                                  context, updateDeviceToken(""));
+                              await globals.accountRepository.removeUid();
+                              Navigator.popUntil(
+                                  context, (route) => route.isFirst);
+
+                              runApp(MyApp());
+                            }
+                          });
+                        }),
+                    CustomDrawerButton(
+                        buttonName: "Delete account",
+                        fontColor: Colors.red,
+                        onPressed: () async => await handleDeleteAccount()),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> showAlertDialog(String dialogText) {
+    // Displays a generic alert dialog. This alert dialog asks a yes or no
+    // question, and returns a boolean.
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialogContainer(
+            dialogText: dialogText,
+          );
+        });
+  }
+
+  Future<void> handleDeleteAccount() async {
+    // Asks the user twice to make sure that they want to delete their account.
+    // If they respond with 'yes' both times, deletes their account and restarts
+    // the app.
+    await showAlertDialog("Are you sure that you want to delete your account?")
+        .then((confirmDelete) async {
+      if (confirmDelete != null && confirmDelete)
+        showAlertDialog(
+                "Your account will be deleted permanently. Are you sure you want to delete it?")
+            .then((confirmDelete) async {
+          if (confirmDelete != null && confirmDelete) {
+            await handleRequest(context, deleteAccount());
+            await globals.accountRepository.removeUid();
+            Navigator.popUntil(context, (route) => route.isFirst);
+
+            runApp(MyApp());
+          }
+        });
+    });
+  }
+}
+
+class ProfileDrawerHeader extends StatefulWidget {
+  // Displays the user's profile. Allows the user to change their profile by
+  // tapping on it.
+  @override
+  _ProfileDrawerHeaderState createState() => _ProfileDrawerHeaderState();
+}
+
+class _ProfileDrawerHeaderState extends State<ProfileDrawerHeader> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: .3 * globals.size.height,
+      margin: EdgeInsets.only(bottom: .02 * globals.size.height),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(
+                  top: .02 * globals.size.height,
+                  bottom: .02 * globals.size.height),
+              child: GestureDetector(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    ProfilePic(
+                      diameter: .2 * globals.size.height,
+                      user: globals.user,
+                    ),
+                    Text("Take New Photo",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: .02 * globals.size.height)),
+                  ],
+                ),
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => Camera(
+                              cameraUsage: CameraUsage.profile,
+                            ))).then((value) {
+                  setState(() {});
+                }),
+              )),
+          Text(
+            "Edit Profile",
+            style: TextStyle(
+                fontSize: .04 * globals.size.height,
+                fontWeight: FontWeight.bold),
+          )
+        ],
+      ),
+    );
+  }
+}
