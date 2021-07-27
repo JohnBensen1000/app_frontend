@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/methods/relations.dart';
+import 'package:test_flutter/API/methods/followings.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
@@ -242,9 +242,9 @@ class _AcceptDeclineWidgetState extends State<AcceptDeclineWidget> {
         acceptDeclinePressed = false;
       });
       if (willFollowBack)
-        await postFollowBack(widget.newFollower);
+        await startFollowing(widget.newFollower);
       else
-        await postDontFollowBack(widget.newFollower);
+        await dontFollowBack(widget.newFollower);
 
       Provider.of<NewFollowersProvider>(context, listen: false)
           .removeNewFollower(widget.newFollower);

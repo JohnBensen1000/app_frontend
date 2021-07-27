@@ -34,6 +34,11 @@ class BaseAPI {
         http.post(Uri.http(baseURL, url), body: json.encode(postBody)));
   }
 
+  Future<dynamic> put(String url, Map postBody) async {
+    return handleResponse(
+        http.put(Uri.http(baseURL, url), body: json.encode(postBody)));
+  }
+
   Future<dynamic> delete(String url) async {
     return handleResponse(http.delete(Uri.http(baseURL, url)));
   }
@@ -50,13 +55,8 @@ class BaseAPI {
     }
 
     switch (response.statusCode) {
-      case 201:
       case 200:
-        if (response.runtimeType != http.StreamedResponse &&
-            !response.body.isEmpty)
-          return json.decode(response.body);
-        else
-          return true;
+        return json.decode(response.body);
         break;
       case 400:
       case 404:

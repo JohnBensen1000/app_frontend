@@ -8,7 +8,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';
-import '../../API/methods/authentication.dart';
 import '../../models/user.dart';
 import '../../widgets/wide_button.dart';
 
@@ -225,12 +224,16 @@ class PolicyAgreementPage extends StatelessWidget {
       'email': email,
     };
 
-    var response = await handleRequest(context, postNewAccount(newAccount));
+    var response = await handleRequest(context, createNewAccount(newAccount));
     if (response != null) {
       await FirebaseMessaging.instance.requestPermission();
 
-      await handleRequest(context, postSignIn(firebaseUser.uid));
-      globals.user = User.fromJson(response['user']);
+      globals.user =
+          await handleRequest(context, getUserFromUID(firebaseUser.uid));
+
+      await handleRequest(context,
+          updateDeviceToken(await FirebaseMessaging.instance.getToken()));
+
       await globals.accountRepository.setUid(uid: firebaseUser.uid);
       return true;
     } else {

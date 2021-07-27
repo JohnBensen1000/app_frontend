@@ -6,7 +6,8 @@ import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';
-import '../../API/methods/relations.dart';
+import '../../API/methods/blocked.dart';
+import '../../API/methods/reports.dart';
 import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
@@ -132,7 +133,7 @@ class ChatPageHeader extends PreferredSize {
                               TextStyle(fontSize: .0237 * globals.size.height),
                         ),
                       ),
-                      onLongPress: () async => await blockUser(context),
+                      onLongPress: () async => await _blockUser(context),
                     )
                   ],
                 ),
@@ -148,7 +149,7 @@ class ChatPageHeader extends PreferredSize {
         ));
   }
 
-  Future<void> blockUser(BuildContext context) async {
+  Future<void> _blockUser(BuildContext context) async {
     ChatPageProvider provider =
         Provider.of<ChatPageProvider>(context, listen: false);
 
@@ -158,7 +159,7 @@ class ChatPageHeader extends PreferredSize {
                 dialogText: "Do you want to block this user?"))
         .then((isUserBlocked) async {
       if (isUserBlocked != null && isUserBlocked) {
-        await handleRequest(context, postBlockedUser(provider.chat.members[0]));
+        await handleRequest(context, blockUser(provider.chat.members[0]));
         await showDialog(
             context: context,
             builder: (context) => GenericAlertDialog(
@@ -233,10 +234,7 @@ class ChatPageBody extends StatelessWidget {
 
 class ChatItemWidget extends StatefulWidget {
   // This widget takes a ChatItem object as an input and determines who sent the
-  // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost(). When
-  // pressed for a long time, this widget is rebuild with a report button placed
-  // underneath the chat item. This report button allows the user to report this
-  // chat item.
+  // chat and whether the chat is a ChatWidgetText() or a ChatWidgetPost().
 
   ChatItemWidget({@required this.chatItem, @required this.user});
 
@@ -251,8 +249,6 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-
-  bool showReportButton = false;
 
   @override
   Widget build(BuildContext context) {
@@ -274,93 +270,25 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-                child: Container(
-                  padding: EdgeInsets.only(
-                      top: .0047 * globals.size.height,
-                      bottom: .0047 * globals.size.height),
-                  child: (widget.chatItem.isPost == false)
-                      ? ChatItemWidgetText(
-                          text: widget.chatItem.text,
-                          backgroundColor: backgroundColor,
-                        )
-                      : ChatItemWidgetPost(
-                          chatItem: widget.chatItem,
-                          height: .284 * globals.size.height,
-                        ),
-                ),
-                onLongPress: () {
-                  if (widget.chatItem.uid != globals.user.uid)
-                    setState(() {
-                      showReportButton = !showReportButton;
-                    });
-                }),
-            if (showReportButton)
-              Container(
-                margin: EdgeInsets.only(bottom: .0059 * globals.size.height),
+              child: Container(
                 padding: EdgeInsets.only(
-                    left: .0128 * globals.size.width,
-                    right: .0128 * globals.size.width),
-                width: .385 * globals.size.width,
-                height: .0355 * globals.size.height,
-                decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.all(
-                        Radius.circular(.0237 * globals.size.height))),
-                child: Center(
-                    child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      "Report?",
-                    ),
-                    GestureDetector(
-                        child: Text("Yes",
-                            style: TextStyle(color: Colors.red[300])),
-                        onTap: () async => await reportChat(context)),
-                    GestureDetector(
-                        child: Text("No",
-                            style: TextStyle(color: Colors.grey[500])),
-                        onTap: () {
-                          setState(() {
-                            showReportButton = false;
-                          });
-                        })
-                  ],
-                )),
-              )
+                    top: .0047 * globals.size.height,
+                    bottom: .0047 * globals.size.height),
+                child: (widget.chatItem.isPost == false)
+                    ? ChatItemWidgetText(
+                        text: widget.chatItem.text,
+                        backgroundColor: backgroundColor,
+                      )
+                    : ChatItemWidgetPost(
+                        chatItem: widget.chatItem,
+                        height: .284 * globals.size.height,
+                      ),
+              ),
+            ),
           ],
         )
       ],
     );
-  }
-
-  Future<void> reportChat(BuildContext context) async {
-    // First sets state to remove the report button. Then displays an alert
-    // dialog confirming that the user wants to report the chat. Then reports
-    // the chat.
-    setState(() {
-      showReportButton = false;
-    });
-
-    ChatPageProvider provider =
-        Provider.of<ChatPageProvider>(context, listen: false);
-
-    await showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialogContainer(
-                  dialogText: "Are you sure you want to report this post?");
-            })
-        .then((isReportConfirmed) => handleRequest(context,
-            reportChatItem(provider.chat.chatID, widget.chatItem.toJson())));
-
-    await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return GenericAlertDialog(
-              text:
-                  "Thank you for reporting this chat. We will review it to see if it violates any of our guidelines.");
-        });
   }
 }
 

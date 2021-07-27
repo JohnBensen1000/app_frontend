@@ -60,12 +60,12 @@ class _AccessCodePageState extends State<AccessCodePage> {
                 GestureDetector(
                     child: ForwardArrow(),
                     onTap: () async {
-                      Map response = await handleRequest(
+                      bool accessGranted = await handleRequest(
                           context,
                           getAccess(
                               accessCodeField.textEditingController.text));
 
-                      if (response["accessGranted"]) {
+                      if (accessGranted) {
                         accessCodeField.errorText = "";
                         setState(() {});
 

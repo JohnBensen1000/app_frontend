@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/methods/watched.dart';
 import 'package:test_flutter/widgets/report_button.dart';
 
 import '../../globals.dart' as globals;
@@ -271,7 +272,7 @@ class _PostListPageState extends State<PostListPage> {
   void _swipeDown(int currentIndex, PostListProvider provider) async {
     await _swipeToPosition(-widget.height, -1);
 
-    handleRequest(context, postRecordWatched(provider.currentPost.postID, 5));
+    handleRequest(context, recordWatched(provider.currentPost.postID, 5));
     provider.currentPostIndex = currentIndex + 1;
   }
 

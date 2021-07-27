@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:test_flutter/API/methods/blocked.dart';
 
 import '../../API/handle_requests.dart';
 import '../../API/methods/posts.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 import '../../models/user.dart';
-import '../../API/methods/relations.dart';
 import '../../API/methods/comments.dart';
+import '../../API/methods/reports.dart';
 import '../globals.dart' as globals;
 
 class ReportButton extends StatelessWidget {
@@ -74,10 +75,9 @@ class ReportContentAlertDialog extends StatelessWidget {
                 ),
                 onTap: () async {
                   if (comment == null) {
-                    await handleRequest(context, postReportPost(post));
+                    await handleRequest(context, reportPost(post));
                   } else {
-                    await handleRequest(
-                        context, postReportComment(post, comment));
+                    await handleRequest(context, reportComment(post, comment));
                   }
                   Navigator.pop(context, ActionTaken.reported);
                 }),
@@ -87,7 +87,7 @@ class ReportContentAlertDialog extends StatelessWidget {
                 ),
                 onTap: () async {
                   User creator = comment == null ? post.creator : comment.user;
-                  await handleRequest(context, postBlockedUser(creator));
+                  await handleRequest(context, blockUser(creator));
                   Navigator.pop(context, ActionTaken.blocked);
                 }),
           ],

@@ -226,7 +226,7 @@ class ChooseColorFooter extends StatelessWidget {
                         onTap: () async {
                           if (provider.chosenColorKey != null) {
                             await handleRequest(
-                                context, postNewColor(provider.chosenColorKey));
+                                context, updateColor(provider.chosenColorKey));
                             globals.user.profileColor =
                                 globals.colorsMap[provider.chosenColorKey];
                             Navigator.pop(context);

@@ -52,7 +52,7 @@ class SignUpProvider extends ChangeNotifier {
       if (!_checkIfPasswordsMatch()) isNewAccountValid = false;
       if (!_checkIfEmailValid()) isNewAccountValid = false;
       if (!(await _checkIfEmailNotTaken())) isNewAccountValid = false;
-      if (!(await _checkIfUserIdNotTaken(context))) isNewAccountValid = false;
+      if (!(await _checkIfUserIdAvailable(context))) isNewAccountValid = false;
       if (!_checkIfPasswordStrongEnough()) isNewAccountValid = false;
     }
 
@@ -92,14 +92,13 @@ class SignUpProvider extends ChangeNotifier {
     return isEmailValid;
   }
 
-  Future<bool> _checkIfUserIdNotTaken(BuildContext context) async {
-    Map response = await handleRequest(
-        context, getIfUserIdTaken((username.textEditingController.text)));
-    bool isUserIdNotTaken = !response["isUserIdTaken"];
+  Future<bool> _checkIfUserIdAvailable(BuildContext context) async {
+    bool isUserIdTaken = await handleRequest(
+        context, checkIfUserIdTaken((username.textEditingController.text)));
 
-    if (!isUserIdNotTaken) username.errorText = "Username already taken";
+    if (isUserIdTaken) username.errorText = "Username already taken";
 
-    return isUserIdNotTaken;
+    return !isUserIdTaken;
   }
 
   Future<bool> _checkIfEmailNotTaken() async {

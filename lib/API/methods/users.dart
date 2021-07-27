@@ -2,52 +2,44 @@ import '../../models/user.dart';
 
 import '../../globals.dart' as globals;
 
-Future<Map> getIfUserIdTaken(String userID) async {
-  var response = await globals.baseAPI
-      .get("v1/users/", queryParameters: {'userID': userID});
-
-  return response;
+Future<Map> createNewAccount(Map postBody) async {
+  return await globals.baseAPI.post("v2/users", postBody);
 }
 
-Future<Map> postNewAccount(Map postBody) async {
-  return await globals.baseAPI.post("v1/users/new/", postBody);
+Future<bool> checkIfUserIdTaken(String userID) async {
+  var response = await globals.baseAPI
+      .get('v2/users', queryParameters: {'contains': userID});
+
+  return response["creatorsList"].length > 0;
 }
 
 Future<List<User>> getUsersFromSearchString(String searchString) async {
-  var response = await globals.baseAPI.get(
-      "v1/users/${(globals.user != null) ? globals.user.uid : ""}/search/",
-      queryParameters: {'contains': searchString});
+  var response = await globals.baseAPI.get("v2/users",
+      queryParameters: {'contains': searchString, 'uid': globals.user.uid});
 
   return [
     for (var userJson in response["creatorsList"]) User.fromJson(userJson)
   ];
 }
 
-Future<bool> postNewColor(String profileColor) async {
-  Map<String, String> postBody = {'profileColor': profileColor};
-
-  return await globals.baseAPI.post('v1/users/${globals.user.uid}/', postBody);
-}
-
 Future<User> getUserFromUID(String uid) async {
-  var response = await globals.baseAPI.get('v1/users/$uid/');
+  var response = await globals.baseAPI.get('v2/users/$uid');
 
-  return User.fromJson(response['user']);
-}
-
-Future<List<String>> getPreferenceFields() async {
-  var response = await globals.baseAPI.get('v1/users/preferences/');
-
-  return [for (var field in response['fields']) field.toString()];
-}
-
-Future<bool> postUserPreferences(List<String> updatePreferences) async {
-  Map<String, List<String>> postBody = {'preferences': updatePreferences};
-
-  return await globals.baseAPI
-      .post('v1/users/${globals.user.uid}/preferences/', postBody);
+  return User.fromJson(response);
 }
 
 Future<bool> deleteAccount() async {
-  return await globals.baseAPI.delete('v1/users/${globals.user.uid}/');
+  var response = await globals.baseAPI.delete('v2/users/${globals.user.uid}');
+
+  return response['deleted'];
+}
+
+Future<Map> updateDeviceToken(String deviceToken) async {
+  return await globals.baseAPI
+      .put('v2/users/${globals.user.uid}', {'deviceToken': deviceToken});
+}
+
+Future<Map> updateColor(String profileColor) async {
+  return await globals.baseAPI
+      .put('v2/users/${globals.user.uid}', {'profileColor': profileColor});
 }

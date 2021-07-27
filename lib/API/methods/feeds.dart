@@ -4,7 +4,7 @@ import '../../globals.dart' as globals;
 
 Future<List<Post>> getFollowingPosts() async {
   var response = await globals.baseAPI
-      .get('v1/new_content/${globals.user.uid}/following/');
+      .get('v2/feeds/following', queryParameters: {'uid': globals.user.uid});
 
   if (response["posts"].length == 0) return null;
 
@@ -12,8 +12,8 @@ Future<List<Post>> getFollowingPosts() async {
 }
 
 Future<List<Post>> getRecommendations() async {
-  var response = await globals.baseAPI
-      .get('v1/new_content/${globals.user.uid}/recommendations/');
+  var response = await globals.baseAPI.get('v2/feeds/recommendations',
+      queryParameters: {'uid': globals.user.uid});
 
   if (response["posts"].length == 0) return null;
 

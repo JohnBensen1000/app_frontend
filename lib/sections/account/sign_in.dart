@@ -11,9 +11,9 @@ import 'widgets/input_field.dart';
 import 'widgets/account_submit_button.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/methods/authentication.dart';
 import '../../models/user.dart';
 import '../navigation/home_screen.dart';
+import '../../API/methods/users.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
@@ -98,12 +98,16 @@ class _SignInState extends State<SignIn> {
       ))
           .user;
 
-      if ((await messaging.getNotificationSettings()).authorizationStatus !=
+      if ((await FirebaseMessaging.instance.getNotificationSettings())
+              .authorizationStatus !=
           AuthorizationStatus.authorized)
         await FirebaseMessaging.instance.requestPermission();
 
-      Map response = await handleRequest(context, postSignIn(firebaseUser.uid));
-      globals.user = User.fromJson(response['user']);
+      globals.user =
+          await handleRequest(context, getUserFromUID(firebaseUser.uid));
+      await handleRequest(context,
+          updateDeviceToken(await FirebaseMessaging.instance.getToken()));
+
       await globals.accountRepository.setUid(uid: firebaseUser.uid);
 
       Navigator.push(

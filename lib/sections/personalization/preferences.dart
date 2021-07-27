@@ -8,7 +8,7 @@ import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/methods/users.dart';
+import '../../API/methods/preferences.dart';
 import '../../widgets/back_arrow.dart';
 
 class PreferencesProvider extends ChangeNotifier {

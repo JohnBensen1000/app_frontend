@@ -11,8 +11,6 @@ import '../../widgets/generic_alert_dialog.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 
-import '../post/post_view.dart';
-
 import 'widgets/add_comment_button.dart';
 import 'comment_widget.dart';
 
@@ -254,8 +252,8 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
                             postComment(provider.post, provider.parentComment,
                                 textController.text));
 
-                        switch (response["reasonForDenial"]) {
-                          case "profanity":
+                        switch (response["denied"]) {
+                          case "NSFW":
                             await showDialog(
                                 context: context,
                                 builder: (BuildContext context) =>

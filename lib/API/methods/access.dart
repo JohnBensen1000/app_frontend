@@ -1,7 +1,8 @@
-import '../../globals.dart' as globals;
 import '../baseAPI.dart';
 
-Future<Map> getAccess(String accessCode) async {
-  return await BaseAPI()
-      .get('v1/access/', queryParameters: {'accessCode': accessCode});
+Future<bool> getAccess(String token) async {
+  var response =
+      await BaseAPI().get('v2/access', queryParameters: {'token': token});
+
+  return response['accessGranted'];
 }

@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../../globals.dart' as globals;
 import '../../API/handle_requests.dart';
 import '../../API/methods/chats.dart';
-import '../../API/methods/relations.dart';
+import '../../API/methods/followers.dart';
 import '../../models/chat.dart';
 
 import 'direct_message.dart';

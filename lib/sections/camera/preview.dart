@@ -311,7 +311,7 @@ class _PreviewButtonState extends State<PreviewButton> {
                 context: context,
                 builder: (BuildContext context) => GenericAlertDialog(
                     text:
-                        "Your post has been determined to be inappropriate, so it will not be uploaded."));
+                        "Our automatic filter has determined that your post has violated our guidelines. Our team will review your post and release it if your post does not actually violate our guidelines."));
         }
 
         int numPops = (provider.cameraUsage == CameraUsage.profile) ? 3 : 2;

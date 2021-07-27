@@ -5,7 +5,7 @@ import '../../models/post.dart';
 import '../../globals.dart' as globals;
 
 Future<List<Comment>> getAllComments(Post post) async {
-  var response = await BaseAPI().get('v1/comments/${post.postID}/',
+  var response = await BaseAPI().get('v2/comments/${post.postID}',
       queryParameters: {'uid': globals.user.uid});
 
   List<Comment> commentsList = [];
@@ -29,10 +29,5 @@ Future<Map> postComment(
     "uid": globals.user.uid
   };
 
-  return await BaseAPI().post('v1/comments/${post.postID}/', postBody);
-}
-
-Future<bool> postReportComment(Post post, Comment comment) async {
-  return await BaseAPI()
-      .post('v1/comments/${post.postID}/report/', comment.toJson());
+  return await BaseAPI().post('v2/comments/${post.postID}', postBody);
 }

@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../globals.dart' as globals;
-import '../API/methods/authentication.dart';
 import '../models/user.dart';
 import '../widgets/forward_arrow.dart';
 import '../API/handle_requests.dart';

@@ -4,8 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/methods/relations.dart';
 import '../../API/methods/posts.dart';
+import '../../API/methods/followings.dart';
+import '../../API/methods/blocked.dart';
 import '../../models/user.dart';
 import '../../models/post.dart';
 
@@ -231,7 +232,7 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
                           "Are you sure you want to block ${widget.user.userID}?");
                 }).then((isBlockingUser) async {
               if (isBlockingUser) {
-                await handleRequest(context, postBlockedUser(widget.user));
+                await handleRequest(context, blockUser(widget.user));
                 await showDialog(
                     context: context,
                     builder: (context) => GenericAlertDialog(
@@ -248,8 +249,8 @@ class _FollowBlockButtonsState extends State<FollowBlockButtons> {
 
   Future<void> changeFollowing(BuildContext context) async {
     (isFollowing)
-        ? await handleRequest(context, postStopFollowing(widget.user))
-        : await handleRequest(context, postStartFollowing(widget.user));
+        ? await handleRequest(context, stopFollowing(widget.user))
+        : await handleRequest(context, startFollowing(widget.user));
 
     isFollowing = !isFollowing;
 

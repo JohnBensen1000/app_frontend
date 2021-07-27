@@ -15,11 +15,28 @@ Future<Map> postNewPost(bool isImage, bool isPrivate, File file) async {
     'isPrivate': isPrivate,
     'downloadURL': downloadURL
   };
-  return await globals.baseAPI.post("v1/posts/${globals.user.uid}/", postBody);
+
+  return await globals.baseAPI.post("v2/posts/${globals.user.uid}", postBody);
+}
+
+Future<List<Post>> getUsersPosts(User user) async {
+  var response = await globals.baseAPI.get('v2/posts/${user.uid}');
+  List<Post> postList = [
+    for (var postJson in response["posts"]) Post.fromJson(postJson)
+  ];
+  return postList;
+}
+
+Future<Map> uploadProfilePic(bool isImage, File file) async {
+  String downloadURL = await uploadFile(file, globals.user.uid, isImage);
+
+  Map postBody = {'isImage': isImage, 'downloadURL': downloadURL};
+  return await globals.baseAPI
+      .post("v2/posts/${globals.user.uid}/profile", postBody);
 }
 
 Future<Post> getProfile(User user) async {
-  var response = await globals.baseAPI.get('v1/posts/${user.uid}/profile/');
+  var response = await globals.baseAPI.get('v2/posts/${user.uid}/profile');
   Profile profile = Profile.fromJson(response);
 
   if (profile.exists)
@@ -30,36 +47,4 @@ Future<Post> getProfile(User user) async {
         downloadURL: profile.downloadURL);
   else
     return null;
-}
-
-Future<Map> uploadProfilePic(bool isImage, File file) async {
-  String downloadURL = await uploadFile(file, globals.user.uid, isImage);
-
-  Map postBody = {'isImage': isImage, 'downloadURL': downloadURL};
-  return await globals.baseAPI
-      .post("v1/posts/${globals.user.uid}/profile/", postBody);
-}
-
-Future<List<Post>> getUsersPosts(User user) async {
-  var response = await globals.baseAPI.get('v1/posts/${user.uid}/');
-  List<Post> postList = [
-    for (var postJson in response["posts"]) Post.fromJson(postJson)
-  ];
-  return postList;
-}
-
-Future<bool> postRecordWatched(String postID, int userRating) async {
-  Map postJson = {'uid': globals.user.uid, 'userRating': userRating};
-  return await globals.baseAPI.post('v1/posts/$postID/watched_list/', postJson);
-}
-
-Future<bool> postReportPost(Post post) async {
-  return await globals.baseAPI
-      .post('v1/posts/${globals.user.uid}/reports/', {"postID": post.postID});
-}
-
-Future<bool> postReportProfile(User user) async {
-  return await globals.baseAPI.post(
-      'v1/posts/${globals.user.uid}/reports/profile/',
-      {"reportedUser": user.uid});
 }

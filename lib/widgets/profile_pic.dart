@@ -3,11 +3,10 @@ import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
 import '../sections/post/post_view.dart';
-import '../sections/profile_page/profile_page.dart';
 
 import '../models/user.dart';
-import '../API/methods/posts.dart';
 import '../widgets/alert_dialog_container.dart';
+import '../API/methods/reports.dart';
 
 import '../globals.dart' as globals;
 
@@ -111,19 +110,19 @@ class ProfilePic extends StatelessWidget {
         ),
       ),
       onLongPress: () async {
-        if (user.uid != globals.user.uid) await reportProfile(context);
+        if (user.uid != globals.user.uid) await _reportProfile(context);
       },
     );
   }
 
-  Future<void> reportProfile(BuildContext context) async {
+  Future<void> _reportProfile(BuildContext context) async {
     await (showDialog(
             context: context,
             builder: (context) => AlertDialogContainer(
                 dialogText: "Do you want to report this profile picture?")))
         .then((willReportProfile) {
       if (willReportProfile) {
-        handleRequest(context, postReportProfile(user));
+        handleRequest(context, reportProfile(user));
         showDialog(
             context: context,
             builder: (context) => GenericAlertDialog(
