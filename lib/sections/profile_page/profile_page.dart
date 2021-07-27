@@ -23,9 +23,9 @@ class ProfileProvider extends ChangeNotifier {
   // Simply keeps track of if the setting should be open or closed.
   bool _isProfileDrawerOpen = false;
 
-  bool get isProfileDrawerOpen => _isProfileDrawerOpen;
+  bool get isDrawerOpen => _isProfileDrawerOpen;
 
-  set isProfileDrawerOpen(newIsProfileDrawerOpen) {
+  set isDrawerOpen(newIsProfileDrawerOpen) {
     _isProfileDrawerOpen = newIsProfileDrawerOpen;
     notifyListeners();
   }
@@ -43,8 +43,6 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double headerHeight = .42 * globals.size.height;
-    double profileDrawerWidth = .7 * globals.size.width;
-
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return ChangeNotifierProvider(
@@ -69,14 +67,12 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             Consumer<ProfileProvider>(
-                builder: (context, provider, child) =>
-                    (provider.isProfileDrawerOpen)
-                        ? CustomDrawer(
-                            width: profileDrawerWidth,
-                            child: ProfileDrawer(
-                              width: profileDrawerWidth,
-                            ))
-                        : Container())
+                builder: (context, provider, child) => (provider.isDrawerOpen)
+                    ? CustomDrawer(
+                        child: ProfileDrawer(),
+                        parentProvider: provider,
+                      )
+                    : Container())
           ],
         )));
   }
@@ -277,7 +273,7 @@ class OpenProfileDrawerButton extends StatelessWidget {
           color: Colors.transparent,
           borderColor: Colors.grey[400],
         ),
-        onTap: () => provider.isProfileDrawerOpen = true);
+        onTap: () => provider.isDrawerOpen = true);
   }
 }
 

@@ -2,11 +2,13 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 
+import '../../widgets/custom_drawer.dart';
 import '../../globals.dart' as globals;
+import '../../widgets/sandwich_button.dart';
 
+import '../navigation/home_drawer.dart';
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
 import '../friends/friends_page.dart';
@@ -25,12 +27,21 @@ class ResetStateProvider extends ChangeNotifier {
   // Provider used to tell other widgets to rebuild. This is called when the
   // user returns to the home page and the Discover, Friends, and Following
   // pages have to be rebuilt. The bool resetStateBool is used to tell this
-  // provider's consumers that this provider is telling it to rebuild.
+  // provider's consumers that this provider is telling it to rebuild. Also
+  // keeps track of whether the homepage drawer is open or not.
 
   bool resetStateBool = false;
+  bool _isDrawerOpen = false;
 
   void resetState() {
     resetStateBool = true;
+    notifyListeners();
+  }
+
+  bool get isDrawerOpen => _isDrawerOpen;
+
+  set isDrawerOpen(newIsDrawerOpen) {
+    _isDrawerOpen = newIsDrawerOpen;
     notifyListeners();
   }
 }
@@ -123,12 +134,27 @@ class _HomeState extends State<Home> {
           )
         ],
         child: Scaffold(
-          backgroundColor: const Color(0xffffffff),
-          appBar: HomeHeader(
-            height: headerHeight,
-          ),
-          body: Container(child: HomePage(height: bodyHeight)),
-        ));
+            backgroundColor: const Color(0xffffffff),
+            body: Stack(
+              children: [
+                Column(
+                  children: [
+                    HomeHeader(
+                      height: headerHeight,
+                    ),
+                    Container(child: HomePage(height: bodyHeight))
+                  ],
+                ),
+                Consumer<ResetStateProvider>(
+                    builder: (context, provider, child) =>
+                        (provider.isDrawerOpen)
+                            ? CustomDrawer(
+                                child: HomeDrawer(),
+                                parentProvider: provider,
+                              )
+                            : Container())
+              ],
+            )));
   }
 }
 
@@ -183,10 +209,11 @@ class HomeHeaderButtons extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Container(
-              width: buttonsWidth,
-            ),
+            GestureDetector(
+                child: Container(width: buttonsWidth, child: SandwichButton()),
+                onTap: () => provider.isDrawerOpen = true),
             GestureDetector(
                 child: Container(
                     height: .065 * globals.size.height,
@@ -197,10 +224,10 @@ class HomeHeaderButtons extends StatelessWidget {
                         builder: (context) =>
                             ProfilePage(user: globals.user)))),
             Container(
-              height: .0652 * globals.size.height,
+              height: .06 * globals.size.height,
               width: buttonsWidth,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   GestureDetector(
                     child: IconContainer(

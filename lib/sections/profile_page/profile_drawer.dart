@@ -21,11 +21,8 @@ class ProfileDrawer extends StatefulWidget {
   // user to change a different aspect of their their profile.
 
   ProfileDrawer({
-    @required this.width,
     Key key,
   }) : super(key: key);
-
-  final double width;
 
   @override
   _ProfileDrawerState createState() => _ProfileDrawerState();
@@ -35,15 +32,8 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          right: BorderSide(width: 1.0, color: Colors.black),
-        ),
-      ),
       padding: EdgeInsets.only(
           top: .047 * globals.size.height, bottom: .1 * globals.size.height),
-      width: widget.width,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
