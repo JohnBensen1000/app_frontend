@@ -8,12 +8,31 @@ import '../profile_page/profile_page.dart';
 import 'blocked_list.dart';
 import 'activity_page.dart';
 
-class HomeDrawer extends StatelessWidget {
+class HomeDrawer extends StatefulWidget {
   // A drawer that is opened from the home screen. Displays the user's profile
   // picture, username and user ID. Displays a list of buttons, including a
   // button that takes a user to their profile page, a button for viewing their
   // activity feed, and a button that lets them unblock the users that they are
-  // currently blocking.
+  // currently blocking. If isUserUpdated is false, then shows a small circle
+  // on the activity button. When the user goes to and returns from the activity
+  // page, isUserUpdated is set to true.
+
+  HomeDrawer({@required this.isUserUpdated});
+
+  final bool isUserUpdated;
+
+  @override
+  _HomeDrawerState createState() => _HomeDrawerState();
+}
+
+class _HomeDrawerState extends State<HomeDrawer> {
+  bool isUserUpdated;
+
+  @override
+  void initState() {
+    super.initState();
+    isUserUpdated = widget.isUserUpdated;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,12 +71,36 @@ class HomeDrawer extends StatelessWidget {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       ProfilePage(user: globals.user)))),
-                      GenericTextButton(
-                          buttonName: "Activity",
-                          onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ActivityPage()))),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          if (isUserUpdated == false)
+                            Transform.translate(
+                              offset: Offset(.14 * globals.size.width,
+                                  0 * globals.size.height),
+                              child: Container(
+                                height: .02 * globals.size.height,
+                                width: .02 * globals.size.height,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                      globals.size.height),
+                                  color: globals.user.profileColor,
+                                ),
+                              ),
+                            ),
+                          GenericTextButton(
+                              buttonName: "Activity",
+                              onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ActivityPage())).then((value) {
+                                    setState(() {
+                                      isUserUpdated = true;
+                                    });
+                                  })),
+                        ],
+                      ),
                       GenericTextButton(
                           buttonName: "Unblock Creators",
                           onPressed: () => Navigator.push(

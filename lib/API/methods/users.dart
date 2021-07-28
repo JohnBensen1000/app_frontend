@@ -43,3 +43,14 @@ Future<Map> updateColor(String profileColor) async {
   return await globals.baseAPI
       .put('v2/users/${globals.user.uid}', {'profileColor': profileColor});
 }
+
+Future<bool> getIfUserIsUpdated() async {
+  var response =
+      await globals.baseAPI.get('v2/users/${globals.user.uid}/activity');
+
+  return response['isUpdated'];
+}
+
+Future<Map> updatedThatUserIsUpdated() async {
+  return await globals.baseAPI.put('v2/users/${globals.user.uid}/activity', {});
+}

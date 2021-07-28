@@ -23,7 +23,7 @@ class GenericTextButton extends StatelessWidget {
         height: .036 * globals.size.height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(globals.size.height),
-          color: const Color(0xffffffff),
+          color: Colors.transparent,
           border: Border.all(width: 1.0, color: const Color(0xff707070)),
         ),
         child: Center(

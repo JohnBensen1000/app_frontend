@@ -8,6 +8,7 @@ import '../../globals.dart' as globals;
 import '../../widgets/back_arrow.dart';
 import '../../API/handle_requests.dart';
 import '../../API/methods/followings.dart';
+import '../../API/methods/users.dart';
 
 import '../post/post_view.dart';
 import '../post/post.dart';
@@ -90,6 +91,8 @@ class _ActivityPageBodyState extends State<ActivityPageBody> {
 
   @override
   Widget build(BuildContext context) {
+    handleRequest(context, updatedThatUserIsUpdated());
+
     return Container(
         padding: EdgeInsets.only(
             top: .02 * globals.size.height,
@@ -145,6 +148,8 @@ class _ActivityPageBodyState extends State<ActivityPageBody> {
               }),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
+                  handleRequest(context, updatedThatUserIsUpdated());
+
                   return Expanded(
                     child: ListView.builder(
                       padding: EdgeInsets.only(top: .02 * globals.size.height),

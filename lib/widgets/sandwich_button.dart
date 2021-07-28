@@ -11,11 +11,7 @@ class SandwichButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.transparent,
-      padding: EdgeInsets.only(
-        bottom: .02 * globals.size.height,
-        right: .02 * globals.size.width,
-        left: .02 * globals.size.width,
-      ),
+      padding: EdgeInsets.all(.01 * globals.size.height),
       height: .04 * globals.size.height,
       width: .06 * globals.size.height,
       child: Center(

@@ -184,6 +184,8 @@ class ChatPageBody extends StatelessWidget {
     ChatPageProvider provider =
         Provider.of<ChatPageProvider>(context, listen: false);
 
+    handleRequest(context, postIsUpdated(provider.chat.chatID));
+
     return Expanded(
         child: StreamBuilder(
             stream: FirebaseFirestore.instance

@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/API/methods/users.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../widgets/custom_drawer.dart';
 import '../../globals.dart' as globals;
-import '../../widgets/sandwich_button.dart';
 
 import '../navigation/home_drawer.dart';
 import '../feeds/following.dart';
@@ -31,6 +33,7 @@ class ResetStateProvider extends ChangeNotifier {
   // keeps track of whether the homepage drawer is open or not.
 
   bool resetStateBool = false;
+  bool isUserUpdated = true;
   bool _isDrawerOpen = false;
 
   void resetState() {
@@ -41,6 +44,10 @@ class ResetStateProvider extends ChangeNotifier {
   bool get isDrawerOpen => _isDrawerOpen;
 
   set isDrawerOpen(newIsDrawerOpen) {
+    if (newIsDrawerOpen == false) {
+      resetStateBool = true;
+    }
+
     _isDrawerOpen = newIsDrawerOpen;
     notifyListeners();
   }
@@ -151,7 +158,9 @@ class _HomeState extends State<Home> {
                     builder: (context, provider, child) =>
                         (provider.isDrawerOpen)
                             ? CustomDrawer(
-                                child: HomeDrawer(),
+                                child: HomeDrawer(
+                                  isUserUpdated: provider.isUserUpdated,
+                                ),
                                 parentProvider: provider,
                               )
                             : Container())
@@ -210,9 +219,16 @@ class HomeHeaderButtons extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            GestureDetector(
-                child: SandwichButton(),
-                onTap: () => provider.isDrawerOpen = true),
+            FutureBuilder(
+                future: handleRequest(context, getIfUserIsUpdated()),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
+                    return HomePageDrawerButton(isUserUpdated: snapshot.data);
+                  } else {
+                    return Container();
+                  }
+                }),
             GestureDetector(
                 child: Container(
                     height: .065 * globals.size.height,
@@ -276,6 +292,86 @@ class IconContainer extends StatelessWidget {
       ),
       child: image,
     );
+  }
+}
+
+class HomePageDrawerButton extends StatefulWidget {
+  // Button responsible for letting the user access the home page drawer. Shows
+  // a small circle on top of the bttom is isUserUpdated is set to false.
+  // Listens to firebase for new activity. If there is new activity, then
+  // isUserUpdated is set to false and the small circle is displayed.
+
+  HomePageDrawerButton({@required this.isUserUpdated});
+
+  final bool isUserUpdated;
+
+  @override
+  _HomePageDrawerButtonState createState() => _HomePageDrawerButtonState();
+}
+
+class _HomePageDrawerButtonState extends State<HomePageDrawerButton> {
+  bool isUserUpdated;
+
+  @override
+  void initState() {
+    isUserUpdated = widget.isUserUpdated;
+
+    super.initState();
+    createMessagingCallback();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ResetStateProvider provider =
+        Provider.of<ResetStateProvider>(context, listen: false);
+
+    return GestureDetector(
+        child: Container(
+            child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              color: Colors.transparent,
+              padding: EdgeInsets.all(.01 * globals.size.height),
+              height: .045 * globals.size.height,
+              width: .045 * globals.size.height,
+              child: SvgPicture.string(
+                _svg_eqwtyu,
+                allowDrawingOutsideViewBox: true,
+              ),
+            ),
+            if (isUserUpdated == false)
+              Transform.translate(
+                offset: Offset(
+                    .012 * globals.size.height, -.012 * globals.size.height),
+                child: Container(
+                  height: .018 * globals.size.height,
+                  width: .018 * globals.size.height,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(globals.size.height),
+                    color: globals.user.profileColor,
+                  ),
+                ),
+              )
+          ],
+        )),
+        onTap: () {
+          provider.isUserUpdated = isUserUpdated;
+          provider.isDrawerOpen = true;
+          setState(() {
+            isUserUpdated = true;
+          });
+        });
+  }
+
+  void createMessagingCallback() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.data.containsKey('newActivity')) {
+        setState(() {
+          isUserUpdated = false;
+        });
+      }
+    });
   }
 }
 
@@ -474,3 +570,5 @@ const String _svg_n49k6t =
     '<svg viewBox="0.0 0.0 36.0 33.0" ><path transform="translate(-19.96, -19.9)" d="M 54.85551452636719 19.89999961853027 C 54.73547744750977 19.89999961853027 54.61544418334961 19.89999961853027 54.49540710449219 19.95500183105469 L 20.76573944091797 34.86000061035156 C 19.80546379089355 35.1349983215332 19.6854305267334 36.28999710083008 20.52567100524902 36.78499984741211 L 30.24845886230469 40.85499954223633 L 26.70744132995605 46.68499755859375 L 33.1292839050293 43.4949951171875 L 37.63057708740234 52.40499877929688 C 37.87064361572266 52.7349967956543 38.23074722290039 52.89999771118164 38.59085083007812 52.89999771118164 C 39.07098770141602 52.89999771118164 39.49111175537109 52.625 39.67115783691406 52.18499755859375 L 55.93581771850586 21.21999931335449 C 56.1758918762207 20.55999946594238 55.57572174072266 19.89999961853027 54.85551452636719 19.89999961853027 Z M 38.6508674621582 49.48999786376953 L 34.92980194091797 42.0099983215332 L 50.4742546081543 25.06999778747559 L 31.86892318725586 39.31499862670898 L 23.70658111572266 35.85000228881836 L 52.39480972290039 23.14500045776367 L 38.6508674621582 49.48999786376953 Z" fill="#707070" stroke="none" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /></svg>';
 const String _svg_cayeaa =
     '<svg viewBox="152.0 94.0 59.1 7.0" ><path transform="translate(152.0, 94.0)" d="M 3.691642761230469 0 L 55.37464141845703 0 C 57.41348266601562 0 59.0662841796875 1.56700325012207 59.0662841796875 3.5 C 59.0662841796875 5.43299674987793 57.41348266601562 7 55.37464141845703 7 L 3.691642761230469 7 C 1.652804613113403 7 0 5.43299674987793 0 3.5 C 0 1.56700325012207 1.652804613113403 0 3.691642761230469 0 Z" fill="#000000" stroke="#707070" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /></svg>';
+const String _svg_eqwtyu =
+    '<svg viewBox="9.0 11.3 17.9 15.5" ><path transform="translate(9.04, 11.25)" d="M 0 0 L 17.92163467407227 0" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /><path transform="translate(9.04, 19.0)" d="M 0 0 L 17.92163467407227 0" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /><path transform="translate(9.04, 26.75)" d="M 0 0 L 17.92163467407227 0" fill="none" stroke="#000000" stroke-width="1" stroke-miterlimit="4" stroke-linecap="butt" /></svg>';
