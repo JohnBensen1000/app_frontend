@@ -10,7 +10,14 @@ class SandwichButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: Colors.transparent,
+      padding: EdgeInsets.only(
+        bottom: .02 * globals.size.height,
+        right: .02 * globals.size.width,
+        left: .02 * globals.size.width,
+      ),
       height: .04 * globals.size.height,
+      width: .06 * globals.size.height,
       child: Center(
         child: SvgPicture.string(
           _svg_eqwtyu,

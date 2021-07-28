@@ -48,3 +48,10 @@ Future<Post> getProfile(User user) async {
   else
     return null;
 }
+
+Future<Post> getPostFromPostID(User user, Post post) async {
+  var response =
+      await globals.baseAPI.get('v2/posts/${user.uid}/${post.postID}');
+
+  return Post.fromJson(response);
+}

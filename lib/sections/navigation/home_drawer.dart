@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/widgets/custom_drawer.dart';
 import 'package:test_flutter/widgets/profile_pic.dart';
+import 'package:test_flutter/widgets/generic_text_button.dart';
 
 import '../../globals.dart' as globals;
 import '../profile_page/profile_page.dart';
 
 import 'blocked_list.dart';
+import 'activity_page.dart';
 
 class HomeDrawer extends StatelessWidget {
   // A drawer that is opened from the home screen. Displays the user's profile
@@ -44,18 +45,20 @@ class HomeDrawer extends StatelessWidget {
                 children: [
                   Column(
                     children: [
-                      CustomDrawerButton(
+                      GenericTextButton(
                           buttonName: "Profile Page",
                           onPressed: () => Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
                                       ProfilePage(user: globals.user)))),
-                      CustomDrawerButton(
-                        buttonName: "Activity",
-                        onPressed: null,
-                      ),
-                      CustomDrawerButton(
+                      GenericTextButton(
+                          buttonName: "Activity",
+                          onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ActivityPage()))),
+                      GenericTextButton(
                           buttonName: "Unblock Creators",
                           onPressed: () => Navigator.push(
                               context,

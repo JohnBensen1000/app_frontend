@@ -17,7 +17,7 @@ Future<bool> stopFollowing(User user) async {
 
 Future<Map> dontFollowBack(User user) async {
   return await BaseAPI()
-      .put('v1/followings/${user.uid}/${globals.user.uid}', {});
+      .put('v2/followings/${user.uid}/${globals.user.uid}', {});
 }
 
 Future<bool> getIfFollowing(User user) async {

@@ -45,43 +45,6 @@ class PostPage extends StatelessWidget {
                 playOnInit: true,
                 fullPage: true,
               ),
-              // if (post.creator.uid != globals.user.uid && fromChatPage == false)
-              //   Container(
-              //       padding: EdgeInsets.only(right: 50, bottom: 70),
-              //       child: GestureDetector(
-              //           child: ReportButton(
-              //             width: 50,
-              //           ),
-              //           onTap: () => showDialog(
-              //                       context: context,
-              //                       builder: (BuildContext context) =>
-              //                           ReportContentAlertDialog(post: post))
-              //                   .then((actionTaken) async {
-              //                 if (actionTaken != null) {
-              //                   if (actionTaken == ActionTaken.reported) {
-              //                     await showDialog(
-              //                         context: context,
-              //                         builder: (context) => GenericAlertDialog(
-              //                             text:
-              //                                 "Thank you for reporting this post. We will review it to see if it violates any of our guidelines."));
-              //                     Navigator.pop(context);
-              //                   } else if (actionTaken == ActionTaken.blocked) {
-              //                     await showDialog(
-              //                         context: context,
-              //                         builder: (context) => GenericAlertDialog(
-              //                             text:
-              //                                 "You have successfully blocked this user, so you will no longer see any content from them."));
-              //                     int count = 0;
-
-              //                     Navigator.popUntil(context, (route) {
-              //                       return count++ == 2 || route.isFirst;
-              //                     });
-              //                   }
-              //                 }
-              // }
-              // )
-              // )
-              // ),
             ]),
           ),
         ));

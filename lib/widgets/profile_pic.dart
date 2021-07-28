@@ -7,6 +7,7 @@ import '../sections/post/post_view.dart';
 import '../models/user.dart';
 import '../widgets/alert_dialog_container.dart';
 import '../API/methods/reports.dart';
+import '../API/methods/posts.dart';
 
 import '../globals.dart' as globals;
 
@@ -71,8 +72,9 @@ class ProfilePic extends StatelessWidget {
             ClipPath(
                 clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
                 child: FutureBuilder(
-                    future:
-                        globals.profileRepository.getProfilePost(context, user),
+                    future: handleRequest(context, getProfile(user)),
+                    // future:
+                    //     globals.profileRepository.getProfilePost(context, user),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData)

@@ -137,12 +137,14 @@ class _HomeState extends State<Home> {
             backgroundColor: const Color(0xffffffff),
             body: Stack(
               children: [
-                Column(
+                Stack(
                   children: [
+                    Container(
+                        padding: EdgeInsets.only(top: headerHeight),
+                        child: HomePage(height: bodyHeight)),
                     HomeHeader(
                       height: headerHeight,
                     ),
-                    Container(child: HomePage(height: bodyHeight))
                   ],
                 ),
                 Consumer<ResetStateProvider>(
@@ -158,7 +160,7 @@ class _HomeState extends State<Home> {
   }
 }
 
-class HomeHeader extends PreferredSize {
+class HomeHeader extends StatelessWidget {
   // Divided into two parts: HomeHeaderButtons() and HomeHeaderNavigation().
   // both of these widgets allow the user to navigate to different parts of the
   // app.
@@ -166,9 +168,6 @@ class HomeHeader extends PreferredSize {
   final double height;
 
   HomeHeader({this.height});
-
-  @override
-  Size get preferredSize => Size.fromHeight(height);
 
   @override
   Widget build(BuildContext context) {
@@ -212,7 +211,7 @@ class HomeHeaderButtons extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             GestureDetector(
-                child: Container(width: buttonsWidth, child: SandwichButton()),
+                child: SandwichButton(),
                 onTap: () => provider.isDrawerOpen = true),
             GestureDetector(
                 child: Container(

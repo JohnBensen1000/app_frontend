@@ -7,7 +7,6 @@ import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';
 import '../../API/methods/blocked.dart';
-import '../../API/methods/reports.dart';
 import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
@@ -204,6 +203,8 @@ class ChatPageBody extends StatelessWidget {
               if (snapshot.hasData) {
                 List<ChatItemWidget> chatItemWidgets = snapshot.data;
 
+                if (chatItemWidgets.length == 0) return Container();
+
                 if (chatItemWidgets[0].chatItem.uid != globals.user.uid)
                   handleRequest(context, postIsUpdated(provider.chat.chatID));
                 else
@@ -218,11 +219,7 @@ class ChatPageBody extends StatelessWidget {
                       reverse: true,
                       itemCount: snapshot.data.length,
                       itemBuilder: (context, index) {
-                        if (snapshot.data.length > 0) {
-                          return chatItemWidgets[index];
-                        } else {
-                          return Container();
-                        }
+                        return chatItemWidgets[index];
                       }),
                 );
               } else {
@@ -474,7 +471,7 @@ class _ChatPageFooterState extends State<ChatPageFooter> {
                           postChatText(
                               _chatController.text, provider.chat.chatID));
 
-                      switch (response["reasonForRejection"]) {
+                      switch (response["denied"]) {
                         case "profanity":
                           await showDialog(
                               context: context,

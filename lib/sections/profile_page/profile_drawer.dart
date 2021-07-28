@@ -6,7 +6,7 @@ import '../../globals.dart' as globals;
 import '../../widgets/profile_pic.dart';
 import '../../main.dart';
 import '../../widgets/alert_dialog_container.dart';
-import '../../widgets/custom_drawer.dart';
+import 'package:test_flutter/widgets/generic_text_button.dart';
 
 import '../camera/camera.dart';
 
@@ -46,7 +46,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               children: <Widget>[
                 Column(
                   children: [
-                    CustomDrawerButton(
+                    GenericTextButton(
                       buttonName: "Choose color",
                       onPressed: () => Navigator.push(
                               context,
@@ -56,7 +56,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                         setState(() {});
                       }),
                     ),
-                    CustomDrawerButton(
+                    GenericTextButton(
                         buttonName: "Set preferences",
                         onPressed: () => Navigator.push(
                             context,
@@ -66,7 +66,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                 ),
                 Column(
                   children: [
-                    CustomDrawerButton(
+                    GenericTextButton(
                         buttonName: "Sign Out",
                         onPressed: () async {
                           await showAlertDialog(
@@ -74,7 +74,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                               .then((confirmLogOut) async {
                             if (confirmLogOut != null && confirmLogOut) {
                               await handleRequest(
-                                  context, updateDeviceToken(""));
+                                  context, updateDeviceToken(null));
                               await globals.accountRepository.removeUid();
                               Navigator.popUntil(
                                   context, (route) => route.isFirst);
@@ -83,7 +83,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             }
                           });
                         }),
-                    CustomDrawerButton(
+                    GenericTextButton(
                         buttonName: "Delete account",
                         fontColor: Colors.red,
                         onPressed: () async => await handleDeleteAccount()),

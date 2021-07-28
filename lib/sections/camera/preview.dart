@@ -305,7 +305,7 @@ class _PreviewButtonState extends State<PreviewButton> {
         });
         Map response = await widget.function(provider, context);
 
-        switch (response["reasonForRejection"]) {
+        switch (response["denied"]) {
           case "NSFW":
             await showDialog(
                 context: context,

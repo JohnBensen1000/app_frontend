@@ -45,7 +45,7 @@ class Friends extends StatelessWidget {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
                         return Column(children: <Widget>[
-                          NewFollowersAlert(),
+                          // NewFollowersAlert(),
                           ChatsList(
                             chatsList: snapshot.data,
                           )
@@ -138,13 +138,18 @@ class _ChatsListState extends State<ChatsList> {
 
   @override
   void initState() {
-    super.initState();
-
     for (int i = 0; i < widget.chatsList.length; i++) {
       chatWidgets.addLast(ChatWidget(chat: widget.chatsList[i]));
     }
 
     createMessagingCallback();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
   }
 
   @override

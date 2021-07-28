@@ -43,6 +43,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double headerHeight = .42 * globals.size.height;
+
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return ChangeNotifierProvider(
@@ -271,7 +272,7 @@ class OpenProfileDrawerButton extends StatelessWidget {
           width: .32 * globals.size.width,
           name: "Edit Profile",
           color: Colors.transparent,
-          borderColor: Colors.grey[400],
+          borderColor: globals.user.profileColor,
         ),
         onTap: () => provider.isDrawerOpen = true);
   }

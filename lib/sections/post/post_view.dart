@@ -392,7 +392,6 @@ class _CommentsButtonState extends State<CommentsButton> {
             });
             Scaffold.of(context)
                 .showSnackBar(SnackBar(
-                  // backgroundColor: Colors.transparent,
                   backgroundColor: Colors.white.withOpacity(.7),
                   duration: Duration(days: 365),
                   shape: RoundedRectangleBorder(

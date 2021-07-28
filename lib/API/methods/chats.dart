@@ -34,10 +34,10 @@ Future<Map> postChatPost(bool isImage, File file, String chatID) async {
     'isImage': isImage,
     'downloadURL': downloadURL
   };
-  return await BaseAPI().post('v12chats/${globals.user.uid}/$chatID', postBody);
+  return await BaseAPI().post('v2/chats/${globals.user.uid}/$chatID', postBody);
 }
 
 Future<Map> postIsUpdated(String chatID) async {
   return await BaseAPI()
-      .post('v1/chats/${globals.user.uid}/$chatID/updated', {});
+      .post('v2/chats/${globals.user.uid}/$chatID/updated', {});
 }
