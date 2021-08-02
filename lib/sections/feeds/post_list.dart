@@ -13,7 +13,8 @@ import '../../models/post.dart';
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
 
-import '../post/post_view.dart';
+// import '../post/post_view.dart';
+import '../post/full_post_widget.dart';
 
 class PostListProvider extends ChangeNotifier {
   // Contains the list of posts for the post list. Whenever the user changes the
@@ -138,13 +139,7 @@ class _PostListState extends State<PostList> {
     if (index < 0 || index >= postList.length) {
       return null;
     } else {
-      return PostView(
-        post: postList[index],
-        height: .78 * widget.height,
-        aspectRatio: globals.goldenRatio,
-        postStage: PostStage.fullWidget,
-        playOnInit: true,
-      );
+      return FullPostWidget(post: postList[index], height: widget.height);
     }
   }
 
@@ -183,9 +178,9 @@ class PostListPage extends StatefulWidget {
     Key key,
   }) : super(key: key);
 
-  final PostView previousPostView;
-  final PostView currentPostView;
-  final PostView nextPostView;
+  final FullPostWidget previousPostView;
+  final FullPostWidget currentPostView;
+  final FullPostWidget nextPostView;
   final double height;
 
   @override

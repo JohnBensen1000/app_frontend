@@ -12,8 +12,8 @@ import '../../API/methods/followings.dart';
 import '../../API/methods/users.dart';
 
 import '../profile_page/profile_page.dart';
-import '../post/post_view.dart';
-import '../post/post.dart';
+import '../post/post_widget.dart';
+import '../post/post_page.dart';
 
 class ActivityPage extends StatelessWidget {
   // Returns a page displaying all recent activity for a user. This page is
@@ -250,11 +250,10 @@ class ActivityCommentWidget extends StatelessWidget {
                 )
               ],
             ),
-            PostView(
+            PostWidget(
                 post: post,
                 height: .08 * globals.size.height,
-                aspectRatio: 4 / 3,
-                postStage: PostStage.onlyPost)
+                aspectRatio: 4 / 3)
           ],
         ),
         onTap: () async => await _handleOnTap(context, post));
@@ -266,6 +265,8 @@ class ActivityCommentWidget extends StatelessWidget {
         MaterialPageRoute(
             builder: (context) => PostPage(
                   post: post,
+                  isFullPost: true,
+                  showComments: true,
                 )));
     await snapshot.reference.update({'isNew': false});
   }

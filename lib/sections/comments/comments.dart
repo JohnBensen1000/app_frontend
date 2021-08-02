@@ -13,7 +13,7 @@ import '../../Widgets/loading_icon.dart';
 import '../../Widgets/back_arrow.dart';
 
 import 'widgets/add_comment_button.dart';
-import 'comment_widget.dart';
+import 'widgets/comment_widget.dart';
 import 'comments_page.dart';
 
 FirebaseStorage storage = FirebaseStorage.instance;
@@ -43,55 +43,37 @@ class Comments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: height + .0711 * globals.size.height,
-        alignment: Alignment.bottomCenter,
-        child: Column(
-          children: [
-            Container(
-                margin: EdgeInsets.only(
-                    top: 0.0059 * globals.size.height,
-                    bottom: 0.0118 * globals.size.height),
-                height: .047 * globals.size.height,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                        child: Transform.rotate(
-                            angle: -math.pi / 2, child: BackArrow()),
-                        onTap: () =>
-                            Scaffold.of(context).removeCurrentSnackBar()),
-                  ],
-                )),
-            ChangeNotifierProvider(
-                create: (context) => CommentsProvider(),
-                child: Consumer<CommentsProvider>(
-                  builder: (context, value, child) => FutureBuilder(
-                    future: handleRequest(context, getAllComments(post)),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        return Container(
-                          height: height,
-                          child: CommentsSnackBar(
-                              height: height,
-                              commentsList: snapshot.data,
-                              post: post),
-                        );
-                      } else {
-                        return Center(
-                            child: StreamBuilder(
-                                stream: LoadingIconTimer().stream,
-                                builder: (context, snapshot) {
-                                  return CircularProgressIndicator(
-                                    strokeWidth: 3,
-                                    value: snapshot.data,
-                                  );
-                                }));
-                      }
-                    },
-                  ),
-                )),
-          ],
-        ));
+      height: height,
+      alignment: Alignment.bottomCenter,
+      child: ChangeNotifierProvider(
+          create: (context) => CommentsProvider(),
+          child: Consumer<CommentsProvider>(
+            builder: (context, value, child) => FutureBuilder(
+              future: handleRequest(context, getAllComments(post)),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return Container(
+                    height: height,
+                    child: CommentsSnackBar(
+                        height: height,
+                        commentsList: snapshot.data,
+                        post: post),
+                  );
+                } else {
+                  return Center(
+                      child: StreamBuilder(
+                          stream: LoadingIconTimer().stream,
+                          builder: (context, snapshot) {
+                            return CircularProgressIndicator(
+                              strokeWidth: 3,
+                              value: snapshot.data,
+                            );
+                          }));
+                }
+              },
+            ),
+          )),
+    );
   }
 }
 
@@ -115,9 +97,9 @@ class CommentsSnackBar extends StatelessWidget {
     return Column(
       children: <Widget>[
         CommentsSection(
-            height: .85 * height, commentsList: commentsList, post: post),
+            height: .82 * height, commentsList: commentsList, post: post),
         AddComment(
-            height: .15 * height, commentsList: commentsList, post: post),
+            height: .18 * height, commentsList: commentsList, post: post),
       ],
     );
   }
@@ -150,6 +132,7 @@ class CommentsSection extends StatelessWidget {
 
     return Container(
       height: height,
+      padding: EdgeInsets.only(top: .02 * globals.size.height),
       child: MediaQuery.removePadding(
         context: context,
         removeTop: true,
@@ -233,7 +216,7 @@ class AddComment extends StatelessWidget {
 
     return Container(
       height: height,
-      alignment: Alignment.center,
+      alignment: Alignment.topCenter,
       child: GestureDetector(
         child: AddCommentButton(
           child: Text(

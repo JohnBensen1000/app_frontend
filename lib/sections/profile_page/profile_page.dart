@@ -10,14 +10,15 @@ import '../../API/methods/followings.dart';
 import '../../API/methods/blocked.dart';
 import '../../models/user.dart';
 import '../../models/post.dart';
+import '../../widgets/custom_drawer.dart';
 
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_dialog_container.dart';
 import '../../widgets/generic_alert_dialog.dart';
 
-import '../post/post_view.dart';
-import '../../widgets/custom_drawer.dart';
+import '../post/post_widget.dart';
+import '../post/post_page.dart';
 
 class ProfileProvider extends ChangeNotifier {
   // Simply keeps track of if the setting should be open or closed.
@@ -397,13 +398,19 @@ class _ProfilePostBodyState extends State<ProfilePostBody> {
 
     List<Widget> profilePosts = [
       Padding(
-        padding: EdgeInsets.only(bottom: widget.betweenPadding),
-        child: PostView(
-            post: postList[0],
-            height: mainPostHeight,
-            aspectRatio: 1 / globals.goldenRatio,
-            postStage: PostStage.onlyPost),
-      )
+          padding: EdgeInsets.only(bottom: widget.betweenPadding),
+          child: GestureDetector(
+              child: PostWidget(
+                post: postList[0],
+                height: mainPostHeight,
+                aspectRatio: 1 / globals.goldenRatio,
+                playVideo: false,
+              ),
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          PostPage(isFullPost: true, post: postList[0])))))
     ];
 
     List<Widget> subPostsList = _getSubPostsList(postList, bodyPostHeight);
@@ -429,13 +436,32 @@ class _ProfilePostBodyState extends State<ProfilePostBody> {
 
     while ((i < postList.length) || ((i - 1) % widget.rowSize != 0)) {
       if (i < postList.length) {
-        subPostsList.add(
-          PostView(
-              post: postList[i],
-              height: postHeight,
-              aspectRatio: globals.goldenRatio,
-              postStage: PostStage.onlyPost),
-        );
+        Post post = postList[i];
+        subPostsList.add(GestureDetector(
+                child: PostWidget(
+                  post: post,
+                  height: postHeight,
+                  aspectRatio: globals.goldenRatio,
+                  playVideo: false,
+                ),
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            PostPage(isFullPost: true, post: post))))
+
+            //                   PostWidget(
+            // post: postList[i],
+            // height: postHeight,
+            // aspectRatio: globals.goldenRatio,
+            // playVideo: false,
+            // )
+            // PostView(
+            //     post: postList[i],
+            //     height: postHeight,
+            //     aspectRatio: globals.goldenRatio,
+            //     postStage: PostStage.onlyPost),
+            );
       } else {
         subPostsList.add(
           Container(

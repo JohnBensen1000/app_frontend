@@ -12,7 +12,7 @@ import '../../models/post.dart';
 import '../../models/comment.dart';
 
 import 'widgets/add_comment_button.dart';
-import 'comment_widget.dart';
+import 'widgets/comment_widget.dart';
 
 class CommentsPageProvider extends ChangeNotifier {
   // Contains state of entire page. Contains function for uploading a new

@@ -4,7 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../globals.dart' as globals;
 
-import 'navigation/home_screen.dart';
+import 'home/home_screen.dart';
 
 import 'account/enter_account.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
-import '../sections/post/post_view.dart';
+import '../sections/post/post_widget.dart';
 
 import '../models/user.dart';
 import '../widgets/alert_dialog_container.dart';
@@ -78,14 +78,18 @@ class ProfilePic extends StatelessWidget {
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData)
-                        return PostView(
+                        return PostWidget(
                             post: snapshot.data,
                             height: diameter,
-                            aspectRatio: 1,
-                            playOnInit: true,
-                            playWithVolume: false,
-                            saveInMemory: true,
-                            postStage: PostStage.onlyPost);
+                            aspectRatio: 1);
+                      // return PostView(
+                      //     post: snapshot.data,
+                      //     height: diameter,
+                      //     aspectRatio: 1,
+                      //     playOnInit: true,
+                      //     playWithVolume: false,
+                      //     saveInMemory: true,
+                      //     postStage: PostStage.onlyPost);
                       else
                         return Container(
                           width: diameter,

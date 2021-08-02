@@ -11,7 +11,7 @@ import '../../API/methods/users.dart';
 import '../../models/user.dart';
 import '../../widgets/wide_button.dart';
 
-import '../navigation/home_screen.dart';
+import '../home/home_screen.dart';
 import '../personalization/choose_color.dart';
 import '../personalization/preferences.dart';
 

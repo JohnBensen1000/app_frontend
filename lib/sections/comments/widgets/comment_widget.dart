@@ -3,16 +3,16 @@ import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 import 'package:test_flutter/widgets/report_button.dart';
 import 'package:provider/provider.dart';
 
-import '../../widgets/profile_pic.dart';
-import '../../widgets/alert_dialog_container.dart';
-import '../../models/comment.dart';
-import '../../models/post.dart';
-import '../../API/methods/users.dart';
-import '../../API/methods/comments.dart';
-import '../../globals.dart' as globals;
+import '../../../widgets/profile_pic.dart';
+import '../../../widgets/alert_dialog_container.dart';
+import '../../../models/comment.dart';
+import '../../../models/post.dart';
+import '../../../API/methods/users.dart';
+import '../../../API/methods/comments.dart';
+import '../../../globals.dart' as globals;
 
-import 'comments_page.dart';
-import 'comments.dart';
+import '../comments_page.dart';
+import '../comments.dart';
 
 class CommentWidget extends StatefulWidget {
   // Displays a comment, the comment's owner's profile and username.  When this

@@ -12,7 +12,7 @@ import 'widgets/account_submit_button.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
-import '../navigation/home_screen.dart';
+import '../home/home_screen.dart';
 import '../../API/methods/users.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;

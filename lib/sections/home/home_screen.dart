@@ -10,7 +10,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../widgets/custom_drawer.dart';
 import '../../globals.dart' as globals;
 
-import '../navigation/home_drawer.dart';
+import '../home/home_drawer.dart';
 import '../feeds/following.dart';
 import '../feeds/discover.dart';
 import '../friends/friends_page.dart';

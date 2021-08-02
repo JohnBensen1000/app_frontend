@@ -15,7 +15,8 @@ import '../../widgets/alert_dialog_container.dart';
 import '../../widgets/generic_alert_dialog.dart';
 
 import '../camera/camera.dart';
-import '../post/post_view.dart';
+import '../post/post_widget.dart';
+import '../post/post_page.dart';
 import '../profile_page/profile_page.dart';
 
 enum PopAction { removeChat, moveToTop }
@@ -372,13 +373,14 @@ class ChatItemWidgetPost extends StatelessWidget {
         isImage: chatItem.post['isImage'],
         downloadURL: chatItem.post["downloadURL"]);
 
-    return PostView(
-      post: post,
-      height: height,
-      aspectRatio: globals.goldenRatio,
-      postStage: PostStage.onlyPost,
-      fromChatPage: true,
-    );
+    return GestureDetector(
+        child: PostWidget(
+            post: post, height: height, aspectRatio: globals.goldenRatio),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    PostPage(isFullPost: false, post: post))));
   }
 }
 
