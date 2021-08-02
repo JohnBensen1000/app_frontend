@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../globals.dart' as globals;
-import '../models/user.dart';
-import '../widgets/forward_arrow.dart';
-import '../API/handle_requests.dart';
 
 import 'navigation/home_screen.dart';
 
@@ -67,8 +63,6 @@ class _WelcomeState extends State<Welcome> {
     NotificationSettings settings = await _messaging.requestPermission();
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      // print("Permission granted: ${await _messaging.getToken()}");
-
       await FirebaseMessaging.instance
           .setForegroundNotificationPresentationOptions(
         alert: true,

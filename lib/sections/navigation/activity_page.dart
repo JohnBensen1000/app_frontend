@@ -6,10 +6,12 @@ import '../../models/user.dart';
 import '../../models/post.dart';
 import '../../globals.dart' as globals;
 import '../../widgets/back_arrow.dart';
+import '../../widgets/alert_circle.dart';
 import '../../API/handle_requests.dart';
 import '../../API/methods/followings.dart';
 import '../../API/methods/users.dart';
 
+import '../profile_page/profile_page.dart';
 import '../post/post_view.dart';
 import '../post/post.dart';
 
@@ -94,18 +96,14 @@ class _ActivityPageBodyState extends State<ActivityPageBody> {
     handleRequest(context, updatedThatUserIsUpdated());
 
     return Container(
-        padding: EdgeInsets.only(
-            top: .02 * globals.size.height,
-            left: .04 * globals.size.width,
-            right: .04 * globals.size.width),
         height: widget.height,
+        padding: EdgeInsets.only(top: .02 * globals.size.height),
         child: Column(
           children: [
             GestureDetector(
-                child: ActivityToggleButton(
-                  buttonName:
-                      (showOnlyNewFollowers) ? "all activity" : "new followers",
-                  color: Colors.white,
+                child: _activityToggleButton(
+                  (showOnlyNewFollowers) ? "all activity" : "new followers",
+                  Colors.white,
                 ),
                 onTap: () {
                   setState(() {
@@ -122,6 +120,7 @@ class _ActivityPageBodyState extends State<ActivityPageBody> {
                   .map((snapshot) {
                 return snapshot.docs.map((doc) {
                   Map docData = doc.data();
+
                   if (showOnlyNewFollowers && docData['type'] != 'new_follower')
                     return Container();
 
@@ -155,7 +154,24 @@ class _ActivityPageBodyState extends State<ActivityPageBody> {
                       padding: EdgeInsets.only(top: .02 * globals.size.height),
                       itemCount: snapshot.data.length,
                       itemBuilder: (context, index) {
-                        return snapshot.data[index];
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: .02 * globals.size.width),
+                          child: Row(children: [
+                            Container(
+                              width: .05 * globals.size.width,
+                              height: .1 * globals.size.height,
+                              child: Center(
+                                  child: AlertCircle(
+                                diameter: .01 * globals.size.width,
+                              )),
+                            ),
+                            Expanded(
+                                child: Container(
+                                    height: .08 * globals.size.height,
+                                    child: snapshot.data[index])),
+                          ]),
+                        );
                       },
                     ),
                   );
@@ -167,17 +183,8 @@ class _ActivityPageBodyState extends State<ActivityPageBody> {
           ],
         ));
   }
-}
 
-class ActivityToggleButton extends StatelessWidget {
-  // Stateless widget that lets user change between showing all activity or only
-  // new followers.
-  ActivityToggleButton({@required this.buttonName, @required this.color});
-  final String buttonName;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _activityToggleButton(String buttonName, Color color) {
     return Container(
         width: .35 * globals.size.width,
         height: .03 * globals.size.height,
@@ -203,45 +210,41 @@ class ActivityCommentWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        child: Container(
-          color: Colors.transparent,
-          height: .1 * globals.size.height,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  ProfilePic(
-                      diameter: .06 * globals.size.height, user: commenter),
-                  Container(
-                    padding: EdgeInsets.only(left: .02 * globals.size.width),
-                    child: RichText(
-                        text: new TextSpan(
-                            style: new TextStyle(
-                                fontSize: .0154 * globals.size.height,
-                                color: Colors.black),
-                            children: <TextSpan>[
-                          TextSpan(
-                              text: "${commenter.username} ",
-                              style: TextStyle(
-                                  fontSize: .016 * globals.size.height,
-                                  fontWeight: FontWeight.bold)),
-                          TextSpan(
-                              text: "has commented on your post",
-                              style: TextStyle(
-                                  fontSize: .016 * globals.size.height))
-                        ])),
-                  )
-                ],
-              ),
-              PostView(
-                  post: post,
-                  height: .08 * globals.size.height,
-                  aspectRatio: 4 / 3,
-                  postStage: PostStage.onlyPost)
-            ],
-          ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                ProfilePic(
+                    diameter: .06 * globals.size.height, user: commenter),
+                Container(
+                  padding: EdgeInsets.only(left: .02 * globals.size.width),
+                  child: RichText(
+                      text: new TextSpan(
+                          style: new TextStyle(
+                              fontSize: .0154 * globals.size.height,
+                              color: Colors.black),
+                          children: <TextSpan>[
+                        TextSpan(
+                            text: "${commenter.username} ",
+                            style: TextStyle(
+                                fontSize: .016 * globals.size.height,
+                                fontWeight: FontWeight.bold)),
+                        TextSpan(
+                            text: "has commented on your post",
+                            style:
+                                TextStyle(fontSize: .016 * globals.size.height))
+                      ])),
+                )
+              ],
+            ),
+            PostView(
+                post: post,
+                height: .08 * globals.size.height,
+                aspectRatio: 4 / 3,
+                postStage: PostStage.onlyPost)
+          ],
         ),
         onTap: () => Navigator.push(
             context,
@@ -265,13 +268,11 @@ class ActivityNewFollowerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        height: .1 * globals.size.height,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: EdgeInsets.only(right: .04 * globals.size.width),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: GestureDetector(
               child: Row(
                 children: [
                   ProfilePic(
@@ -297,29 +298,47 @@ class ActivityNewFollowerWidget extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  GestureDetector(
-                      child: AcceptDeclineButton(
-                          height: .06 * globals.size.height,
-                          name: "Follow Back",
-                          color: const Color(0xff22a2ff)),
-                      onTap: () async => await _followBack(context, true)),
-                  GestureDetector(
-                    child: AcceptDeclineButton(
-                        height: .06 * globals.size.height,
-                        name: "Don't Follow Back",
-                        color: const Color(0xffff0000)),
-                    onTap: () => _followBack(context, false),
-                  ),
-                ],
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ProfilePage(user: follower)))),
+        ),
+        Container(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              GestureDetector(
+                  child: _acceptDeclineButton(.06 * globals.size.height,
+                      "Follow Back", const Color(0xff22a2ff)),
+                  onTap: () async => await _followBack(context, true)),
+              GestureDetector(
+                child: _acceptDeclineButton(.06 * globals.size.height,
+                    "Don't Follow Back", const Color(0xffff0000)),
+                onTap: () => _followBack(context, false),
               ),
-            ),
-          ],
-        ));
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _acceptDeclineButton(double height, String name, Color color) {
+    return Container(
+      width: height,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(.0154 * globals.size.height),
+        color: color,
+        border: Border.all(width: 1.0, color: const Color(0xffffffff)),
+      ),
+      child: (Center(
+          child: Text(name,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: .0142 * globals.size.height)))),
+    );
   }
 
   Future<void> _followBack(BuildContext context, bool willFollowBack) async {
@@ -337,38 +356,6 @@ class ActivityNewFollowerWidget extends StatelessWidget {
   }
 }
 
-class AcceptDeclineButton extends StatelessWidget {
-  const AcceptDeclineButton({
-    Key key,
-    @required this.height,
-    @required this.name,
-    @required this.color,
-  }) : super(key: key);
-
-  final double height;
-  final String name;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: height,
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(.0154 * globals.size.height),
-        color: color,
-        border: Border.all(width: 1.0, color: const Color(0xffffffff)),
-      ),
-      child: (Center(
-          child: Text(name,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: .0142 * globals.size.height)))),
-    );
-  }
-}
-
 class ActivityFollowerWidget extends StatelessWidget {
   // Simply displays that someone started following the user.
   ActivityFollowerWidget({@required this.follower});
@@ -376,11 +363,10 @@ class ActivityFollowerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        height: .1 * globals.size.height,
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Container(
+    return GestureDetector(
+        child: Expanded(
+          child: Container(
+            color: Colors.transparent,
             padding: EdgeInsets.only(right: .04 * globals.size.width),
             child: Row(
               children: [
@@ -406,7 +392,11 @@ class ActivityFollowerWidget extends StatelessWidget {
                 ),
               ],
             ),
-          )
-        ]));
+          ),
+        ),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ProfilePage(user: follower))));
   }
 }
