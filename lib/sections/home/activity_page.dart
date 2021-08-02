@@ -225,30 +225,33 @@ class ActivityCommentWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                ProfilePic(
-                    diameter: .06 * globals.size.height, user: commenter),
-                Container(
-                  padding: EdgeInsets.only(left: .02 * globals.size.width),
-                  child: RichText(
-                      text: new TextSpan(
-                          style: new TextStyle(
-                              fontSize: .0154 * globals.size.height,
-                              color: Colors.black),
-                          children: <TextSpan>[
-                        TextSpan(
-                            text: "${commenter.username} ",
-                            style: TextStyle(
-                                fontSize: .016 * globals.size.height,
-                                fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text: "has commented on your post",
-                            style:
-                                TextStyle(fontSize: .016 * globals.size.height))
-                      ])),
-                )
-              ],
+            Expanded(
+              child: Row(
+                children: [
+                  ProfilePic(
+                      diameter: .06 * globals.size.height, user: commenter),
+                  Container(
+                    padding: EdgeInsets.only(left: .02 * globals.size.width),
+                    width: .6 * globals.size.width,
+                    child: RichText(
+                        text: new TextSpan(
+                            style: new TextStyle(
+                                fontSize: .0154 * globals.size.height,
+                                color: Colors.black),
+                            children: <TextSpan>[
+                          TextSpan(
+                              text: "${commenter.username} ",
+                              style: TextStyle(
+                                  fontSize: .016 * globals.size.height,
+                                  fontWeight: FontWeight.bold)),
+                          TextSpan(
+                              text: "has commented on your post",
+                              style: TextStyle(
+                                  fontSize: .016 * globals.size.height))
+                        ])),
+                  )
+                ],
+              ),
             ),
             PostWidget(
                 post: post,
@@ -291,38 +294,36 @@ class ActivityNewFollowerWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: GestureDetector(
-              child: Row(
-                children: [
-                  ProfilePic(
-                      diameter: .06 * globals.size.height, user: follower),
-                  Container(
-                    padding: EdgeInsets.only(left: .02 * globals.size.width),
-                    child: RichText(
-                        text: new TextSpan(
-                            style: new TextStyle(
-                                fontSize: .0154 * globals.size.height,
-                                color: Colors.black),
-                            children: <TextSpan>[
-                          TextSpan(
-                              text: "${follower.username} ",
-                              style: TextStyle(
-                                  fontSize: .016 * globals.size.height,
-                                  fontWeight: FontWeight.bold)),
-                          TextSpan(
-                              text: "Started following you",
-                              style: TextStyle(
-                                  fontSize: .016 * globals.size.height))
-                        ])),
-                  ),
-                ],
-              ),
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ProfilePage(user: follower)))),
-        ),
+        GestureDetector(
+            child: Row(
+              children: [
+                ProfilePic(diameter: .06 * globals.size.height, user: follower),
+                Container(
+                  padding: EdgeInsets.only(left: .02 * globals.size.width),
+                  width: .5 * globals.size.width,
+                  child: RichText(
+                      text: new TextSpan(
+                          style: new TextStyle(
+                              fontSize: .0154 * globals.size.height,
+                              color: Colors.black),
+                          children: <TextSpan>[
+                        TextSpan(
+                            text: "${follower.username} ",
+                            style: TextStyle(
+                                fontSize: .016 * globals.size.height,
+                                fontWeight: FontWeight.bold)),
+                        TextSpan(
+                            text: "Started following you.",
+                            style:
+                                TextStyle(fontSize: .016 * globals.size.height))
+                      ])),
+                ),
+              ],
+            ),
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ProfilePage(user: follower)))),
         Container(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -399,6 +400,7 @@ class ActivityFollowerWidget extends StatelessWidget {
                 ProfilePic(diameter: .06 * globals.size.height, user: follower),
                 Container(
                   padding: EdgeInsets.only(left: .02 * globals.size.width),
+                  width: .7 * globals.size.width,
                   child: RichText(
                       text: new TextSpan(
                           style: new TextStyle(

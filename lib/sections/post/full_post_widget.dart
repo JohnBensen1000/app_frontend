@@ -191,6 +191,9 @@ class _CommentsSnackBarState extends State<CommentsSnackBar> {
                 color: Colors.transparent,
               ),
               onTap: () => provider.closeComments(),
+              onLongPress: () => null,
+              onVerticalDragUpdate: (_) => null,
+              onVerticalDragDown: (_) => null,
             ),
             Transform.translate(
               offset: Offset(0, provider.yOffset * snackbarHeight),

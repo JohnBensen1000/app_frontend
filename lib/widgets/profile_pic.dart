@@ -73,8 +73,6 @@ class ProfilePic extends StatelessWidget {
                 clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
                 child: FutureBuilder(
                     future: handleRequest(context, getProfile(user)),
-                    // future:
-                    //     globals.profileRepository.getProfilePost(context, user),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData)
@@ -82,19 +80,12 @@ class ProfilePic extends StatelessWidget {
                             post: snapshot.data,
                             height: diameter,
                             aspectRatio: 1);
-                      // return PostView(
-                      //     post: snapshot.data,
-                      //     height: diameter,
-                      //     aspectRatio: 1,
-                      //     playOnInit: true,
-                      //     playWithVolume: false,
-                      //     saveInMemory: true,
-                      //     postStage: PostStage.onlyPost);
                       else
                         return Container(
                           width: diameter,
                           height: diameter,
                           decoration: BoxDecoration(
+                            color: Colors.transparent,
                             borderRadius: BorderRadius.all(
                                 Radius.elliptical(9999.0, 9999.0)),
                             border: Border.all(
@@ -107,6 +98,7 @@ class ProfilePic extends StatelessWidget {
                 width: diameter,
                 height: diameter,
                 decoration: BoxDecoration(
+                  color: Colors.transparent,
                   borderRadius:
                       BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
                   border: Border.all(

@@ -161,7 +161,14 @@ class _ProfileDrawerHeaderState extends State<ProfileDrawerHeader> {
                     ),
                     Text("Take New Photo",
                         style: TextStyle(
-                            color: Colors.white,
+                            shadows: <Shadow>[
+                              Shadow(
+                                offset: Offset(0, 0),
+                                blurRadius: 1.0,
+                                color: Color.fromARGB(255, 0, 0, 0),
+                              ),
+                            ],
+                            color: Colors.grey[200],
                             fontSize: .02 * globals.size.height)),
                   ],
                 ),

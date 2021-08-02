@@ -219,12 +219,15 @@ class AddComment extends StatelessWidget {
       alignment: Alignment.topCenter,
       child: GestureDetector(
         child: AddCommentButton(
-          child: Text(
-            'Add a comment',
-            style: TextStyle(
-              fontFamily: 'SF Pro Text',
-              fontSize: .0237 * globals.size.height,
-              color: const Color(0x69000000),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: .05 * globals.size.width),
+            child: Text(
+              'Add a comment',
+              style: TextStyle(
+                fontFamily: 'SF Pro Text',
+                fontSize: .0237 * globals.size.height,
+                color: const Color(0x69000000),
+              ),
             ),
           ),
         ),

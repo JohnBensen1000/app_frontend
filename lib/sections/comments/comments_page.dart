@@ -211,64 +211,95 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
 
     final TextEditingController textController = new TextEditingController();
 
-    return Container(
-        height: widget.height,
-        padding: EdgeInsets.only(bottom: .0118 * globals.size.height),
-        alignment: Alignment.center,
-        child: AddCommentButton(
-          child: Stack(
-            children: [
-              Container(
-                child: TextFormField(
-                  style: TextStyle(
-                    fontFamily: 'SF Pro Text',
-                    fontSize: .025 * globals.size.height,
-                    color: const Color(0x69000000),
-                  ),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.only(
-                        top: 0, bottom: .009 * globals.size.height),
-                    border: InputBorder.none,
-                  ),
-                  autofocus: true,
-                  controller: textController,
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.only(right: .0307 * globals.size.width),
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                    child: SvgPicture.string(
-                      _svg_myuv7f,
-                      allowDrawingOutsideViewBox: true,
-                    ),
-                    onTap: () async {
-                      if (allowButtonPress) {
-                        setState(() {
-                          allowButtonPress = false;
-                        });
-                        Map response = await handleRequest(
-                            context,
-                            postComment(provider.post, provider.parentComment,
-                                textController.text));
-
-                        switch (response["denied"]) {
-                          case "NSFW":
-                            await showDialog(
-                                context: context,
-                                builder: (BuildContext context) =>
-                                    GenericAlertDialog(
-                                        text:
-                                            "Your comment will not be uploaded due to inappropraite langauge."));
-                        }
-
-                        Navigator.pop(context);
-                      }
-                    }),
-              ),
-            ],
+    return AddCommentButton(
+        child: Container(
+      padding: EdgeInsets.symmetric(horizontal: .05 * globals.size.width),
+      child: Row(children: [
+        Flexible(
+          child: TextFormField(
+            style: TextStyle(
+              fontFamily: 'SF Pro Text',
+              fontSize: .025 * globals.size.height,
+              color: const Color(0x69000000),
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+            ),
+            autofocus: true,
+            controller: textController,
           ),
-        ));
+        ),
+        GestureDetector(
+            child: SvgPicture.string(
+              _svg_myuv7f,
+              allowDrawingOutsideViewBox: true,
+            ),
+            onTap: () async {
+              if (allowButtonPress) {
+                setState(() {
+                  allowButtonPress = false;
+                });
+                Map response = await handleRequest(
+                    context,
+                    postComment(provider.post, provider.parentComment,
+                        textController.text));
+
+                switch (response["denied"]) {
+                  case "NSFW":
+                    await showDialog(
+                        context: context,
+                        builder: (BuildContext context) => GenericAlertDialog(
+                            text:
+                                "Your comment will not be uploaded due to inappropraite langauge."));
+                }
+
+                Navigator.pop(context);
+              }
+            }),
+      ]),
+    )
+
+        //   child: Row(
+        // children: [
+
+        // ),
+        // Container(
+        //   padding: EdgeInsets.only(right: .0307 * globals.size.width),
+        //   alignment: Alignment.centerRight,
+        // child: GestureDetector(
+        //     child: SvgPicture.string(
+        //       _svg_myuv7f,
+        //       allowDrawingOutsideViewBox: true,
+        //     ),
+        //     onTap: () async {
+        //       if (allowButtonPress) {
+        //         setState(() {
+        //           allowButtonPress = false;
+        //         });
+        //         Map response = await handleRequest(
+        //             context,
+        //             postComment(
+        //                 provider.post,
+        //                 provider.parentComment,
+        //                 textController.text));
+
+        //         switch (response["denied"]) {
+        //           case "NSFW":
+        //             await showDialog(
+        //                 context: context,
+        //                 builder: (BuildContext context) =>
+        //                     GenericAlertDialog(
+        //                         text:
+        //                             "Your comment will not be uploaded due to inappropraite langauge."));
+        //         }
+
+        //         Navigator.pop(context);
+        //         }
+        //       }),
+        // ),
+        // ],
+        // )
+        );
   }
 }
 
