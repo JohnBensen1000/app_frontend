@@ -16,10 +16,11 @@ import '../post/post_view.dart';
 import '../post/post.dart';
 
 class ActivityPage extends StatelessWidget {
-  // Returns a page with all of a user's activities. This page is broken up into
-  // two parts: a header and a body. The header displays the page's name and a
-  // button that returns to the previous page. The body contains a list of all
-  // of the user's activities.
+  // Returns a page displaying all recent activity for a user. This page is
+  // broken up into a header and a body. The header displays the page's title
+  // and a back button. The body displays a list of all activity (comments,
+  // new followers, and followers).
+
   @override
   Widget build(BuildContext context) {
     double headerHeight = .15 * globals.size.height;
@@ -36,7 +37,7 @@ class ActivityPage extends StatelessWidget {
 }
 
 class ActivityPageHeader extends StatelessWidget {
-  // The activity page's header. Displays a back button and the page's name.
+  // Displays the page's title and a back button.
   ActivityPageHeader({@required this.height});
 
   final double height;
@@ -67,12 +68,15 @@ class ActivityPageHeader extends StatelessWidget {
 }
 
 class ActivityPageBody extends StatefulWidget {
-  // Sets up a stream that connects to a firebase collection containing all of
-  // the user's activity. There are different types of documents in this
-  // collection, each corresponding to a different type of activity. This widget
-  // determines which StatelessWidget to build based on the document's type.
-  // Displays a button on the top of the widget that lets the user change
-  // between showing all activity or only new followers.
+  // Returns a ListView of all of a user's activity. Sets up a stream to a
+  // firebase collection that contains all of the user's activity. This activity
+  // could be: people commenting on the user's post, new followers, and users
+  // who have followed the user back. This widget iterates through the
+  // collection of activities and: (1) determines what type of activity it is
+  // and (2) whether it is a 'new' activity. Returns the approriate widget based
+  // on the widget type and displays a circle to indicate the activity is new.
+  // Also displays a button for toggling between all activity and only new
+  // followers.
 
   ActivityPageBody({@required this.height});
 
@@ -83,66 +87,87 @@ class ActivityPageBody extends StatefulWidget {
 }
 
 class _ActivityPageBodyState extends State<ActivityPageBody> {
-  bool showOnlyNewFollowers;
+  bool _showOnlyNewFollowers;
+  CollectionReference<Map<String, dynamic>> _activityCollection;
 
   @override
   void initState() {
+    _showOnlyNewFollowers = false;
+
+    _activityCollection = FirebaseFirestore.instance
+        .collection('ACTIVITY')
+        .doc(globals.user.uid)
+        .collection('activity');
+
     super.initState();
-    showOnlyNewFollowers = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    handleRequest(context, updatedThatUserIsUpdated());
-
     return Container(
         height: widget.height,
         padding: EdgeInsets.only(top: .02 * globals.size.height),
-        child: Column(
-          children: [
-            GestureDetector(
-                child: _activityToggleButton(
-                  (showOnlyNewFollowers) ? "all activity" : "new followers",
-                  Colors.white,
-                ),
-                onTap: () {
-                  setState(() {
-                    showOnlyNewFollowers = !showOnlyNewFollowers;
-                  });
-                }),
-            StreamBuilder(
-              stream: FirebaseFirestore.instance
-                  .collection('ACTIVITY')
-                  .doc(globals.user.uid)
-                  .collection('activity')
-                  .orderBy('time')
+        child: Column(children: [
+          GestureDetector(
+              child: _activityToggleButton(
+                (_showOnlyNewFollowers) ? "all activity" : "new followers",
+                Colors.white,
+              ),
+              onTap: () {
+                setState(() {
+                  _showOnlyNewFollowers = !_showOnlyNewFollowers;
+                });
+              }),
+          StreamBuilder(
+              stream: _activityCollection
+                  .orderBy('time', descending: true)
                   .snapshots()
                   .map((snapshot) {
-                return snapshot.docs.map((doc) {
-                  Map docData = doc.data();
+                return snapshot.docs.map((snapshot) {
+                  Map docData = snapshot.data();
 
-                  if (showOnlyNewFollowers && docData['type'] != 'new_follower')
-                    return Container();
+                  if (_showOnlyNewFollowers &&
+                      docData['type'] != 'new_follower') return Container();
+
+                  Widget _activityWidget;
 
                   switch (docData['type']) {
                     case 'comment':
-                      return ActivityCommentWidget(
-                          commenter:
-                              User.fromJson(docData['data']['commenter']),
-                          post: Post.fromJson(docData['data']['post']));
+                      _activityWidget =
+                          ActivityCommentWidget(snapshot: snapshot);
+                      break;
                     case 'new_follower':
-                      return ActivityNewFollowerWidget(
-                          follower: User.fromJson(
-                            docData['data']['follower'],
-                          ),
-                          firestoreDocId: doc.id);
+                      _activityWidget = ActivityNewFollowerWidget(
+                        snapshot: snapshot,
+                      );
+                      break;
                     case 'follower':
-                      return ActivityFollowerWidget(
-                          follower: User.fromJson(docData['data']['follower']));
+                      _activityWidget = ActivityFollowerWidget(
+                        snapshot: snapshot,
+                      );
+                      break;
 
                     default:
                       return Container();
                   }
+
+                  return Container(
+                    height: .1 * globals.size.height,
+                    child: Row(children: [
+                      snapshot.data()['isNew']
+                          ? Container(
+                              width: .05 * globals.size.width,
+                              child: Center(
+                                  child: AlertCircle(
+                                diameter: .01 * globals.size.width,
+                              )),
+                            )
+                          : Container(
+                              width: .05 * globals.size.width,
+                            ),
+                      Expanded(child: Container(child: _activityWidget))
+                    ]),
+                  );
                 }).toList();
               }),
               builder: (context, snapshot) {
@@ -150,38 +175,20 @@ class _ActivityPageBodyState extends State<ActivityPageBody> {
                   handleRequest(context, updatedThatUserIsUpdated());
 
                   return Expanded(
+                      child: Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: .02 * globals.size.width),
                     child: ListView.builder(
-                      padding: EdgeInsets.only(top: .02 * globals.size.height),
-                      itemCount: snapshot.data.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: .02 * globals.size.width),
-                          child: Row(children: [
-                            Container(
-                              width: .05 * globals.size.width,
-                              height: .1 * globals.size.height,
-                              child: Center(
-                                  child: AlertCircle(
-                                diameter: .01 * globals.size.width,
-                              )),
-                            ),
-                            Expanded(
-                                child: Container(
-                                    height: .08 * globals.size.height,
-                                    child: snapshot.data[index])),
-                          ]),
-                        );
-                      },
-                    ),
-                  );
+                        padding:
+                            EdgeInsets.only(top: .02 * globals.size.height),
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (context, index) => snapshot.data[index]),
+                  ));
                 } else {
                   return Container();
                 }
-              },
-            )
-          ],
-        ));
+              }),
+        ]));
   }
 
   Widget _activityToggleButton(String buttonName, Color color) {
@@ -198,17 +205,21 @@ class _ActivityPageBodyState extends State<ActivityPageBody> {
 }
 
 class ActivityCommentWidget extends StatelessWidget {
-  // Stateless widget responsible for showing that a commenter has commented on
-  // on of the user's posts. When tapped, takes the user to the post that has
-  // been commented on.
+  // Returns a widget containing the commentor's username and the post that the
+  // comment was made on. When tapped, takes the user to the post and updates
+  // the 'isNew' field in the appropriate document.
 
-  ActivityCommentWidget({@required this.commenter, @required this.post});
+  ActivityCommentWidget({@required this.snapshot});
 
-  final User commenter;
-  final Post post;
+  final QueryDocumentSnapshot<Map<String, dynamic>> snapshot;
 
   @override
   Widget build(BuildContext context) {
+    Map docData = snapshot.data();
+
+    User commenter = User.fromJson(docData['data']['commenter']);
+    Post post = Post.fromJson(docData['data']['post']);
+
     return GestureDetector(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -246,28 +257,36 @@ class ActivityCommentWidget extends StatelessWidget {
                 postStage: PostStage.onlyPost)
           ],
         ),
-        onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => PostPage(
-                      post: post,
-                    ))));
+        onTap: () async => await _handleOnTap(context, post));
+  }
+
+  Future<void> _handleOnTap(BuildContext context, Post post) async {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => PostPage(
+                  post: post,
+                )));
+    await snapshot.reference.update({'isNew': false});
   }
 }
 
 class ActivityNewFollowerWidget extends StatelessWidget {
-  // Shows that a new person has started following the user. Allows the user to
-  // follow/not follow back the new follower. When one of these options are
-  // selected, deletes the document containing the new follower activity from
-  // firestore.
-  ActivityNewFollowerWidget(
-      {@required this.follower, @required this.firestoreDocId});
+  // Returns a widget that shows that the user has gotten a new follower. When
+  // tapped, takes the user to the new follower's profile page. Allows the user
+  // to follow back or not follow back the new follower. When the user decides
+  // on one of these two options, this widget deletes the appropriate document.
 
-  final User follower;
-  final String firestoreDocId;
+  ActivityNewFollowerWidget({@required this.snapshot});
+
+  final QueryDocumentSnapshot<Map<String, dynamic>> snapshot;
 
   @override
   Widget build(BuildContext context) {
+    User follower = User.fromJson(
+      snapshot.data()['data']['follower'],
+    );
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -310,11 +329,12 @@ class ActivityNewFollowerWidget extends StatelessWidget {
               GestureDetector(
                   child: _acceptDeclineButton(.06 * globals.size.height,
                       "Follow Back", const Color(0xff22a2ff)),
-                  onTap: () async => await _followBack(context, true)),
+                  onTap: () async =>
+                      await _followBack(context, follower, true)),
               GestureDetector(
                 child: _acceptDeclineButton(.06 * globals.size.height,
                     "Don't Follow Back", const Color(0xffff0000)),
-                onTap: () => _followBack(context, false),
+                onTap: () => _followBack(context, follower, false),
               ),
             ],
           ),
@@ -341,28 +361,33 @@ class ActivityNewFollowerWidget extends StatelessWidget {
     );
   }
 
-  Future<void> _followBack(BuildContext context, bool willFollowBack) async {
+  Future<void> _followBack(
+      BuildContext context, User follower, bool willFollowBack) async {
     if (willFollowBack)
       await handleRequest(context, startFollowing(follower));
     else
       await handleRequest(context, dontFollowBack(follower));
 
-    await FirebaseFirestore.instance
-        .collection('ACTIVITY')
-        .doc(globals.user.uid)
-        .collection('activity')
-        .doc(firestoreDocId)
-        .delete();
+    await snapshot.reference.delete();
   }
 }
 
 class ActivityFollowerWidget extends StatelessWidget {
-  // Simply displays that someone started following the user.
-  ActivityFollowerWidget({@required this.follower});
-  final User follower;
+  // Returns a widget that shows that of of the creators that the user is
+  // following has followed the user back. When tapped, takes the user to the
+  // creator's profile page and updates the 'isNew' field in the appropriate
+  // document.
+
+  ActivityFollowerWidget({@required this.snapshot});
+
+  final QueryDocumentSnapshot<Map<String, dynamic>> snapshot;
 
   @override
   Widget build(BuildContext context) {
+    User follower = User.fromJson(
+      snapshot.data()['data']['follower'],
+    );
+
     return GestureDetector(
         child: Expanded(
           child: Container(
@@ -394,9 +419,12 @@ class ActivityFollowerWidget extends StatelessWidget {
             ),
           ),
         ),
-        onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => ProfilePage(user: follower))));
+        onTap: () async => await _handleOnTap(context, follower));
+  }
+
+  Future<void> _handleOnTap(BuildContext context, User follower) async {
+    await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => ProfilePage(user: follower)));
+    await snapshot.reference.update({'isNew': false});
   }
 }
