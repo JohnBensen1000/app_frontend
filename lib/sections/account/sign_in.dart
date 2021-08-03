@@ -1,7 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,7 +9,6 @@ import 'widgets/input_field.dart';
 import 'widgets/account_submit_button.dart';
 
 import '../../globals.dart' as globals;
-import '../../models/user.dart';
 import '../home/home_screen.dart';
 import '../../API/methods/users.dart';
 

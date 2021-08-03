@@ -33,7 +33,6 @@ class PostWidget extends StatelessWidget {
     double width = height / aspectRatio;
     double cornerRadius = height / 19;
 
-    print(post.caption);
     return Stack(alignment: Alignment.center, children: [
       Container(
           height: height,

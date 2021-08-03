@@ -57,3 +57,10 @@ Future<Post> getPostFromPostID(User user, Post post) async {
 
   return Post.fromJson(response);
 }
+
+Future<bool> deletePost(Post post) async {
+  var response = await globals.baseAPI
+      .delete('v2/posts/${globals.user.uid}/${post.postID}');
+
+  return response['deleted'];
+}

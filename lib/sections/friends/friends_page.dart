@@ -44,74 +44,15 @@ class Friends extends StatelessWidget {
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
-                        return Column(children: <Widget>[
-                          // NewFollowersAlert(),
-                          ChatsList(
-                            chatsList: snapshot.data,
-                          )
-                        ]);
+                        return ChatsList(
+                          chatsList: snapshot.data,
+                        );
                       } else {
                         return Container();
                       }
                     },
                   ))),
     );
-  }
-}
-
-class NewFollowersAlert extends StatefulWidget {
-  // This widget displays if new people. When pressed, sends user to new
-  // followers page. When the user returns from the new followers page, calls
-  // resetState() to reset the state of the page (to update the friends list).
-
-  @override
-  _NewFollowersAlertState createState() => _NewFollowersAlertState();
-}
-
-class _NewFollowersAlertState extends State<NewFollowersAlert> {
-  String newFollowingText = "";
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: handleRequest(context, getNewFollowers()),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData &&
-              snapshot.data.length > 0) {
-            newFollowingText = "New Followers: ${snapshot.data.length}";
-
-            return Padding(
-                padding: EdgeInsets.only(bottom: .0059 * globals.size.height),
-                child: GestureDetector(
-                    child: Container(
-                      height: .0237 * globals.size.height,
-                      width: .513 * globals.size.width,
-                      decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 2),
-                          borderRadius: BorderRadius.all(
-                              Radius.circular(globals.size.height))),
-                      child: Center(child: Text(newFollowingText)),
-                    ),
-                    onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => NewFollowersPage(
-                                    newFollowersList: snapshot.data,
-                                  )),
-                        ).then((newFriends) {
-                          Provider.of<FriendsProvider>(context, listen: false)
-                              .resetState();
-                        })));
-          } else {
-            return Container();
-          }
-        });
   }
 }
 

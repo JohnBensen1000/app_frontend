@@ -16,6 +16,7 @@ import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_dialog_container.dart';
 import '../../widgets/generic_alert_dialog.dart';
+import '../../widgets/wide_button.dart';
 
 import '../post/post_widget.dart';
 import '../post/post_page.dart';
@@ -28,6 +29,10 @@ class ProfileProvider extends ChangeNotifier {
 
   set isDrawerOpen(newIsProfileDrawerOpen) {
     _isProfileDrawerOpen = newIsProfileDrawerOpen;
+    notifyListeners();
+  }
+
+  void resetState() {
     notifyListeners();
   }
 }
@@ -50,33 +55,33 @@ class ProfilePage extends StatelessWidget {
     return ChangeNotifierProvider(
         create: (context) => ProfileProvider(),
         child: Scaffold(
-            body: Stack(
-          children: [
-            Container(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  ProfilePageHeader(
-                    user: user,
-                    height: headerHeight,
-                  ),
-                  ProfilePostBody(
-                      user: user,
-                      height: bodyHeight,
-                      sidePadding: .05 * globals.size.width,
-                      betweenPadding: .01 * globals.size.width),
-                ],
-              ),
-            ),
-            Consumer<ProfileProvider>(
-                builder: (context, provider, child) => (provider.isDrawerOpen)
-                    ? CustomDrawer(
-                        child: ProfileDrawer(),
-                        parentProvider: provider,
-                      )
-                    : Container())
-          ],
-        )));
+            body: Consumer<ProfileProvider>(
+                builder: (context, provider, child) => Stack(
+                      children: [
+                        Container(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: <Widget>[
+                              ProfilePageHeader(
+                                user: user,
+                                height: headerHeight,
+                              ),
+                              ProfilePostBody(
+                                  user: user,
+                                  height: bodyHeight,
+                                  sidePadding: .05 * globals.size.width,
+                                  betweenPadding: .01 * globals.size.width),
+                            ],
+                          ),
+                        ),
+                        (provider.isDrawerOpen)
+                            ? CustomDrawer(
+                                child: ProfileDrawer(),
+                                parentProvider: provider,
+                              )
+                            : Container()
+                      ],
+                    ))));
   }
 }
 
@@ -316,7 +321,7 @@ class ProfilePageHeaderButton extends StatelessWidget {
   }
 }
 
-class ProfilePostBody extends StatefulWidget {
+class ProfilePostBody extends StatelessWidget {
   // Gets and returns a all of the creator's publics posts. The posts are
   // organized into a list of widgets. This list runs vertically and starts off
   // with a big ProfilePostWidget() that takes up the entire width of the page.
@@ -338,22 +343,10 @@ class ProfilePostBody extends StatefulWidget {
   final int rowSize;
 
   @override
-  _ProfilePostBodyState createState() => _ProfilePostBodyState();
-}
-
-class _ProfilePostBodyState extends State<ProfilePostBody> {
-  Future<dynamic> postListFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    postListFuture = handleRequest(context, getUsersPosts(widget.user));
-  }
-
-  @override
   Widget build(BuildContext context) {
+    print('resetting state');
     return FutureBuilder(
-        future: postListFuture,
+        future: handleRequest(context, getUsersPosts(user)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.data.length == 0)
@@ -363,15 +356,14 @@ class _ProfilePostBodyState extends State<ProfilePostBody> {
                   _getProfilePostsList(context, snapshot.data);
 
               return Padding(
-                padding: EdgeInsets.only(
-                    left: widget.sidePadding, right: widget.sidePadding),
+                padding: EdgeInsets.only(left: sidePadding, right: sidePadding),
                 child: SizedBox(
-                  height: widget.height,
+                  height: height,
                   child: new ListView.builder(
                     padding: EdgeInsets.only(top: .01 * globals.size.height),
                     itemCount: profilePostsList.length,
                     itemBuilder: (BuildContext context, int index) {
-                      return PostBodyWidget(child: profilePostsList[index]);
+                      return profilePostsList[index];
                     },
                   ),
                 ),
@@ -389,38 +381,29 @@ class _ProfilePostBodyState extends State<ProfilePostBody> {
     // posts are broken up into rows of rowSize (int) ProfilePostWidget().
 
     double width = MediaQuery.of(context).size.width;
-    double mainPostHeight =
-        (width - 2 * widget.sidePadding) / globals.goldenRatio;
+    double mainPostHeight = (width - 2 * sidePadding) / globals.goldenRatio;
     double bodyPostHeight =
-        (((width - 2 * widget.sidePadding) / widget.rowSize) -
-                widget.betweenPadding) *
+        (((width - 2 * sidePadding) / rowSize) - betweenPadding) *
             globals.goldenRatio;
 
     List<Widget> profilePosts = [
       Padding(
-          padding: EdgeInsets.only(bottom: widget.betweenPadding),
-          child: GestureDetector(
-              child: PostWidget(
-                post: postList[0],
-                height: mainPostHeight,
-                aspectRatio: 1 / globals.goldenRatio,
-                playVideo: false,
-              ),
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          PostPage(isFullPost: true, post: postList[0])))))
+          padding: EdgeInsets.only(bottom: betweenPadding),
+          child: ProfilePostWidget(
+              post: postList[0],
+              height: mainPostHeight,
+              aspectRatio: 1 / globals.goldenRatio,
+              key: UniqueKey()))
     ];
 
     List<Widget> subPostsList = _getSubPostsList(postList, bodyPostHeight);
 
-    for (int i = 0; i < subPostsList.length; i += widget.rowSize) {
+    for (int i = 0; i < subPostsList.length; i += rowSize) {
       profilePosts.add(Padding(
-        padding: EdgeInsets.only(bottom: widget.betweenPadding),
+        padding: EdgeInsets.only(bottom: betweenPadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: subPostsList.sublist(i, i + widget.rowSize),
+          children: subPostsList.sublist(i, i + rowSize),
         ),
       ));
     }
@@ -434,34 +417,14 @@ class _ProfilePostBodyState extends State<ProfilePostBody> {
     List<Widget> subPostsList = [];
     int i = 1;
 
-    while ((i < postList.length) || ((i - 1) % widget.rowSize != 0)) {
+    while ((i < postList.length) || ((i - 1) % rowSize != 0)) {
       if (i < postList.length) {
         Post post = postList[i];
-        subPostsList.add(GestureDetector(
-                child: PostWidget(
-                  post: post,
-                  height: postHeight,
-                  aspectRatio: globals.goldenRatio,
-                  playVideo: false,
-                ),
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            PostPage(isFullPost: true, post: post))))
-
-            //                   PostWidget(
-            // post: postList[i],
-            // height: postHeight,
-            // aspectRatio: globals.goldenRatio,
-            // playVideo: false,
-            // )
-            // PostView(
-            //     post: postList[i],
-            //     height: postHeight,
-            //     aspectRatio: globals.goldenRatio,
-            //     postStage: PostStage.onlyPost),
-            );
+        subPostsList.add(ProfilePostWidget(
+            post: postList[i],
+            height: postHeight,
+            aspectRatio: globals.goldenRatio,
+            key: UniqueKey()));
       } else {
         subPostsList.add(
           Container(
@@ -476,26 +439,101 @@ class _ProfilePostBodyState extends State<ProfilePostBody> {
   }
 }
 
-class PostBodyWidget extends StatefulWidget {
+class ProfilePostWidget extends StatefulWidget {
   // The entire point of this widget is to keep each element in profile body's
   // ListView.builder() alive when scrolling down. That way, it doesn't jump to
   // the top when scrolling up.
-  PostBodyWidget({@required this.child});
+  ProfilePostWidget({
+    @required this.height,
+    @required this.post,
+    @required this.aspectRatio,
+    Key key,
+  }) : super(key: key);
 
-  final Widget child;
+  final double height;
+  final Post post;
+  final double aspectRatio;
 
   @override
-  _PostBodyWidgetState createState() => _PostBodyWidgetState();
+  _ProfilePostWidgetState createState() => _ProfilePostWidgetState();
 }
 
-class _PostBodyWidgetState extends State<PostBodyWidget>
+class _ProfilePostWidgetState extends State<ProfilePostWidget>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return GestureDetector(
+      child: PostWidget(
+        post: widget.post,
+        height: widget.height,
+        aspectRatio: widget.aspectRatio,
+        playVideo: false,
+      ),
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  PostPage(isFullPost: true, post: widget.post))),
+      onLongPress: () => showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return ProfilePostAlertDialog(post: widget.post);
+          }).then((willResetState) {
+        if (willResetState != null && willResetState) {
+          Provider.of<ProfileProvider>(context, listen: false).resetState();
+        }
+        ;
+      }),
+    );
+  }
+}
+
+class ProfilePostAlertDialog extends StatelessWidget {
+  const ProfilePostAlertDialog({@required this.post});
+
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        content: Container(
+            height: .32 * globals.size.height,
+            width: .4 * globals.size.width,
+            padding: EdgeInsets.all(.02 * globals.size.height),
+            decoration: BoxDecoration(
+                color: Colors.white.withOpacity(.9),
+                border: Border.all(
+                  color: Colors.grey[800].withOpacity(.9),
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                PostWidget(
+                    post: post,
+                    height: .2 * globals.size.height,
+                    aspectRatio: globals.goldenRatio),
+                GestureDetector(
+                    child: WideButton(buttonName: "Delete"),
+                    onTap: () => showDialog(
+                                context: context,
+                                builder: (BuildContext context) =>
+                                    AlertDialogContainer(
+                                        dialogText:
+                                            "Are you sure you want to delete this post? It will be permanently removed from the app."))
+                            .then((willDelete) async {
+                          if (willDelete != null && willDelete) {
+                            await handleRequest(context, deletePost(post));
+                            Navigator.pop(context, true);
+                          }
+                        }))
+              ],
+            )));
   }
 }
 

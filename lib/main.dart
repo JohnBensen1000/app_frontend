@@ -25,8 +25,37 @@ class _MyAppState extends State<MyApp> {
       DeviceOrientation.portraitDown,
     ]);
 
-    return MaterialApp(debugShowCheckedModeBanner: false, home: Welcome());
+    return LifeCycle();
   }
 }
 
+class LifeCycle extends StatefulWidget {
+  // This widget rebuilds the entire app when the user opens it up.
+  @override
+  _LifeCycleState createState() => _LifeCycleState();
+}
+
+class _LifeCycleState extends State<LifeCycle> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(debugShowCheckedModeBanner: false, home: Welcome());
+  }
+}
 // gcloud app logs tail -s default
