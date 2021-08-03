@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image/image.dart' as image;
 
@@ -61,6 +62,7 @@ class CameraProvider extends ChangeNotifier {
 
     controller = CameraController(camera, ResolutionPreset.high);
     await controller.initialize();
+    await controller.lockCaptureOrientation(DeviceOrientation.portraitUp);
 
     return controller;
   }
