@@ -18,8 +18,8 @@ class PostCaption extends StatelessWidget {
                 horizontal: .04 * globals.size.width,
                 vertical: .01 * globals.size.height),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(.45),
-              borderRadius: BorderRadius.all(Radius.circular(20)),
+              color: Colors.black.withOpacity(.3),
+              borderRadius: BorderRadius.all(Radius.circular(15)),
             ),
             child: Text(text,
                 style: TextStyle(
