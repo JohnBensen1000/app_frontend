@@ -41,6 +41,7 @@ class PostPage extends StatelessWidget {
                   height: .9 * globals.size.height,
                   showComments: showComments,
                   isFullPage: true,
+                  showCaption: true,
                 )
               : Expanded(
                   child: Container(
@@ -48,6 +49,7 @@ class PostPage extends StatelessWidget {
                       post: post,
                       height: .72 * globals.size.height,
                       aspectRatio: globals.goldenRatio,
+                      showCaption: true,
                     ),
                   ),
                 ),

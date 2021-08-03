@@ -139,7 +139,8 @@ class _PostListState extends State<PostList> {
     if (index < 0 || index >= postList.length) {
       return null;
     } else {
-      return FullPostWidget(post: postList[index], height: widget.height);
+      return FullPostWidget(
+          post: postList[index], height: widget.height, showCaption: true);
     }
   }
 

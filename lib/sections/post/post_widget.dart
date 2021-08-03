@@ -6,30 +6,34 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
+import '../../widgets/post_caption.dart';
 
 class PostWidget extends StatelessWidget {
   // Returns a stack of the post outline and the post. The post is centered
   // inside of this outline. Determines if the post is an image, a video, or a
   // video thumbnail and returns the appropriate widget.
 
-  const PostWidget({
-    @required this.post,
-    @required this.height,
-    @required this.aspectRatio,
-    this.playWithVolume = true,
-    this.playVideo = true,
-  });
+  const PostWidget(
+      {@required this.post,
+      @required this.height,
+      @required this.aspectRatio,
+      this.playWithVolume = true,
+      this.playVideo = true,
+      this.showCaption = false});
 
   final Post post;
   final double height;
   final double aspectRatio;
   final bool playWithVolume;
   final bool playVideo;
+  final bool showCaption;
 
   @override
   Widget build(BuildContext context) {
     double width = height / aspectRatio;
     double cornerRadius = height / 19;
+
+    print(post.caption);
     return Stack(alignment: Alignment.center, children: [
       Container(
           height: height,
@@ -44,34 +48,41 @@ class PostWidget extends StatelessWidget {
             ),
           )),
       Stack(
-        alignment: Alignment.topRight,
+        alignment: Alignment.bottomCenter,
         children: [
-          if (post.isImage)
-            ImageContainer(
-                post: post,
-                height: height,
-                width: width,
-                cornerRadius: cornerRadius)
-          else if (playVideo)
-            VideoContainer(
-                post: post,
-                height: height,
-                width: width,
-                cornerRadius: cornerRadius,
-                playWithVolume: playWithVolume)
-          else
-            ThumbnailContainer(
-                post: post,
-                height: height,
-                width: width,
-                cornerRadius: cornerRadius),
-          if (!playVideo && !post.isImage)
-            Container(
-                padding: EdgeInsets.all(.03 * height),
-                child: Text(
-                  "Video",
-                  style: TextStyle(color: Colors.grey),
-                )),
+          Stack(
+            alignment: Alignment.topRight,
+            children: [
+              if (post.isImage)
+                ImageContainer(
+                    post: post,
+                    height: height,
+                    width: width,
+                    cornerRadius: cornerRadius)
+              else if (playVideo)
+                VideoContainer(
+                    post: post,
+                    height: height,
+                    width: width,
+                    cornerRadius: cornerRadius,
+                    playWithVolume: playWithVolume)
+              else
+                ThumbnailContainer(
+                    post: post,
+                    height: height,
+                    width: width,
+                    cornerRadius: cornerRadius),
+              if (!playVideo && !post.isImage)
+                Container(
+                    padding: EdgeInsets.all(.03 * height),
+                    child: Text(
+                      "Video",
+                      style: TextStyle(color: Colors.grey),
+                    )),
+            ],
+          ),
+          if (showCaption && post.caption != null && post.caption != "")
+            PostCaption(text: post.caption)
         ],
       )
     ]);

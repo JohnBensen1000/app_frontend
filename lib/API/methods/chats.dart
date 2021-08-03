@@ -26,13 +26,15 @@ Future<Map> postChatText(String chatText, String chatID) async {
   return await BaseAPI().post('v2/chats/${globals.user.uid}/$chatID', postBody);
 }
 
-Future<Map> postChatPost(bool isImage, File file, String chatID) async {
+Future<Map> postChatPost(
+    bool isImage, File file, String chatID, String caption) async {
   String downloadURL = await uploadFile(file, chatID, isImage);
 
   Map postBody = {
     'isPost': true,
     'isImage': isImage,
-    'downloadURL': downloadURL
+    'downloadURL': downloadURL,
+    'caption': caption
   };
   return await BaseAPI().post('v2/chats/${globals.user.uid}/$chatID', postBody);
 }

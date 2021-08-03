@@ -54,7 +54,8 @@ class ChatItem {
     if (this.isPost)
       this.post = {
         'isImage': chatItemJson['post']['isImage'],
-        'downloadURL': chatItemJson['post']['downloadURL']
+        'downloadURL': chatItemJson['post']['downloadURL'],
+        'caption': chatItemJson['post']['caption'],
       };
     else
       this.text = chatItemJson["text"];

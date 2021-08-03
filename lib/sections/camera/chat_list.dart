@@ -20,7 +20,10 @@ class ChatListProvider extends ChangeNotifier {
   // 'sendChatPost' for every chat that is selected to recieve the post.
 
   ChatListProvider(
-      {@required this.chatsList, @required this.isImage, @required this.file}) {
+      {@required this.chatsList,
+      @required this.isImage,
+      @required this.file,
+      @required this.caption}) {
     isSendingTo =
         Map.fromIterable(chatsList, key: (k) => k, value: (_) => false);
     numChatsSelected = 0;
@@ -29,6 +32,7 @@ class ChatListProvider extends ChangeNotifier {
   final List<Chat> chatsList;
   final bool isImage;
   final File file;
+  final String caption;
 
   Map<Chat, bool> isSendingTo;
   int numChatsSelected;
@@ -47,7 +51,7 @@ class ChatListProvider extends ChangeNotifier {
     for (Chat chat in chatsList) {
       if (isSendingTo[chat]) {
         Map response = await handleRequest(
-            context, postChatPost(isImage, file, chat.chatID));
+            context, postChatPost(isImage, file, chat.chatID, caption));
 
         switch (response["reasonForRejection"]) {
           case "NSFW":
@@ -68,10 +72,12 @@ class ChatListSnackBar extends StatelessWidget {
   // user is part of and a button that allows the user to share the post in the
   // selected chats.
 
-  ChatListSnackBar({@required this.isImage, @required this.file});
+  ChatListSnackBar(
+      {@required this.isImage, @required this.file, @required this.caption});
 
   final bool isImage;
   final File file;
+  final String caption;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +89,10 @@ class ChatListSnackBar extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.done)
               return ChangeNotifierProvider(
                 create: (context) => ChatListProvider(
-                    chatsList: snapshot.data, isImage: isImage, file: file),
+                    chatsList: snapshot.data,
+                    isImage: isImage,
+                    file: file,
+                    caption: caption),
                 child: Column(
                   children: [
                     Container(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/profile_pic.dart';
+import '../../widgets/post_caption.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 
@@ -59,17 +60,18 @@ class FullPostWidget extends StatelessWidget {
   // takes the user to the page that only shows the post. When the comments
   // button is pressed, opens up the comments section.
 
-  FullPostWidget({
-    @required this.post,
-    @required this.height,
-    this.isFullPage = false,
-    this.showComments = false,
-  });
+  FullPostWidget(
+      {@required this.post,
+      @required this.height,
+      this.isFullPage = false,
+      this.showComments = false,
+      this.showCaption = false});
 
   final Post post;
   final double height;
   final bool isFullPage;
   final bool showComments;
+  final bool showCaption;
 
   @override
   Widget build(BuildContext context) {
@@ -95,9 +97,11 @@ class FullPostWidget extends StatelessWidget {
                                 ProfilePage(user: post.creator)))),
                 GestureDetector(
                     child: PostWidget(
-                        post: post,
-                        height: postWidgetHeight,
-                        aspectRatio: globals.goldenRatio),
+                      post: post,
+                      height: postWidgetHeight,
+                      aspectRatio: globals.goldenRatio,
+                      showCaption: showCaption,
+                    ),
                     onTap: () {
                       if (!isFullPage)
                         Navigator.push(

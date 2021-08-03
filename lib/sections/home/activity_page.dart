@@ -391,35 +391,33 @@ class ActivityFollowerWidget extends StatelessWidget {
     );
 
     return GestureDetector(
-        child: Expanded(
-          child: Container(
-            color: Colors.transparent,
-            padding: EdgeInsets.only(right: .04 * globals.size.width),
-            child: Row(
-              children: [
-                ProfilePic(diameter: .06 * globals.size.height, user: follower),
-                Container(
-                  padding: EdgeInsets.only(left: .02 * globals.size.width),
-                  width: .7 * globals.size.width,
-                  child: RichText(
-                      text: new TextSpan(
-                          style: new TextStyle(
-                              fontSize: .0154 * globals.size.height,
-                              color: Colors.black),
-                          children: <TextSpan>[
-                        TextSpan(
-                            text: "${follower.username} ",
-                            style: TextStyle(
-                                fontSize: .016 * globals.size.height,
-                                fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text: "Followed you back!",
-                            style:
-                                TextStyle(fontSize: .016 * globals.size.height))
-                      ])),
-                ),
-              ],
-            ),
+        child: Container(
+          color: Colors.transparent,
+          padding: EdgeInsets.only(right: .04 * globals.size.width),
+          child: Row(
+            children: [
+              ProfilePic(diameter: .06 * globals.size.height, user: follower),
+              Container(
+                padding: EdgeInsets.only(left: .02 * globals.size.width),
+                width: .7 * globals.size.width,
+                child: RichText(
+                    text: new TextSpan(
+                        style: new TextStyle(
+                            fontSize: .0154 * globals.size.height,
+                            color: Colors.black),
+                        children: <TextSpan>[
+                      TextSpan(
+                          text: "${follower.username} ",
+                          style: TextStyle(
+                              fontSize: .016 * globals.size.height,
+                              fontWeight: FontWeight.bold)),
+                      TextSpan(
+                          text: "Followed you back!",
+                          style:
+                              TextStyle(fontSize: .016 * globals.size.height))
+                    ])),
+              ),
+            ],
           ),
         ),
         onTap: () async => await _handleOnTap(context, follower));

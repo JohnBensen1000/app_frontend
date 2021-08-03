@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/baseAPI.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/sections/camera/widgets/button.dart';
 import 'package:video_player/video_player.dart';
@@ -18,19 +17,15 @@ import '../../widgets/back_arrow.dart';
 import '../../widgets/generic_alert_dialog.dart';
 
 import '../../widgets/loading_icon.dart';
+import '../../widgets/post_caption.dart';
 
 import 'camera.dart';
 import 'chat_list.dart';
 
 class PreviewProvider extends ChangeNotifier {
-  // Contains state variables used throughout the page. Also contains two
-  // booleans: allowNewPost and _showOptions. allowNewPost determines whether a
-  // user could press one of the buttons. This value is automatically set to
-  // true, and is set to false after a user presses a button. This variable is
-  // used to ensure that a user could only press one button at a time.
-  // _showOptions determines whether to show the buttons or not. This is set to
-  // false when "share" is pressed.
-
+  // Contains all data for the preview page. Has two booleans: isAddingCaption
+  // and showOptions. Both of these booleans controls who the preview page is
+  // built.
   PreviewProvider(
       {@required this.controller,
       @required this.isImage,
@@ -44,19 +39,31 @@ class PreviewProvider extends ChangeNotifier {
   final File file;
   final Chat chat;
 
-  bool allowNewPost = true;
+  bool _isAddingCaption = false;
   bool _showOptions = true;
+
+  String caption = "";
+
+  bool get isAddingCaption => _isAddingCaption;
+
+  set isAddingCaption(bool value) {
+    _isAddingCaption = value;
+    notifyListeners();
+  }
 
   bool get showOptions => _showOptions;
 
-  set showOptions(bool newShowOptions) {
-    _showOptions = newShowOptions;
+  set showOptions(bool value) {
+    _showOptions = value;
     notifyListeners();
   }
 }
 
 class Preview extends StatefulWidget {
-  // Simply initializes PreviewProvider() and PreviewPage().
+  // Main widget for the Preview Page. Initalizes the provider. If the user is
+  // currently adding a caption, returns PreviewPageStack, if the user is not
+  // adding a caption, returns PreviewPageColumn. This widget rebuilds every
+  // time provider.isAddingCaption is changed.
 
   Preview(
       {@required this.controller,
@@ -78,96 +85,120 @@ class Preview extends StatefulWidget {
 class _PreviewState extends State<Preview> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: ChangeNotifierProvider(
-            create: (context) => PreviewProvider(
-                controller: widget.controller,
-                isImage: widget.isImage,
-                cameraUsage: widget.cameraUsage,
-                file: widget.file,
-                chat: widget.chat),
-            child: PreviewPage()));
+    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+    return ChangeNotifierProvider(
+        create: (context) => PreviewProvider(
+            controller: widget.controller,
+            isImage: widget.isImage,
+            cameraUsage: widget.cameraUsage,
+            file: widget.file,
+            chat: widget.chat),
+        child: Consumer<PreviewProvider>(
+          builder: (context, provider, child) {
+            if (provider.isAddingCaption)
+              return PreviewPageStack(keyboardHeight: keyboardHeight);
+            else
+              return PreviewPageColumn();
+          },
+        ));
   }
 }
 
-class PreviewPage extends StatelessWidget {
-  // Returns a column of the image/video preview and possible actions to take
-  // with the image/video. The type of preview (image or video) is determined by
-  // PreviewProvider. Determines what options to give the user based on what the
-  // camera is being used for. These buttons are rebuilt every time
-  // provider.showOptions changes. PreviewButton() is a widget that is used for
-  // every option that isn't the "share" button. A function is passed to this
-  // widget, which is called when the button is pressed. The functions for each
-  // option (that isn't "share") are defined here.
+class PreviewPageColumn extends StatelessWidget {
+  // Returns a column that contains: a back button, the post, and a list of
+  // options that let the user do different things with the post. A caption
+  // widget is placed on top of the post. When the caption widget is pressed,
+  // provider.isAddingCaption is set to true, and the user is allowed to add a
+  // caption.
+
+  const PreviewPageColumn({
+    Key key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    double height = .711 * globals.size.height;
+    PreviewProvider provider =
+        Provider.of<PreviewProvider>(context, listen: false);
 
-    return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-      Container(
-          alignment: Alignment.topLeft,
-          padding: EdgeInsets.only(
-              top: .06 * globals.size.height,
-              left: .04 * globals.size.width,
-              bottom: .02 * globals.size.height),
-          child: GestureDetector(
-              child: BackArrow(), onTap: () => Navigator.pop(context))),
-      PreviewView(height: height),
-      Consumer<PreviewProvider>(builder: (context, provider, child) {
-        CameraUsage cameraUsage = provider.cameraUsage;
-
-        if (provider.showOptions)
-          return Container(
-              padding: EdgeInsets.only(
-                  top: .047 * globals.size.height,
-                  bottom: .047 * globals.size.height),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    if (cameraUsage == CameraUsage.post)
-                      PreviewButton(
-                        name: "Post",
-                        function: _uploadPost,
-                      ),
-                    if (cameraUsage == CameraUsage.post)
-                      ShareButton(
-                        name: "Share",
-                      ),
-                    if (cameraUsage == CameraUsage.chat)
-                      PreviewButton(
-                        name: "Send",
-                        function: _sendInChat,
-                      ),
-                    if (cameraUsage == CameraUsage.post ||
-                        cameraUsage == CameraUsage.profile)
-                      PreviewButton(
-                        name: "Save as Profile",
-                        function: _uploadProfile,
-                      ),
-                  ]));
-        else
-          return Container();
-      }),
-    ]);
+    return Scaffold(
+        body: Column(
+      children: [
+        Container(
+            height: .12 * globals.size.height,
+            alignment: Alignment.topLeft,
+            padding: EdgeInsets.only(
+                top: .06 * globals.size.height,
+                left: .04 * globals.size.width,
+                bottom: .02 * globals.size.height),
+            child: GestureDetector(
+                child: BackArrow(), onTap: () => Navigator.pop(context))),
+        Stack(alignment: Alignment.bottomCenter, children: [
+          PreviewView(
+              height: .7 * globals.size.height,
+              aspectRatio: globals.goldenRatio,
+              cornerRadius:
+                  .7 * globals.size.height * globals.cornerRadiusRatio),
+          if (provider.cameraUsage != CameraUsage.profile)
+            GestureDetector(
+              child: Container(
+                  child: provider.caption != ""
+                      ? PostCaption(text: provider.caption)
+                      : PostCaption(
+                          text: "Add caption...", textColor: Colors.grey[300])),
+              onTap: () => provider.isAddingCaption = true,
+            )
+        ]),
+        PreviewOptions(height: .18 * globals.size.height)
+      ],
+    ));
   }
+}
 
-  Future<Map> _uploadPost(
-      PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(
-        context, postNewPost(provider.isImage, false, provider.file));
-  }
+class PreviewPageStack extends StatelessWidget {
+  // Returns a stack that lets the user add a caption. The post is on the bottom
+  // of the stack, followed by a transparent button that, when tapped, exits
+  // exits from the stack. A semi-transparent text field is on the bottom of the
+  // page. This text field allows the user to add a caption to the post.
 
-  Future<Map> _uploadProfile(
-      PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(context,
-        globals.postRepository.postProfile(provider.isImage, provider.file));
-  }
+  const PreviewPageStack({
+    Key key,
+    @required this.keyboardHeight,
+  }) : super(key: key);
 
-  Future<Map> _sendInChat(
-      PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(context,
-        postChatPost(provider.isImage, provider.file, provider.chat.chatID));
+  final double keyboardHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    PreviewProvider provider =
+        Provider.of<PreviewProvider>(context, listen: false);
+    return Scaffold(
+        body: WillPopScope(
+            onWillPop: () async {
+              return true;
+            },
+            child: Stack(alignment: Alignment.bottomCenter, children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  PreviewView(
+                    height: globals.size.height - keyboardHeight + 2,
+                    aspectRatio: (globals.size.height - keyboardHeight + 2) /
+                        (globals.size.width + 2),
+                    cornerRadius: 0,
+                  ),
+                  GestureDetector(
+                    child: Container(
+                      height: globals.size.width,
+                      width: globals.size.width,
+                      color: Colors.transparent,
+                    ),
+                    onTap: () => provider.isAddingCaption = false,
+                  ),
+                ],
+              ),
+              AddCaption()
+            ])));
   }
 }
 
@@ -177,14 +208,17 @@ class PreviewView extends StatelessWidget {
   const PreviewView({
     Key key,
     @required this.height,
+    @required this.aspectRatio,
+    @required this.cornerRadius,
   }) : super(key: key);
 
   final double height;
+  final double aspectRatio;
+  final double cornerRadius;
 
   @override
   Widget build(BuildContext context) {
-    double width = height / globals.goldenRatio;
-    double cornerRadius = height * globals.cornerRadiusRatio;
+    double width = height / aspectRatio;
     PreviewProvider provider =
         Provider.of<PreviewProvider>(context, listen: false);
 
@@ -259,15 +293,85 @@ class _VideoPreviewState extends State<VideoPreview> {
   }
 }
 
+class PreviewOptions extends StatelessWidget {
+  // Determines what options to give the user based on what the camera is being
+  // used for. These buttons are rebuilt every timw provider.showOptions
+  // changes. PreviewButton() is a widget that is used for every option that
+  // isn't the "share" button. A function is passed to this widget, which is
+  // called when the button is pressed. The functions for each option (that
+  // isn't "share") are defined here.
+
+  PreviewOptions({@required this.height});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PreviewProvider>(builder: (context, provider, child) {
+      CameraUsage cameraUsage = provider.cameraUsage;
+
+      if (provider.showOptions)
+        return Container(
+          height: height,
+          padding: EdgeInsets.only(
+              top: .01 * globals.size.height,
+              bottom: .08 * globals.size.height),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                if (cameraUsage == CameraUsage.post)
+                  PreviewButton(
+                    name: "Post",
+                    function: _uploadPost,
+                  ),
+                if (cameraUsage == CameraUsage.post)
+                  ShareButton(
+                    name: "Share",
+                  ),
+                if (cameraUsage == CameraUsage.chat)
+                  PreviewButton(
+                    name: "Send",
+                    function: _sendInChat,
+                  ),
+                if (provider.caption == "" &&
+                    (cameraUsage == CameraUsage.post ||
+                        cameraUsage == CameraUsage.profile))
+                  PreviewButton(
+                    name: "Save as Profile",
+                    function: _uploadProfile,
+                  )
+              ]),
+        );
+      else
+        return Container();
+    });
+  }
+
+  Future<Map> _uploadPost(
+      PreviewProvider provider, BuildContext context) async {
+    return await handleRequest(context,
+        postNewPost(provider.isImage, false, provider.file, provider.caption));
+  }
+
+  Future<Map> _uploadProfile(
+      PreviewProvider provider, BuildContext context) async {
+    return await handleRequest(context,
+        globals.postRepository.postProfile(provider.isImage, provider.file));
+  }
+
+  Future<Map> _sendInChat(
+      PreviewProvider provider, BuildContext context) async {
+    return await handleRequest(
+        context,
+        postChatPost(provider.isImage, provider.file, provider.chat.chatID,
+            provider.caption));
+  }
+}
+
 class PreviewButton extends StatefulWidget {
-  // A generic button used on the preview page. A function is passed to this
-  // widget. This function is called whenever this button is pressed. When
-  // pressed, rebuilds the state with showLoadingIcon set to true. This will
-  // lead to an AlertDialog being displayed after the widget is rebuilt. This
-  // alert dialog will show that the app is waiting for the function to finish.
-  // If the function returns a json object containing a none-null value for
-  // "reasonForRejection", then displays an alert dialog explaning why the
-  // post was rejected.
+  // A button, that when pressed, calls the function that was passed to it.
+  // Displays a circular icon while waiting for the function to complete. If
+  // the post was denied, displays an alert dialog explaining why it was denied.
 
   PreviewButton({@required this.name, @required this.function});
 
@@ -299,7 +403,6 @@ class _PreviewButtonState extends State<PreviewButton> {
     return GestureDetector(
       child: Button(buttonName: widget.name),
       onTap: () async {
-        provider.allowNewPost = false;
         setState(() {
           showLoadingIcon = true;
         });
@@ -325,8 +428,8 @@ class _PreviewButtonState extends State<PreviewButton> {
 }
 
 class ShareButton extends StatelessWidget {
-  // A widget specific for the "share" button. When pressed, displays a
-  // the ChatListSnackBar snackbar.
+  // A button, that when pressed, displays a snackbar dispalying
+  // ChatListSnackBar().
   ShareButton({@required this.name});
 
   final String name;
@@ -351,12 +454,72 @@ class ShareButton extends StatelessWidget {
                     left: .0128 * globals.size.width,
                     right: .0128 * globals.size.width),
                 content: ChatListSnackBar(
-                  isImage: provider.isImage,
-                  file: provider.file,
-                ),
+                    isImage: provider.isImage,
+                    file: provider.file,
+                    caption: provider.caption),
               ))
               .closed
               .then((value) => provider.showOptions = true);
         });
+  }
+}
+
+class AddCaption extends StatefulWidget {
+  // A widget that returns a text field allowing the user to add a caption to
+  // their post.
+
+  @override
+  _AddCaptionState createState() => _AddCaptionState();
+}
+
+class _AddCaptionState extends State<AddCaption> {
+  final TextEditingController textController = new TextEditingController();
+
+  @override
+  void initState() {
+    textController.text =
+        Provider.of<PreviewProvider>(context, listen: false).caption;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(bottom: .01 * globals.size.height),
+      child: Container(
+        width: .6 * globals.size.width,
+        padding: EdgeInsets.symmetric(horizontal: .04 * globals.size.width),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(.45),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        child: new ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: 300.0,
+          ),
+          child: TextField(
+              maxLength: 144,
+              style: TextStyle(
+                fontFamily: 'SF Pro Text',
+                fontSize: .018 * globals.size.height,
+                color: Colors.white,
+              ),
+              maxLines: null,
+              autofocus: true,
+              decoration: InputDecoration(
+                counterStyle: TextStyle(
+                  fontFamily: 'SF Pro Text',
+                  fontSize: .01 * globals.size.height,
+                  color: Colors.white,
+                ),
+                border: InputBorder.none,
+              ),
+              controller: textController,
+              onChanged: (text) =>
+                  Provider.of<PreviewProvider>(context, listen: false).caption =
+                      text),
+        ),
+      ),
+    );
   }
 }

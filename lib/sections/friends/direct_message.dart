@@ -367,11 +367,7 @@ class ChatItemWidgetPost extends StatelessWidget {
     ChatPageProvider provider =
         Provider.of<ChatPageProvider>(context, listen: false);
 
-    Post post = Post(
-        creator: provider.chat.members[0],
-        postID: "",
-        isImage: chatItem.post['isImage'],
-        downloadURL: chatItem.post["downloadURL"]);
+    Post post = Post.fromChatItem(chatItem);
 
     return GestureDetector(
         child: PostWidget(

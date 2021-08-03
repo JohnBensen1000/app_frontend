@@ -7,13 +7,15 @@ import '../../models/user.dart';
 import '../../globals.dart' as globals;
 import '../baseAPI.dart';
 
-Future<Map> postNewPost(bool isImage, bool isPrivate, File file) async {
+Future<Map> postNewPost(
+    bool isImage, bool isPrivate, File file, String caption) async {
   String downloadURL = await uploadFile(file, globals.user.uid, isImage);
 
   Map postBody = {
     'isImage': isImage,
     'isPrivate': isPrivate,
-    'downloadURL': downloadURL
+    'downloadURL': downloadURL,
+    'caption': caption,
   };
 
   return await globals.baseAPI.post("v2/posts/${globals.user.uid}", postBody);
