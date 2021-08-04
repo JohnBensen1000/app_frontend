@@ -54,3 +54,8 @@ Future<bool> getIfUserIsUpdated() async {
 Future<Map> updatedThatUserIsUpdated() async {
   return await globals.baseAPI.put('v2/users/${globals.user.uid}/activity', {});
 }
+
+Future<Map> changeUsername(String username) async {
+  return await globals.baseAPI
+      .put('v2/users/${globals.user.uid}', {'username': username});
+}

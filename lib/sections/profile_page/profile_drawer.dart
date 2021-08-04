@@ -12,6 +12,7 @@ import '../camera/camera.dart';
 
 import '../personalization/choose_color.dart';
 import '../personalization/preferences.dart';
+import '../personalization/change_username.dart';
 
 // import 'blocked_list.dart';
 
@@ -62,6 +63,16 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => PreferencesPage()))),
+                    GenericTextButton(
+                      buttonName: "Change username",
+                      onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChangeUsernamePage()))
+                          .then((value) {
+                        setState(() {});
+                      }),
+                    ),
                   ],
                 ),
                 Column(

@@ -3,9 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/profile_pic.dart';
-import '../../widgets/post_caption.dart';
 import '../../models/post.dart';
-import '../../models/comment.dart';
 
 import '../profile_page/profile_page.dart';
 import '../comments/comments.dart';
@@ -185,32 +183,34 @@ class _CommentsSnackBarState extends State<CommentsSnackBar> {
   Widget build(BuildContext context) {
     return Consumer<FullPostProvider>(builder: (context, provider, child) {
       if (provider.isOpen)
-        return Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            GestureDetector(
-              child: Container(
-                width: globals.size.width,
-                height: widget.height,
-                color: Colors.transparent,
+        return GestureDetector(
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              GestureDetector(
+                child: Container(
+                  width: globals.size.width,
+                  height: widget.height,
+                  color: Colors.transparent,
+                ),
+                onTap: () => provider.closeComments(),
               ),
-              onTap: () => provider.closeComments(),
-              onLongPress: () => null,
-              onVerticalDragUpdate: (_) => null,
-              onVerticalDragDown: (_) => null,
-            ),
-            Transform.translate(
-              offset: Offset(0, provider.yOffset * snackbarHeight),
-              child: Container(
-                width: globals.size.width,
-                height: snackbarHeight,
-                decoration: BoxDecoration(
-                    color: Colors.grey[300].withOpacity(.8),
-                    borderRadius: BorderRadius.all(Radius.circular(20))),
-                child: comments,
-              ),
-            )
-          ],
+              Transform.translate(
+                offset: Offset(0, provider.yOffset * snackbarHeight),
+                child: Container(
+                  width: globals.size.width,
+                  height: snackbarHeight,
+                  decoration: BoxDecoration(
+                      color: Colors.grey[300].withOpacity(.8),
+                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                  child: comments,
+                ),
+              )
+            ],
+          ),
+          onLongPress: () => null,
+          onVerticalDragUpdate: (_) => null,
+          onVerticalDragDown: (_) => null,
         );
       else
         return Container();
