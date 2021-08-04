@@ -7,11 +7,9 @@ import 'package:provider/provider.dart';
 import '../../globals.dart' as globals;
 import '../../API/handle_requests.dart';
 import '../../API/methods/chats.dart';
-import '../../API/methods/followers.dart';
 import '../../models/chat.dart';
 
 import 'direct_message.dart';
-import 'new_followers.dart';
 
 class FriendsProvider extends ChangeNotifier {
   // Allows any widget below this to rebuild the friends page from scratch.
@@ -97,55 +95,52 @@ class _ChatsListState extends State<ChatsList> {
   Widget build(BuildContext context) {
     List<ChatWidget> chatWidgetsList = chatWidgets.toList();
 
-    return Expanded(
-        child: ListView.builder(
-            padding: EdgeInsets.only(top: .0237 * globals.size.height),
-            itemCount: chatWidgetsList.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Container(
-                child: Stack(
-                  alignment: Alignment.centerRight,
-                  children: [
-                    if (!chatWidgetsList[index].chat.isUpdated)
-                      Container(
-                          padding:
-                              EdgeInsets.only(right: .05 * globals.size.width),
-                          child: Text(
-                            "New chats!",
-                            style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: .018 * globals.size.height),
-                          )),
-                    GestureDetector(
-                        child: chatWidgetsList[index],
-                        onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ChatPage(
-                                        chat: chatWidgetsList[index].chat,
-                                      )),
-                            ).then(
-                              (popAction) {
-                                chatWidgetsList[index].chat.isUpdated = true;
-                                switch (popAction) {
-                                  case PopAction.removeChat:
-                                    chatWidgets.remove(chatWidgetsList[index]);
-                                    break;
-                                  case PopAction.moveToTop:
-                                    ChatWidget chatWidget =
-                                        chatWidgetsList[index];
-                                    chatWidgets.remove(chatWidget);
-                                    chatWidgets.addFirst(chatWidget);
-                                    break;
-                                }
+    return ListView.builder(
+        padding: EdgeInsets.only(top: .0237 * globals.size.height),
+        itemCount: chatWidgetsList.length,
+        itemBuilder: (BuildContext context, int index) {
+          return Container(
+            child: Stack(
+              alignment: Alignment.centerRight,
+              children: [
+                if (!chatWidgetsList[index].chat.isUpdated)
+                  Container(
+                      padding: EdgeInsets.only(right: .05 * globals.size.width),
+                      child: Text(
+                        "New chats!",
+                        style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: .018 * globals.size.height),
+                      )),
+                GestureDetector(
+                    child: chatWidgetsList[index],
+                    onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ChatPage(
+                                    chat: chatWidgetsList[index].chat,
+                                  )),
+                        ).then(
+                          (popAction) {
+                            chatWidgetsList[index].chat.isUpdated = true;
+                            switch (popAction) {
+                              case PopAction.removeChat:
+                                chatWidgets.remove(chatWidgetsList[index]);
+                                break;
+                              case PopAction.moveToTop:
+                                ChatWidget chatWidget = chatWidgetsList[index];
+                                chatWidgets.remove(chatWidget);
+                                chatWidgets.addFirst(chatWidget);
+                                break;
+                            }
 
-                                setState(() {});
-                              },
-                            )),
-                  ],
-                ),
-              );
-            }));
+                            setState(() {});
+                          },
+                        )),
+              ],
+            ),
+          );
+        });
   }
 
   void createMessagingCallback() {
