@@ -41,3 +41,6 @@ app.*.symbols
 app.*.map.json
 
 # ios/Runner/GoogleService-Info.plist
+
+android/key.properties
+android/app/nutella.jks

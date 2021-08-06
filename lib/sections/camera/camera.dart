@@ -6,6 +6,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image/image.dart' as image;
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/chat.dart';
@@ -120,12 +121,31 @@ class Camera extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: ChangeNotifierProvider(
-            create: (_) => CameraProvider(cameraUsage: cameraUsage, chat: chat),
-            child: CameraPage(
-              cameraUsage: cameraUsage,
-              chat: chat,
-            )));
+        body: FutureBuilder(
+            future: _getPermissions(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData &&
+                  snapshot.hasData) {
+                return ChangeNotifierProvider(
+                    create: (_) =>
+                        CameraProvider(cameraUsage: cameraUsage, chat: chat),
+                    child: CameraPage(
+                      cameraUsage: cameraUsage,
+                      chat: chat,
+                    ));
+              } else {
+                return Container();
+              }
+            }));
+  }
+
+  Future<void> _getPermissions() async {
+    PermissionStatus cameraStatus = await Permission.camera.request();
+    PermissionStatus microphoneStatus = await Permission.microphone.request();
+
+    return cameraStatus == PermissionStatus.granted &&
+        microphoneStatus == PermissionStatus.granted;
   }
 }
 
@@ -179,7 +199,7 @@ class CameraPage extends StatelessWidget {
                               (provider.cameraIndex + 1) % 2),
                     )),
               ),
-              PostButton(diameter: .269 * globals.size.width),
+              PostButton(diameter: .12 * globals.size.height),
               Container(
                 width: .269 * globals.size.width,
               )
