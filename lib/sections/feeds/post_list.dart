@@ -5,16 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/methods/watched.dart';
 import 'package:test_flutter/widgets/report_button.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/methods/posts.dart';
 import '../../API/handle_requests.dart';
 import '../../models/post.dart';
-import '../../globals.dart' as globals;
 import '../../models/user.dart';
 
-// import '../post/post_view.dart';
 import '../post/full_post_widget.dart';
+import '../post/post_page.dart';
 
 class PostListProvider extends ChangeNotifier {
   // Contains the list of posts for the post list. Whenever the user changes the
@@ -23,6 +22,11 @@ class PostListProvider extends ChangeNotifier {
   // list of posts. Provides functions for removing an individual post for when
   // the user reports a post and removing all posts from a creator when the user
   // blocks a user.
+  // Uses a stop watch to keep track of how long the user spends on a post. This
+  // is used to determine how much the user likes the post. timeInFullScreen
+  // keeps track of how much time the user spent in full screen mode of the
+  // post. timeInFullScreen and the stop watch are reset every time the user
+  // changes post.
 
   final Function function;
   final BuildContext context;
@@ -30,17 +34,28 @@ class PostListProvider extends ChangeNotifier {
   List<Post> _postsList;
   int _currentPostIndex;
 
+  Stopwatch stopWatch;
+  int timeInFullScreen;
+
   PostListProvider(
       {@required this.function,
       @required this.context,
       @required List<Post> postsList}) {
     _postsList = postsList;
     _currentPostIndex = 0;
+
+    stopWatch = new Stopwatch();
+    timeInFullScreen = 0;
   }
+
+  double get userRating =>
+      (stopWatch.elapsed.inMilliseconds + timeInFullScreen) / 1000.0;
 
   set currentPostIndex(int newCurrentPostIndex) {
     _currentPostIndex = newCurrentPostIndex;
     if (_currentPostIndex >= _postsList.length - 2) refreshPostsList();
+    timeInFullScreen = 0;
+    stopWatch.reset();
 
     notifyListeners();
   }
@@ -51,7 +66,6 @@ class PostListProvider extends ChangeNotifier {
 
   void refreshPostsList() async {
     List<Post> newPosts = await handleRequest(context, function());
-    print("new list");
     if (newPosts != null) _postsList += newPosts;
   }
 
@@ -87,7 +101,9 @@ class PostList extends StatefulWidget {
   // Calls the function to get the posts for the post list. Builds three post
   // widgets at a time (current, previous, and next posts). These three posts
   // are rebuilt every time the user goes to a new post (updated by provider).
-  // If there are no posts in the posts lists, displays a refresh button.
+  // If there are no posts in the posts lists, displays a refresh button. Starts
+  // the stop watch when the PostList comes into view, and pauses it when it
+  // goes out of view.
 
   PostList({@required this.height, @required this.function});
 
@@ -117,13 +133,24 @@ class _PostListState extends State<PostList> {
                 int currentIndex = provider.currentPostIndex;
 
                 if (postsList.length != 0) {
-                  return PostListPage(
-                      previousPostView:
-                          _buildPostView(postsList, currentIndex - 1),
-                      currentPostView: _buildPostView(postsList, currentIndex),
-                      nextPostView: _buildPostView(postsList, currentIndex + 1),
-                      height: widget.height,
-                      key: UniqueKey());
+                  return VisibilityDetector(
+                      key: Key("unique key"),
+                      child: PostListPage(
+                          previousPostView:
+                              _buildPostView(postsList, currentIndex - 1),
+                          currentPostView:
+                              _buildPostView(postsList, currentIndex),
+                          nextPostView:
+                              _buildPostView(postsList, currentIndex + 1),
+                          height: widget.height,
+                          key: UniqueKey()),
+                      onVisibilityChanged: (VisibilityInfo info) {
+                        if (info.visibleFraction == 1.0) {
+                          provider.stopWatch.start();
+                        } else {
+                          provider.stopWatch.stop();
+                        }
+                      });
                 } else {
                   return _refreshButton();
                 }
@@ -169,7 +196,10 @@ class PostListPage extends StatefulWidget {
   // continuously as the user swipes up or down. If the user swiped far enough
   // up or down, updates the current post index and moves to the next or
   // previous post. If the user holds down on a post, displays an alert dialog
-  // that allows the user to report the post or block the user.
+  // that allows the user to report the post or block the user. When the user
+  // taps on the post, sends the user to the full screen mode of the post, and
+  // keeps track of how much time the user spent in full screen mode of the
+  // post.
 
   PostListPage({
     @required this.previousPostView,
@@ -201,61 +231,79 @@ class _PostListPageState extends State<PostListPage> {
     PostListProvider provider =
         Provider.of<PostListProvider>(context, listen: false);
 
-    return GestureDetector(
-      child: Container(
-        height: widget.height,
-        width: double.infinity,
-        color: Colors.transparent,
-        child: Transform.translate(
-          offset: Offset(0, offset.toDouble()),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Transform.translate(
-                  offset: Offset(0, -widget.height),
-                  child: widget.previousPostView),
-              Transform.translate(
-                  offset: Offset(0, 0), child: widget.currentPostView),
-              Transform.translate(
-                  offset: Offset(0, widget.height), child: widget.nextPostView)
-            ],
+    return Container(
+      height: widget.height,
+      width: double.infinity,
+      child: Stack(
+        children: [
+          Transform.translate(
+            offset: Offset(0, offset.toDouble()),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Transform.translate(
+                    offset: Offset(0, -widget.height),
+                    child: widget.previousPostView),
+                Transform.translate(
+                    offset: Offset(0, 0), child: widget.currentPostView),
+                Transform.translate(
+                    offset: Offset(0, widget.height),
+                    child: widget.nextPostView)
+              ],
+            ),
           ),
-        ),
-      ),
-      onVerticalDragUpdate: (value) {
-        setState(() {
-          offset += value.delta.dy.toInt();
-        });
-      },
-      onVerticalDragEnd: (value) async {
-        List<Post> postsList = provider._postsList;
-        int currentIndex = provider.currentPostIndex;
+          GestureDetector(
+              child: Container(
+                height: widget.height,
+                width: double.infinity,
+                color: Colors.transparent,
+              ),
+              onVerticalDragUpdate: (value) {
+                setState(() {
+                  offset += value.delta.dy.toInt();
+                });
+              },
+              onVerticalDragEnd: (value) async {
+                List<Post> postsList = provider._postsList;
+                int currentIndex = provider.currentPostIndex;
 
-        if (offset > .2 * widget.height && currentIndex - 1 >= 0) {
-          _swipeUp(currentIndex, provider);
-        } else if (offset < -.2 * widget.height &&
-            currentIndex + 1 < postsList.length) {
-          _swipeDown(currentIndex, provider);
-        } else {
-          await _swipeToPosition(0, (offset > 0) ? -1 : 1);
-        }
-      },
-      onLongPress: () async {
-        await showDialog(
-                context: context,
-                builder: (context) =>
-                    ReportContentAlertDialog(post: provider.currentPost))
-            .then((actionTaken) {
-          switch (actionTaken) {
-            case ActionTaken.blocked:
-              provider.blockCurrentCreator();
-              break;
-            case ActionTaken.reported:
-              provider.reportCurrentPost();
-              break;
-          }
-        });
-      },
+                if (offset > .2 * widget.height && currentIndex - 1 >= 0) {
+                  _swipeUp(currentIndex, provider);
+                } else if (offset < -.2 * widget.height &&
+                    currentIndex + 1 < postsList.length) {
+                  _swipeDown(currentIndex, provider);
+                } else {
+                  await _swipeToPosition(0, (offset > 0) ? -1 : 1);
+                }
+              },
+              onLongPress: () async {
+                await showDialog(
+                    context: context,
+                    builder: (context) => ReportContentAlertDialog(
+                        post: provider.currentPost)).then((actionTaken) {
+                  switch (actionTaken) {
+                    case ActionTaken.blocked:
+                      provider.blockCurrentCreator();
+                      break;
+                    case ActionTaken.reported:
+                      provider.reportCurrentPost();
+                      break;
+                  }
+                });
+              },
+              onTap: () {
+                int startTime = DateTime.now().millisecondsSinceEpoch;
+
+                Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => PostPage(
+                                isFullPost: true, post: provider.currentPost)))
+                    .then((_) => provider.timeInFullScreen +=
+                        DateTime.now().millisecondsSinceEpoch - startTime);
+              })
+        ],
+      ),
     );
   }
 
@@ -267,8 +315,9 @@ class _PostListPageState extends State<PostListPage> {
 
   void _swipeDown(int currentIndex, PostListProvider provider) async {
     await _swipeToPosition(-widget.height, -1);
-
-    handleRequest(context, recordWatched(provider.currentPost.postID, 5));
+    print(provider.userRating);
+    handleRequest(context,
+        recordWatched(provider.currentPost.postID, provider.userRating));
     provider.currentPostIndex = currentIndex + 1;
   }
 

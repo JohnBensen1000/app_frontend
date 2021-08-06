@@ -9,8 +9,7 @@ import '../../globals.dart' as globals;
 import '../../API/methods/comments.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
-import '../../Widgets/loading_icon.dart';
-import '../../Widgets/back_arrow.dart';
+import '../../widgets/loading_icon.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'widgets/comment_widget.dart';
