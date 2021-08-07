@@ -7,6 +7,7 @@ import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../API/methods/users.dart';
 import '../../globals.dart' as globals;
+import '../../models/user.dart';
 
 import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';
@@ -24,24 +25,20 @@ class SignUpProvider extends ChangeNotifier {
   final InputField email;
   final InputField username;
   final InputField password;
-  final InputField confirmPassword;
 
   SignUpProvider({
     @required this.name,
     @required this.email,
     @required this.username,
     @required this.password,
-    @required this.confirmPassword,
   });
 
-  List<InputField> get inputFields =>
-      [name, email, username, password, confirmPassword];
+  List<InputField> get inputFields => [name, email, username, password];
 
   Future<bool> createNewAccount(BuildContext context) async {
     // Clears all error messages. Checks if the inputs are valid and if the
     // given userID and/or email have been taken. Also checks if the passwords
-    // match and are strong enough. Returns true if all checks pass,
-    // false otherwise.
+    // are strong enough. Returns true if all checks pass, false otherwise.
 
     for (InputField inputField in inputFields) inputField.errorText = "";
     bool isNewAccountValid = true;
@@ -49,7 +46,6 @@ class SignUpProvider extends ChangeNotifier {
     if (_checkIfEmpty()) {
       isNewAccountValid = false;
     } else {
-      if (!_checkIfPasswordsMatch()) isNewAccountValid = false;
       if (!_checkIfEmailValid()) isNewAccountValid = false;
       if (!(await _checkIfEmailNotTaken())) isNewAccountValid = false;
       if (!(await _checkIfUserIdAvailable(context))) isNewAccountValid = false;
@@ -71,15 +67,6 @@ class SignUpProvider extends ChangeNotifier {
     return isEmpty;
   }
 
-  bool _checkIfPasswordsMatch() {
-    if (password.textEditingController.text !=
-        confirmPassword.textEditingController.text) {
-      confirmPassword.errorText = "Does not match password";
-      return false;
-    }
-    return true;
-  }
-
   bool _checkIfEmailValid() {
     // Uses regular expressions to check if the given email is formated
     // correctly: "{name}@{email_service}.{domain}", e.g. "john@gmail.com"
@@ -93,9 +80,16 @@ class SignUpProvider extends ChangeNotifier {
   }
 
   Future<bool> _checkIfUserIdAvailable(BuildContext context) async {
-    bool isUserIdTaken = await handleRequest(
-        context, checkIfUserIdTaken((username.textEditingController.text)));
+    List<User> users = await handleRequest(context,
+        getUsersFromSearchString((username.textEditingController.text)));
 
+    bool isUserIdTaken = false;
+
+    for (User user in users) {
+      print(user.toDict());
+      if (user.userID == username.textEditingController.text)
+        isUserIdTaken = true;
+    }
     if (isUserIdTaken) username.errorText = "Username already taken";
 
     return !isUserIdTaken;
@@ -149,8 +143,6 @@ class _SignUpState extends State<SignUp> {
               email: InputField(hintText: "E-mail"),
               username: InputField(hintText: "username"),
               password: InputField(hintText: "password", obscureText: true),
-              confirmPassword:
-                  InputField(hintText: "confirm password", obscureText: true),
             ),
         child: Consumer<SignUpProvider>(builder: (context, provider, child) {
           return Scaffold(

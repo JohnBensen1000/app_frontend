@@ -140,32 +140,36 @@ class _HomeState extends State<Home> {
             create: (context) => HomeScreenProvider(),
           )
         ],
-        child: Scaffold(
-            backgroundColor: const Color(0xffffffff),
-            body: Stack(
-              children: [
-                Stack(
+        child: WillPopScope(
+            onWillPop: () async {
+              return true;
+            },
+            child: Scaffold(
+                backgroundColor: const Color(0xffffffff),
+                body: Stack(
                   children: [
-                    Container(
-                        padding: EdgeInsets.only(top: headerHeight),
-                        child: HomePage(height: bodyHeight)),
-                    HomeHeader(
-                      height: headerHeight,
+                    Stack(
+                      children: [
+                        Container(
+                            padding: EdgeInsets.only(top: headerHeight),
+                            child: HomePage(height: bodyHeight)),
+                        HomeHeader(
+                          height: headerHeight,
+                        ),
+                      ],
                     ),
+                    Consumer<ResetStateProvider>(
+                        builder: (context, provider, child) =>
+                            (provider.isDrawerOpen)
+                                ? CustomDrawer(
+                                    child: HomeDrawer(
+                                      isUserUpdated: provider.isUserUpdated,
+                                    ),
+                                    parentProvider: provider,
+                                  )
+                                : Container())
                   ],
-                ),
-                Consumer<ResetStateProvider>(
-                    builder: (context, provider, child) =>
-                        (provider.isDrawerOpen)
-                            ? CustomDrawer(
-                                child: HomeDrawer(
-                                  isUserUpdated: provider.isUserUpdated,
-                                ),
-                                parentProvider: provider,
-                              )
-                            : Container())
-              ],
-            )));
+                ))));
   }
 }
 

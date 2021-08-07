@@ -11,6 +11,8 @@ import '../../widgets/generic_alert_dialog.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 
+import '../post/post_widget.dart';
+
 import 'widgets/add_comment_button.dart';
 import 'widgets/comment_widget.dart';
 
@@ -51,7 +53,7 @@ class CommentsPage extends StatelessWidget {
     double height = MediaQuery.of(context).size.height - keyboardHeight;
     double width = MediaQuery.of(context).size.height;
 
-    double headerHeight = .3 * height;
+    double headerHeight = .16 * height;
     double footerHeight = .14 * height;
 
     return Scaffold(
@@ -62,13 +64,12 @@ class CommentsPage extends StatelessWidget {
               parentComment: parentComment),
           child: Stack(
             children: <Widget>[
-              // PostView(
-              //   post: post,
-              //   height: height,
-              //   aspectRatio: height / width,
-              //   postStage: PostStage.onlyPost,
-              //   playOnInit: false,
-              // ),
+              PostWidget(
+                post: post,
+                height: height,
+                aspectRatio: height / width,
+                cornerRadiusFraction: 0,
+              ),
               Container(
                 width: width,
                 height: height,
@@ -113,39 +114,23 @@ class CommentsPageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    CommentsPageProvider provider =
-        Provider.of<CommentsPageProvider>(context, listen: false);
-
     return Container(
-        decoration: BoxDecoration(
-            border: Border(
-                bottom: BorderSide(
-                    color: Colors.grey[500].withOpacity(.7), width: 1))),
-        width: double.infinity,
-        alignment: Alignment.bottomCenter,
-        padding: EdgeInsets.only(top: .0414 * globals.size.height),
-        height: height,
-        child: Column(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              GestureDetector(
-                child: Container(
-                    margin: EdgeInsets.only(left: .0513 * globals.size.width),
-                    child: BackArrow()),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          if (provider.parentComment != null)
-            Container(
-              child: CommentWidget(
-                post: provider.post,
-                comment: provider.parentComment,
-                leftPadding: 0,
-              ),
+      height: height,
+      padding: EdgeInsets.only(bottom: .01 * globals.size.height),
+      child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            GestureDetector(
+              child: Container(
+                  margin: EdgeInsets.only(left: .0513 * globals.size.width),
+                  child: BackArrow()),
+              onTap: () => Navigator.pop(context),
             ),
-        ]));
+          ],
+        ),
+      ]),
+    );
   }
 }
 
@@ -166,20 +151,40 @@ class CommentsPageBody extends StatelessWidget {
 
     return Container(
         height: height,
-        child: ListView.builder(
-            padding: EdgeInsets.only(top: .0118 * globals.size.height),
-            itemCount: provider.commentsList.length,
-            itemBuilder: (context, index) {
-              return Container(
-                margin: EdgeInsets.only(bottom: .0059 * globals.size.height),
-                child: CommentWidget(
+        child: Column(
+          children: [
+            if (provider.parentComment != null)
+              Container(
+                  child: CommentWidget(
                     post: provider.post,
-                    comment: provider.commentsList[index],
-                    leftPadding: paddingPerLevel *
-                        (provider.commentsList[index].level -
-                            parentCommentOffset)),
-              );
-            }));
+                    comment: provider.parentComment,
+                    leftPadding: 0,
+                  ),
+                  padding: EdgeInsets.only(bottom: .01 * globals.size.height),
+                  decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.grey[500].withOpacity(.7),
+                              width: 1)))),
+            Expanded(
+              child: ListView.builder(
+                  padding: EdgeInsets.only(top: .0118 * globals.size.height),
+                  itemCount: provider.commentsList.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin:
+                          EdgeInsets.only(bottom: .0059 * globals.size.height),
+                      child: CommentWidget(
+                          post: provider.post,
+                          comment: provider.commentsList[index],
+                          leftPadding: paddingPerLevel *
+                              (provider.commentsList[index].level -
+                                  parentCommentOffset)),
+                    );
+                  }),
+            ),
+          ],
+        ));
   }
 }
 
@@ -203,13 +208,12 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
   // upload the comment. When this process is complete, leaves this page.
 
   bool allowButtonPress = true;
+  final TextEditingController textController = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     CommentsPageProvider provider =
         Provider.of<CommentsPageProvider>(context, listen: false);
-
-    final TextEditingController textController = new TextEditingController();
 
     return AddCommentButton(
         child: Container(
@@ -257,49 +261,7 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
               }
             }),
       ]),
-    )
-
-        //   child: Row(
-        // children: [
-
-        // ),
-        // Container(
-        //   padding: EdgeInsets.only(right: .0307 * globals.size.width),
-        //   alignment: Alignment.centerRight,
-        // child: GestureDetector(
-        //     child: SvgPicture.string(
-        //       _svg_myuv7f,
-        //       allowDrawingOutsideViewBox: true,
-        //     ),
-        //     onTap: () async {
-        //       if (allowButtonPress) {
-        //         setState(() {
-        //           allowButtonPress = false;
-        //         });
-        //         Map response = await handleRequest(
-        //             context,
-        //             postComment(
-        //                 provider.post,
-        //                 provider.parentComment,
-        //                 textController.text));
-
-        //         switch (response["denied"]) {
-        //           case "NSFW":
-        //             await showDialog(
-        //                 context: context,
-        //                 builder: (BuildContext context) =>
-        //                     GenericAlertDialog(
-        //                         text:
-        //                             "Your comment will not be uploaded due to inappropraite langauge."));
-        //         }
-
-        //         Navigator.pop(context);
-        //         }
-        //       }),
-        // ),
-        // ],
-        // )
-        );
+    ));
   }
 }
 

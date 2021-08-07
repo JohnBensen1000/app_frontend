@@ -18,30 +18,37 @@ class FullPostProvider extends ChangeNotifier {
 
   FullPostProvider({@required bool isOpen}) {
     _isOpen = isOpen;
-    yOffset = (_isOpen) ? 0 : 1;
+    _yOffset = (_isOpen) ? 0 : 1;
   }
 
   double deltaY = .009;
 
   bool _isOpen;
-  double yOffset;
+  double _yOffset;
 
   bool get isOpen => _isOpen;
+
+  double get yOffset => _yOffset;
+
+  set yOffset(newYOffset) {
+    _yOffset = newYOffset > 0 ? newYOffset : 0;
+    notifyListeners();
+  }
 
   Future<void> openComments() async {
     _isOpen = true;
     notifyListeners();
 
-    while (yOffset >= 0) {
-      yOffset -= deltaY;
+    while (_yOffset > 0) {
+      _yOffset -= deltaY;
       await Future.delayed(Duration(milliseconds: 1));
       notifyListeners();
     }
   }
 
   Future<void> closeComments() async {
-    while (yOffset <= 1) {
-      yOffset += deltaY;
+    while (_yOffset < 1) {
+      _yOffset += deltaY;
       await Future.delayed(Duration(milliseconds: 1));
       notifyListeners();
     }
@@ -197,13 +204,21 @@ class _CommentsSnackBarState extends State<CommentsSnackBar> {
               ),
               Transform.translate(
                 offset: Offset(0, provider.yOffset * snackbarHeight),
-                child: Container(
-                  width: globals.size.width,
-                  height: snackbarHeight,
-                  decoration: BoxDecoration(
-                      color: Colors.grey[300].withOpacity(.8),
-                      borderRadius: BorderRadius.all(Radius.circular(20))),
-                  child: comments,
+                child: GestureDetector(
+                  child: Container(
+                    width: globals.size.width,
+                    height: snackbarHeight + .03 * globals.size.height,
+                    decoration: BoxDecoration(
+                        color: Colors.grey[300].withOpacity(.8),
+                        borderRadius: BorderRadius.all(Radius.circular(20))),
+                    child: comments,
+                  ),
+                  onVerticalDragUpdate: (DragUpdateDetails dragUpdates) =>
+                      provider.yOffset += dragUpdates.delta.dy / snackbarHeight,
+                  onVerticalDragEnd: (DragEndDetails dragEndDetails) =>
+                      provider.yOffset > .2
+                          ? provider.closeComments()
+                          : provider.openComments(),
                 ),
               )
             ],

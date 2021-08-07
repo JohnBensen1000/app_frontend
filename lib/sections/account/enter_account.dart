@@ -6,7 +6,6 @@ import '../../widgets/wide_button.dart';
 
 import 'sign_in.dart';
 import 'sign_up.dart';
-import 'access.dart';
 
 class LogInScreen extends StatelessWidget {
   LogInScreen({
@@ -61,8 +60,7 @@ class LogInScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => AccessCodePage()),
+                          MaterialPageRoute(builder: (context) => SignUp()),
                         );
                       }),
                   GestureDetector(

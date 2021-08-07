@@ -19,7 +19,8 @@ class PostWidget extends StatelessWidget {
       @required this.aspectRatio,
       this.playWithVolume = true,
       this.playVideo = true,
-      this.showCaption = false});
+      this.showCaption = false,
+      this.cornerRadiusFraction = 0.05263157894});
 
   final Post post;
   final double height;
@@ -27,11 +28,12 @@ class PostWidget extends StatelessWidget {
   final bool playWithVolume;
   final bool playVideo;
   final bool showCaption;
+  final double cornerRadiusFraction;
 
   @override
   Widget build(BuildContext context) {
     double width = height / aspectRatio;
-    double cornerRadius = height / 19;
+    double cornerRadius = cornerRadiusFraction * height;
 
     return Stack(alignment: Alignment.center, children: [
       Container(

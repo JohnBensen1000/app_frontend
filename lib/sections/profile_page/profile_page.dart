@@ -466,28 +466,31 @@ class _ProfilePostWidgetState extends State<ProfilePostWidget>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      child: PostWidget(
-        post: widget.post,
-        height: widget.height,
-        aspectRatio: widget.aspectRatio,
-        playVideo: false,
-      ),
-      onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  PostPage(isFullPost: true, post: widget.post))),
-      onLongPress: () => showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return ProfilePostAlertDialog(post: widget.post);
-          }).then((willResetState) {
-        if (willResetState != null && willResetState) {
-          Provider.of<ProfileProvider>(context, listen: false).resetState();
-        }
-        ;
-      }),
-    );
+        child: PostWidget(
+          post: widget.post,
+          height: widget.height,
+          aspectRatio: widget.aspectRatio,
+          playVideo: false,
+        ),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    PostPage(isFullPost: true, post: widget.post))),
+        onLongPress: () {
+          if (widget.post.creator.uid == globals.user.uid) {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return ProfilePostAlertDialog(post: widget.post);
+                }).then((willResetState) {
+              if (willResetState != null && willResetState) {
+                Provider.of<ProfileProvider>(context, listen: false)
+                    .resetState();
+              }
+            });
+          }
+        });
   }
 }
 

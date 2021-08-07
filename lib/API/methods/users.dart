@@ -6,16 +6,11 @@ Future<Map> createNewAccount(Map postBody) async {
   return await globals.baseAPI.post("v2/users", postBody);
 }
 
-Future<bool> checkIfUserIdTaken(String userID) async {
-  var response = await globals.baseAPI
-      .get('v2/users', queryParameters: {'contains': userID});
-
-  return response["creatorsList"].length > 0;
-}
-
 Future<List<User>> getUsersFromSearchString(String searchString) async {
-  var response = await globals.baseAPI.get("v2/users",
-      queryParameters: {'contains': searchString, 'uid': globals.user.uid});
+  Map<String, dynamic> queryParameters = {'contains': searchString};
+  if (globals.user != null) queryParameters['uid'] = globals.user.uid;
+  var response =
+      await globals.baseAPI.get("v2/users", queryParameters: queryParameters);
 
   return [
     for (var userJson in response["creatorsList"]) User.fromJson(userJson)

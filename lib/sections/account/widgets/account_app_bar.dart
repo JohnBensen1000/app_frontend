@@ -32,7 +32,7 @@ class AccountAppBar extends PreferredSize {
           height: .125 * globals.size.height,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: const AssetImage('assets/images/Entropy.PNG'),
+              image: const AssetImage('assets/images/Entropy_small.PNG'),
               fit: BoxFit.cover,
             ),
           ),
