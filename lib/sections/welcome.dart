@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:upgrader/upgrader.dart';
 
 import '../globals.dart' as globals;
 
@@ -25,35 +26,37 @@ class _WelcomeState extends State<Welcome> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: const Color(0xffffffff),
-        body: FutureBuilder(
-            future: registerNotifications(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return FutureBuilder(
-                  future: globals.accountRepository.getUser(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      globals.size = globals.SizeConfig(context: context);
+        body: UpgradeAlert(
+          child: FutureBuilder(
+              future: registerNotifications(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return FutureBuilder(
+                    future: globals.accountRepository.getUser(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        globals.size = globals.SizeConfig(context: context);
 
-                      if (snapshot.hasData) {
-                        globals.user = snapshot.data;
+                        if (snapshot.hasData) {
+                          globals.user = snapshot.data;
 
-                        return Home();
+                          return Home();
+                        } else
+                          return LogInScreen();
                       } else
-                        return LogInScreen();
-                    } else
-                      return Center(
-                        child: Container(
-                            child: Image.asset('assets/images/Entropy.jpg')),
-                      );
-                  },
-                );
-              } else
-                return Center(
-                  child: Container(
-                      child: Image.asset('assets/images/Entropy.jpg')),
-                );
-            }));
+                        return Center(
+                          child: Container(
+                              child: Image.asset('assets/images/Entropy.jpg')),
+                        );
+                    },
+                  );
+                } else
+                  return Center(
+                    child: Container(
+                        child: Image.asset('assets/images/Entropy.jpg')),
+                  );
+              }),
+        ));
   }
 
   Future<void> registerNotifications() async {
