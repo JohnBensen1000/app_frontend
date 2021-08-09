@@ -56,12 +56,11 @@ class PreferencesPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         PreferencesHeader(
-                          scaling: .0009 * globals.size.height,
+                          scaling: .001 * globals.size.height,
                           height: headerHeight,
                         ),
                         PreferencesBody(
                           height: bodyHeight,
-                          // widgetMargin: 5,
                           widgetMargin: .0065 * globals.size.height,
                         ),
                         PreferenceFooter(height: footerHeight)
@@ -91,62 +90,50 @@ class PreferencesHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: height,
-        child: Column(
+      padding: EdgeInsets.only(
+          left: .04 * globals.size.width, top: .05 * globals.size.height),
+      height: height,
+      width: double.infinity,
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-                width: double.infinity,
-                margin: EdgeInsets.only(
-                    top: .05 * globals.size.height,
-                    left: .05 * globals.size.width,
-                    bottom: .01 * globals.size.height,
-                    right: .01 * globals.size.width),
-                alignment: Alignment.topLeft,
-                child: GestureDetector(
-                    child: BackArrow(), onTap: () => Navigator.pop(context))),
-            Stack(children: <Widget>[
-              Transform.translate(
-                offset: Offset(scaling * -0.2, scaling * 26.0),
-                child: SizedBox(
-                  width: scaling * 278.0,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            GestureDetector(
+                child: BackArrow(), onTap: () => Navigator.pop(context)),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  height: scaling * 35,
                   child: Text(
-                    'What Are You\n\n',
+                    'What Are You',
                     style: TextStyle(
                       fontFamily: 'Rockwell',
                       fontSize: scaling * 35,
                       color: const Color(0xff000000),
                       letterSpacing: scaling * -0.84,
-                      height: scaling * 0.6285714285714286,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-              ),
-              Transform.translate(
-                offset: Offset(scaling * 22.0, scaling * 63.0),
-                child: SizedBox(
-                  width: scaling * 382.0,
-                  height: scaling * 63.0,
-                  child: SizedBox(
-                    width: scaling * 458.0,
-                    child: Text(
-                      'Interested In?',
-                      style: TextStyle(
-                        fontFamily: 'Rockwell',
-                        fontSize: scaling * 59,
-                        color: const Color(0xff000000),
-                        letterSpacing: scaling * -1.416,
-                        height: scaling * 0.6440677966101694,
-                      ),
-                      textAlign: TextAlign.center,
+                Container(
+                  height: scaling * 59,
+                  child: Text(
+                    'Interested In?',
+                    style: TextStyle(
+                      fontFamily: 'Rockwell',
+                      fontSize: scaling * 59,
+                      color: const Color(0xff000000),
+                      letterSpacing: scaling * -1.416,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-              )
-            ]),
-          ],
-        ));
+                )
+              ],
+            )
+          ]),
+    );
   }
 }
 
@@ -273,7 +260,7 @@ class PreferencesWidget extends StatelessWidget {
                     convertFromCamelCase(name),
                     style: TextStyle(
                       fontFamily: 'STIXVariants',
-                      fontSize: .35 * newHeight,
+                      fontSize: .3 * newHeight,
                       color: Colors.black,
                     ),
                   ),
