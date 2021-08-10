@@ -8,6 +8,7 @@ import '../../globals.dart' as globals;
 import '../../API/handle_requests.dart';
 import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
+import '../../widgets/profile_pic.dart';
 
 import 'direct_message.dart';
 
@@ -33,7 +34,6 @@ class Friends extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: height,
-      padding: EdgeInsets.symmetric(horizontal: .0256 * globals.size.width),
       child: ChangeNotifierProvider(
           create: (_) => FriendsProvider(),
           child: Consumer<FriendsProvider>(
@@ -101,17 +101,19 @@ class _ChatsListState extends State<ChatsList> {
         itemBuilder: (BuildContext context, int index) {
           return Container(
             child: Stack(
-              alignment: Alignment.centerRight,
+              alignment: Alignment.center,
               children: [
                 if (!chatWidgetsList[index].chat.isUpdated)
-                  Container(
-                      padding: EdgeInsets.only(right: .05 * globals.size.width),
-                      child: Text(
-                        "New chats!",
-                        style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: .018 * globals.size.height),
-                      )),
+                  Transform.translate(
+                    offset: Offset(.25 * globals.size.width, 0),
+                    child: Container(
+                        child: Text(
+                      "New chats!",
+                      style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: .018 * globals.size.height),
+                    )),
+                  ),
                 GestureDetector(
                     child: chatWidgetsList[index],
                     onTap: () => Navigator.push(
@@ -170,10 +172,10 @@ class ChatWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(
-          0, .0059 * globals.size.height, 0, .0059 * globals.size.height),
+          0, .005 * globals.size.height, 0, .0059 * globals.size.height),
       child: Container(
           width: .921 * globals.size.width,
-          height: .140 * globals.size.height,
+          height: .112 * globals.size.height,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(globals.size.height),
             border: Border.all(width: 2.0, color: chat.color),
@@ -183,7 +185,10 @@ class ChatWidget extends StatelessWidget {
             padding: EdgeInsets.only(left: .0513 * globals.size.width),
             child: Row(
               children: <Widget>[
-                chat.chatIcon,
+                Container(
+                    child: ProfilePic(
+                        user: chat.members[0],
+                        diameter: .075 * globals.size.height)),
                 Container(
                   padding: EdgeInsets.only(left: .018 * globals.size.width),
                   child: Column(
