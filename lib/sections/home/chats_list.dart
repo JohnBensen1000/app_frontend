@@ -8,8 +8,7 @@ import '../../globals.dart' as globals;
 import '../../API/handle_requests.dart';
 import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
-
-import 'direct_message.dart';
+import '../../widgets/profile_pic.dart';
 
 class FriendsProvider extends ChangeNotifier {
   // Allows any widget below this to rebuild the friends page from scratch.
@@ -38,7 +37,7 @@ class Friends extends StatelessWidget {
           create: (_) => FriendsProvider(),
           child: Consumer<FriendsProvider>(
               builder: (context, provider, child) => FutureBuilder(
-                    future: handleRequest(context, getListOfChats()),
+                    future: getListOfChats(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
@@ -94,10 +93,10 @@ class _ChatsListState extends State<ChatsList> {
   @override
   Widget build(BuildContext context) {
     List<ChatWidget> chatWidgetsList = chatWidgets.toList();
-
     return ListView.builder(
         padding: EdgeInsets.only(top: .0237 * globals.size.height),
         itemCount: chatWidgetsList.length,
+        // itemCount: 6,
         itemBuilder: (BuildContext context, int index) {
           return Container(
             child: Stack(
@@ -113,30 +112,31 @@ class _ChatsListState extends State<ChatsList> {
                             fontSize: .018 * globals.size.height),
                       )),
                 GestureDetector(
-                    child: chatWidgetsList[index],
-                    onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ChatPage(
-                                    chat: chatWidgetsList[index].chat,
-                                  )),
-                        ).then(
-                          (popAction) {
-                            chatWidgetsList[index].chat.isUpdated = true;
-                            switch (popAction) {
-                              case PopAction.removeChat:
-                                chatWidgets.remove(chatWidgetsList[index]);
-                                break;
-                              case PopAction.moveToTop:
-                                ChatWidget chatWidget = chatWidgetsList[index];
-                                chatWidgets.remove(chatWidget);
-                                chatWidgets.addFirst(chatWidget);
-                                break;
-                            }
+                  child: chatWidgetsList[index],
+                  // onTap: () => Navigator.push(
+                  //       context,
+                  //       MaterialPageRoute(
+                  //           builder: (context) => ChatPage(
+                  //                 chat: chatWidgetsList[index].chat,
+                  //               )),
+                  //     ).then(
+                  //       (popAction) {
+                  //         chatWidgetsList[index].chat.isUpdated = true;
+                  //         switch (popAction) {
+                  //           case PopAction.removeChat:
+                  //             chatWidgets.remove(chatWidgetsList[index]);
+                  //             break;
+                  //           case PopAction.moveToTop:
+                  //             ChatWidget chatWidget = chatWidgetsList[index];
+                  //             chatWidgets.remove(chatWidget);
+                  //             chatWidgets.addFirst(chatWidget);
+                  //             break;
+                  //         }
 
-                            setState(() {});
-                          },
-                        )),
+                  //         setState(() {});
+                  //       },
+                  //     )),
+                )
               ],
             ),
           );
@@ -183,7 +183,8 @@ class ChatWidget extends StatelessWidget {
             padding: EdgeInsets.only(left: .0513 * globals.size.width),
             child: Row(
               children: <Widget>[
-                chat.chatIcon,
+                ProfilePic(
+                    user: chat.members[0], diameter: .1 * globals.size.height),
                 Container(
                   padding: EdgeInsets.only(left: .018 * globals.size.width),
                   child: Column(

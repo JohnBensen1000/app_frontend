@@ -5,6 +5,7 @@ import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 import '../sections/post/post_widget.dart';
 
 import '../models/user.dart';
+import '../models/post.dart';
 import '../widgets/alert_dialog_container.dart';
 import '../API/methods/reports.dart';
 import '../API/methods/posts.dart';
@@ -12,10 +13,6 @@ import '../API/methods/posts.dart';
 import '../globals.dart' as globals;
 
 class Profile extends StatelessWidget {
-  // Displays the user's profile image/video, username, and userID. The user's
-  // profile image/video is inside of a colored circle. The color of this circle
-  // is determined by the user.
-
   Profile({@required this.diameter, @required this.user});
 
   final double diameter;
@@ -50,13 +47,10 @@ class Profile extends StatelessWidget {
 }
 
 class ProfilePic extends StatelessWidget {
-  // Gets the profile post from google stroage and returns a stack of two
-  // widgets: a circular profile post and a blue cicular outline that goes
-  // around the profile post. When the profile is held down for a long time,
-  // the user is asked if they want to report the profile. If the user responds
-  // with 'yes', reports the profile.
-
-  ProfilePic({@required this.diameter, @required this.user});
+  ProfilePic({
+    @required this.diameter,
+    @required this.user,
+  });
 
   final double diameter;
   final User user;
@@ -70,29 +64,34 @@ class ProfilePic extends StatelessWidget {
         child: Stack(
           children: <Widget>[
             ClipPath(
-                clipper: ProfilePicClip(diameter: diameter, heightOffset: 0),
+                clipper: ProfilePicClip(
+                  diameter: diameter,
+                  heightOffset: 0,
+                ),
                 child: FutureBuilder(
-                    future: handleRequest(context, getProfile(user)),
+                    future: globals.profileRepository.get(user),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData)
-                        return PostWidget(
-                            post: snapshot.data,
-                            height: diameter,
-                            aspectRatio: 1);
-                      else
-                        return Container(
-                          width: diameter,
-                          height: diameter,
-                          decoration: BoxDecoration(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.all(
-                                Radius.elliptical(9999.0, 9999.0)),
-                            border: Border.all(
-                                width: .02 * diameter,
-                                color: user.profileColor),
-                          ),
-                        );
+                          snapshot.hasData) {
+                        if (user.uid == globals.user.uid) {
+                          return StreamBuilder(
+                              stream: globals.profileRepository.stream,
+                              builder: (context, streamSnapshot) {
+                                return PostWidget(
+                                    post: streamSnapshot.hasData
+                                        ? streamSnapshot.data
+                                        : snapshot.data,
+                                    height: diameter,
+                                    aspectRatio: 1);
+                              });
+                        } else {
+                          return PostWidget(
+                              post: snapshot.data,
+                              height: diameter,
+                              aspectRatio: 1);
+                        }
+                      } else
+                        return Container();
                     })),
             Container(
                 width: diameter,
@@ -120,7 +119,7 @@ class ProfilePic extends StatelessWidget {
                 dialogText: "Do you want to report this profile picture?")))
         .then((willReportProfile) {
       if (willReportProfile) {
-        handleRequest(context, reportProfile(user));
+        reportProfile(user);
         showDialog(
             context: context,
             builder: (context) => GenericAlertDialog(

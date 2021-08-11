@@ -49,9 +49,11 @@ class BaseAPI {
     try {
       response = await future;
     } on SocketException {
-      throw NoInternetException();
+      // throw NoInternetException();
+      return null;
     } catch (e) {
-      throw UnknownErrorException();
+      // throw UnknownErrorException();
+      return null;
     }
 
     switch (response.statusCode) {

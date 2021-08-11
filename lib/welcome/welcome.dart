@@ -4,10 +4,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:upgrader/upgrader.dart';
 
 import '../globals.dart' as globals;
-
-import 'home/home_screen.dart';
+import '../../sections/global.dart';
 
 import 'account/enter_account.dart';
+
+import '../repositories/account_repository.dart';
 
 class Welcome extends StatefulWidget {
   // Checks to see if the current device is signed in on. If it is, then saves
@@ -32,15 +33,14 @@ class _WelcomeState extends State<Welcome> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   return FutureBuilder(
-                    future: globals.accountRepository.getUser(),
+                    future: AccountRepository().getUser(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.done) {
                         globals.size = globals.SizeConfig(context: context);
 
                         if (snapshot.hasData) {
                           globals.user = snapshot.data;
-
-                          return Home();
+                          return Global();
                         } else
                           return LogInScreen();
                       } else

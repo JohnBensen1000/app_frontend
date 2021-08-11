@@ -1,23 +1,18 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/API/methods/users.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../widgets/custom_drawer.dart';
 import '../../globals.dart' as globals;
+import '../../models/user.dart';
+import '../../widgets/alert_circle.dart';
 
-import '../home/home_drawer.dart';
-import '../feeds/following.dart';
-import '../feeds/discover.dart';
-import '../friends/friends_page.dart';
-import '../camera/camera.dart';
+import '../global.dart';
 import '../profile_page/profile_page.dart';
 
-import 'search_page.dart';
+import 'home_drawer.dart';
+import 'chats_list.dart';
 
 enum PageLabel {
   discover,
@@ -25,41 +20,7 @@ enum PageLabel {
   following,
 }
 
-class ResetStateProvider extends ChangeNotifier {
-  // Provider used to tell other widgets to rebuild. This is called when the
-  // user returns to the home page and the Discover, Friends, and Following
-  // pages have to be rebuilt. The bool resetStateBool is used to tell this
-  // provider's consumers that this provider is telling it to rebuild. Also
-  // keeps track of whether the homepage drawer is open or not.
-
-  bool resetStateBool = false;
-  bool isUserUpdated = true;
-  bool _isDrawerOpen = false;
-
-  void resetState() {
-    resetStateBool = true;
-    notifyListeners();
-  }
-
-  bool get isDrawerOpen => _isDrawerOpen;
-
-  set isDrawerOpen(newIsDrawerOpen) {
-    if (newIsDrawerOpen == false) {
-      resetStateBool = true;
-    }
-
-    _isDrawerOpen = newIsDrawerOpen;
-    notifyListeners();
-  }
-}
-
-class HomeScreenProvider extends ChangeNotifier {
-  // Responsible for keeping track of which page user is on. Also responsible
-  // for smooth transitions between pages. As the user drags horizontally, this
-  // provider continuously updates a variable, offset. When the user stops
-  // sliding horizontally, this provider decides if the user swiped far enough
-  // to display a new page.
-
+class HomePageProvider extends ChangeNotifier {
   PageLabel pageLabel = PageLabel.friends;
   double _offset = 0;
 
@@ -105,82 +66,50 @@ class HomeScreenProvider extends ChangeNotifier {
   }
 }
 
-class Home extends StatefulWidget {
-  // Main page of the app. Consists of two parts: HomeHeader() and HomePage().
-  // HomePage() consists of the discover, friends, and following pages. The
-  // user could navigate through these pages by sliding left or right. The
-  // HomeHeader() allows the user to navigate to different parts of the app,
-  // including the settings, search, and camera pages. HomeHeader() also
-  // displays which of the three pages from HomePage() that the user is on.
-
-  final PageLabel pageLabel;
-
-  Home({Key key, this.pageLabel}) : super(key: key);
-
+class HomePage extends StatefulWidget {
   @override
-  _HomeState createState() => _HomeState(pageLabel: pageLabel);
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomeState extends State<Home> {
-  final PageLabel pageLabel;
-
-  _HomeState({this.pageLabel});
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     double headerHeight = .18 * globals.size.height;
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
-    return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (context) => ResetStateProvider(),
-          ),
-          ChangeNotifierProvider(
-            create: (context) => HomeScreenProvider(),
-          )
-        ],
-        child: WillPopScope(
-            onWillPop: () async {
-              return true;
-            },
+    return WillPopScope(
+        onWillPop: () async {
+          return true;
+        },
+        child: ChangeNotifierProvider(
+            create: (context) => HomePageProvider(),
             child: Scaffold(
-                backgroundColor: const Color(0xffffffff),
-                body: Stack(
-                  children: [
-                    Stack(
-                      children: [
-                        Container(
-                            padding: EdgeInsets.only(top: headerHeight),
-                            child: HomePage(height: bodyHeight)),
-                        HomeHeader(
-                          height: headerHeight,
-                        ),
-                      ],
-                    ),
-                    Consumer<ResetStateProvider>(
-                        builder: (context, provider, child) =>
-                            (provider.isDrawerOpen)
-                                ? CustomDrawer(
-                                    child: HomeDrawer(
-                                      isUserUpdated: provider.isUserUpdated,
-                                    ),
-                                    parentProvider: provider,
-                                  )
-                                : Container())
-                  ],
-                ))));
+              body: Stack(
+                children: [
+                  Container(
+                      padding: EdgeInsets.only(top: headerHeight),
+                      child: HomePageBody(height: bodyHeight)),
+                  HomePageHeader(
+                    height: headerHeight,
+                  ),
+                ],
+              ),
+              drawer: Container(
+                  width: .7 * globals.size.width,
+                  child: Drawer(child: HomeDrawer())),
+            )));
   }
 }
 
-class HomeHeader extends StatelessWidget {
-  // Divided into two parts: HomeHeaderButtons() and HomeHeaderNavigation().
-  // both of these widgets allow the user to navigate to different parts of the
-  // app.
-
+class HomePageHeader extends StatelessWidget {
   final double height;
 
-  HomeHeader({this.height});
+  HomePageHeader({this.height});
 
   @override
   Widget build(BuildContext context) {
@@ -191,27 +120,17 @@ class HomeHeader extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          HomeHeaderButtons(),
-          HomeHeaderNavigation(),
+          HomePageHeaderButtons(),
+          HomePageHeaderNavigator(),
         ],
       ),
     );
   }
 }
 
-class HomeHeaderButtons extends StatelessWidget {
-  // Has buttons for nagivating to the profile search, and camera pages. When
-  // the user returns from the search and camera pages, provider.resetState() is
-  // called.
-
-  const HomeHeaderButtons({
-    Key key,
-  }) : super(key: key);
-
+class HomePageHeaderButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    ResetStateProvider provider =
-        Provider.of<ResetStateProvider>(context, listen: false);
     double buttonsWidth = .12 * globals.size.width;
 
     return Container(
@@ -220,115 +139,54 @@ class HomeHeaderButtons extends StatelessWidget {
           right: .0512 * globals.size.width,
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            FutureBuilder(
-                future: handleRequest(context, getIfUserIsUpdated()),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      snapshot.hasData) {
-                    return HomePageDrawerButton(isUserUpdated: snapshot.data);
-                  } else {
-                    return Container();
-                  }
-                }),
-            GestureDetector(
-                child: Container(
-                    height: .065 * globals.size.height,
-                    child: Image.asset('assets/images/Entropy.PNG')),
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            ProfilePage(user: globals.user)))),
-            Container(
-              height: .06 * globals.size.height,
-              width: buttonsWidth,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  GestureDetector(
-                    child: IconContainer(
-                      image: Image.asset('assets/images/search_icon.png'),
-                    ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SearchPage()),
-                    ).then((value) => provider.resetState()),
-                  ),
-                  GestureDetector(
-                    child: IconContainer(
-                        image: Image.asset('assets/images/camera_icon.png')),
-                    onTap: () => Navigator.push(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _openDrawerButton(context),
+              GestureDetector(
+                  child: Container(
+                      height: .065 * globals.size.height,
+                      child: Image.asset('assets/images/Entropy.PNG')),
+                  onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => Camera(
-                                cameraUsage: CameraUsage.post,
-                              )),
-                    ).then((value) => provider.resetState()),
-                  ),
-                ],
-              ),
-            )
-          ],
-        ));
-  }
-}
+                          builder: (context) =>
+                              ProfilePage(user: globals.user)))),
 
-class IconContainer extends StatelessWidget {
-  const IconContainer({
-    @required this.image,
-    Key key,
-  }) : super(key: key);
+              Container(
+                height: .06 * globals.size.height,
+                width: buttonsWidth,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    GestureDetector(
+                      child: _iconContainer(
+                        Image.asset('assets/images/search_icon.png'),
+                      ),
+                      // onTap: () => Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(builder: (context) => SearchPage()),
+                      // ),
+                    ),
+                    GestureDetector(
+                      child: _iconContainer(
+                          Image.asset('assets/images/camera_icon.png')),
+                      // onTap: () => Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //       builder: (context) => Camera(
+                      //             cameraUsage: CameraUsage.post,
+                      //           )),
+                    ),
+                  ],
+                ),
+              )
 
-  final Image image;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: .12 * globals.size.width,
-      height: .0273 * globals.size.height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(globals.size.height),
-        color: const Color(0xffffffff),
-        border: Border.all(width: 1.0, color: const Color(0xff000000)),
-      ),
-      child: image,
-    );
-  }
-}
-
-class HomePageDrawerButton extends StatefulWidget {
-  // Button responsible for letting the user access the home page drawer. Shows
-  // a small circle on top of the bttom is isUserUpdated is set to false.
-  // Listens to firebase for new activity. If there is new activity, then
-  // isUserUpdated is set to false and the small circle is displayed.
-
-  HomePageDrawerButton({@required this.isUserUpdated});
-
-  final bool isUserUpdated;
-
-  @override
-  _HomePageDrawerButtonState createState() => _HomePageDrawerButtonState();
-}
-
-class _HomePageDrawerButtonState extends State<HomePageDrawerButton> {
-  bool isUserUpdated;
-
-  @override
-  void initState() {
-    isUserUpdated = widget.isUserUpdated;
-
-    super.initState();
-    createMessagingCallback();
+              // ProfilePage(user: globals.user)))),
+            ]));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    ResetStateProvider provider =
-        Provider.of<ResetStateProvider>(context, listen: false);
-
+  Widget _openDrawerButton(BuildContext context) {
     return GestureDetector(
         child: Container(
             child: Stack(
@@ -344,54 +202,48 @@ class _HomePageDrawerButtonState extends State<HomePageDrawerButton> {
                 allowDrawingOutsideViewBox: true,
               ),
             ),
-            if (isUserUpdated == false)
-              Transform.translate(
-                offset: Offset(
-                    .012 * globals.size.height, -.012 * globals.size.height),
-                child: Container(
-                  height: .018 * globals.size.height,
-                  width: .018 * globals.size.height,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(globals.size.height),
-                    color: globals.user.profileColor,
-                  ),
-                ),
-              )
+            StreamBuilder(
+                stream: globals.newActivityRepository.stream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data) {
+                    return Transform.translate(
+                      offset: Offset(.012 * globals.size.height,
+                          -.012 * globals.size.height),
+                      child: AlertCircle(
+                          color: globals.user.profileColor,
+                          diameter: .018 * globals.size.height),
+                    );
+                  } else {
+                    return Container();
+                  }
+                })
           ],
         )),
-        onTap: () {
-          provider.isUserUpdated = isUserUpdated;
-          provider.isDrawerOpen = true;
-          setState(() {
-            isUserUpdated = true;
-          });
-        });
+        onTap: () => Scaffold.of(context).openDrawer());
   }
 
-  void createMessagingCallback() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.data.containsKey('newActivity')) {
-        setState(() {
-          isUserUpdated = false;
-        });
-      }
-    });
+  Widget _iconContainer(Image image) {
+    return Container(
+      width: .12 * globals.size.width,
+      height: .0273 * globals.size.height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(globals.size.height),
+        color: const Color(0xffffffff),
+        border: Border.all(width: 1.0, color: const Color(0xff000000)),
+      ),
+      child: image,
+    );
   }
 }
 
-class HomeHeaderNavigation extends StatelessWidget {
-  // A row of three buttons that allow the user to navigate between the
-  // discover, friends, and following pages. Also shows which page the user is
-  // currently on. Has a bar that slides horizontally as the user swipes left
-  // or right.
-
-  const HomeHeaderNavigation({
+class HomePageHeaderNavigator extends StatelessWidget {
+  const HomePageHeaderNavigator({
     Key key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    HomeScreenProvider provider = Provider.of<HomeScreenProvider>(context);
+    HomePageProvider provider = Provider.of<HomePageProvider>(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -402,17 +254,17 @@ class HomeHeaderNavigation extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              NavigationButton(
-                pageName: "Discover",
-                pageLabel: PageLabel.discover,
+              _navigationButton(
+                "Discover",
+                PageLabel.discover,
               ),
-              NavigationButton(
-                pageName: "Friends",
-                pageLabel: PageLabel.friends,
+              _navigationButton(
+                "Friends",
+                PageLabel.friends,
               ),
-              NavigationButton(
-                pageName: "Following",
-                pageLabel: PageLabel.following,
+              _navigationButton(
+                "Following",
+                PageLabel.following,
               ),
             ],
           ),
@@ -445,17 +297,9 @@ class HomeHeaderNavigation extends StatelessWidget {
       ],
     );
   }
-}
 
-class NavigationButton extends StatelessWidget {
-  final String pageName;
-  final PageLabel pageLabel;
-
-  NavigationButton({this.pageName, this.pageLabel});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
+  Widget _navigationButton(String pageName, PageLabel pageLabel) {
+    return Consumer<HomePageProvider>(builder: (context, provider, child) {
       Color textColor = (pageLabel == provider.pageLabel)
           ? Color(0xFF000000)
           : Color(0x73000000);
@@ -483,81 +327,40 @@ class NavigationButton extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  // Contains three widgets. These widgets are horizontally translated so that
-  // only one widget is seen at a time. These translation offsets are updated
-  // continuously as the user swipes horizontally. Each widget is wrapped with
-  // a Container() that takes up the entire page. This is done so that
-  // the GestureDetector() could respond to the user's swipes regardless of
-  // where on the page they swipe. This widget is rebuilt any time the user
-  // returns to the home page after leaving another page.
-
-  HomePage({@required this.height});
+class HomePageBody extends StatelessWidget {
+  const HomePageBody({@required this.height});
 
   final double height;
 
   @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  Widget discoverPage, friendsPage, followingPage;
-
-  @override
-  void initState() {
-    super.initState();
-    discoverPage = DiscoverPage(
-      height: widget.height,
-    );
-    friendsPage = Friends(height: widget.height);
-    followingPage = FollowingPage(
-      height: widget.height,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
+    Widget discover = Center(child: Text("discover"));
+    // Widget friends = Center(child: Text("friends"));
+    Widget friends = Center(child: Friends(height: height));
+    Widget following = Center(child: Text("following"));
 
-    return Consumer<ResetStateProvider>(
-        builder: (context, resetStateProvider, child) {
-      // Rebuilds friends page to see if any new chats have been created. This
-      // is used for when the user returns from another user's profile page,
-      // where they could have started following that user (this would create a
-      // chat if that other user is already following the current user).
-
-      if (resetStateProvider.resetStateBool) {
-        friendsPage = Friends(height: widget.height);
-        // followingPage = FollowingPage(
-        //   height: widget.height,
-        // );
-        resetStateProvider.resetStateBool = false;
-      }
-
-      return Consumer<HomeScreenProvider>(builder: (context, provider, child) {
-        return GestureDetector(
+    return Consumer<HomePageProvider>(builder: (context, provider, child) {
+      return GestureDetector(
+        child: Container(
+          height: height,
+          width: globals.size.width,
+          color: Colors.transparent,
           child: Stack(children: [
             Transform.translate(
-                offset: Offset(width * (provider.offset - 1), 0),
-                child: Container(
-                    width: width, height: widget.height, child: discoverPage)),
+                offset: Offset(globals.size.width * (provider.offset - 1), 0),
+                child: discover),
             Transform.translate(
-                offset: Offset(width * (provider.offset), 0),
-                child: Container(
-                    width: width, height: widget.height, child: friendsPage)),
+                offset: Offset(globals.size.width * (provider.offset), 0),
+                child: friends),
             Transform.translate(
-                offset: Offset(width * (provider.offset + 1), 0),
-                child: Container(
-                    width: width, height: widget.height, child: followingPage)),
+                offset: Offset(globals.size.width * (provider.offset + 1), 0),
+                child: following),
           ]),
-          onHorizontalDragUpdate: (value) =>
-              Provider.of<HomeScreenProvider>(context, listen: false).offset +=
-                  2.0 * (value.delta.dx / width),
-          onHorizontalDragEnd: (_) =>
-              Provider.of<HomeScreenProvider>(context, listen: false)
-                  .handleHorizontalDragEnd(),
-        );
-      });
+        ),
+        onHorizontalDragUpdate: (value) =>
+            provider.offset += 2.0 * (value.delta.dx / globals.size.width),
+        onHorizontalDragEnd: (_) => provider.handleHorizontalDragEnd(),
+      );
     });
   }
 }

@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/sections/camera/widgets/button.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/scheduler.dart';
@@ -349,22 +348,20 @@ class PreviewOptions extends StatelessWidget {
 
   Future<Map> _uploadPost(
       PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(context,
-        postNewPost(provider.isImage, false, provider.file, provider.caption));
+    return await postNewPost(
+        provider.isImage, false, provider.file, provider.caption);
   }
 
   Future<Map> _uploadProfile(
       PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(context,
-        globals.postRepository.postProfile(provider.isImage, provider.file));
+    return await globals.profileRepository
+        .update(provider.isImage, provider.file);
   }
 
   Future<Map> _sendInChat(
       PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(
-        context,
-        postChatPost(provider.isImage, provider.file, provider.chat.chatID,
-            provider.caption));
+    return await postChatPost(provider.isImage, provider.file,
+        provider.chat.chatID, provider.caption);
   }
 }
 

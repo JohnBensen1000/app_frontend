@@ -6,9 +6,10 @@ import 'package:flutter/widgets.dart';
 import 'API/baseAPI.dart';
 
 import 'models/user.dart';
-import 'repository/post_repository.dart';
-import 'repository/profile_repository.dart';
-import 'repository/account_repository.dart';
+
+import 'repositories/new_activity_repository.dart';
+import 'repositories/account_repository.dart';
+import 'repositories/profile_repository.dart';
 
 User user;
 double goldenRatio = 1.61803398875;
@@ -25,10 +26,6 @@ Map<String, Color> colorsMap = {
   '6': Color.fromRGBO(247, 0, 16, 1.0),
 };
 
-PostRepository postRepository = new PostRepository();
-ProfileRepository profileRepository = new ProfileRepository();
-AccountRepository accountRepository = new AccountRepository();
-
 BaseAPI baseAPI = new BaseAPI();
 
 class SizeConfig {
@@ -43,3 +40,7 @@ class SizeConfig {
 }
 
 SizeConfig size;
+
+NewActivityRepository newActivityRepository;
+AccountRepository accountRepository;
+ProfileRepository profileRepository;

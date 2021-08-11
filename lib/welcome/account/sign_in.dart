@@ -9,8 +9,11 @@ import 'widgets/input_field.dart';
 import 'widgets/account_submit_button.dart';
 
 import '../../globals.dart' as globals;
-import '../home/home_screen.dart';
+import '../../models/user.dart';
 import '../../API/methods/users.dart';
+import '../../sections/global.dart';
+
+import '../../repositories/account_repository.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
@@ -105,14 +108,10 @@ class _SignInState extends State<SignIn> {
       await handleRequest(context,
           updateDeviceToken(await FirebaseMessaging.instance.getToken()));
 
-      await globals.accountRepository.setUid(uid: firebaseUser.uid);
+      await AccountRepository().setUid(uid: firebaseUser.uid);
 
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Home(
-                    pageLabel: PageLabel.friends,
-                  )));
+          context, MaterialPageRoute(builder: (context) => Global()));
     } on firebase_auth.FirebaseAuthException catch (error) {
       _displayErrorMessages(error.code);
     }
