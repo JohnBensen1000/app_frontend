@@ -18,7 +18,7 @@ class Button extends StatelessWidget {
       decoration: new BoxDecoration(
         borderRadius:
             BorderRadius.all(Radius.circular(.0118 * globals.size.height)),
-        color: Colors.grey[200],
+        color: Colors.grey[200].withOpacity(.8),
       ),
       child: Center(
           child: Text(buttonName,

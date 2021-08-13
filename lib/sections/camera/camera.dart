@@ -14,8 +14,6 @@ import '../../widgets/back_arrow.dart';
 
 import 'preview.dart';
 
-import 'widgets/button.dart';
-
 enum CameraUsage {
   post,
   chat,
@@ -32,7 +30,7 @@ class CameraProvider extends ChangeNotifier {
     _cameraIndex = 0;
     isImage = true;
     showCapturedPost = false;
-    cameraControllerFuture = _getCameraControllerFuture(cameraIndex);
+    cameraControllerFuture = _getCameraControllerFuture(_cameraIndex);
   }
 
   final CameraUsage cameraUsage;
@@ -46,16 +44,17 @@ class CameraProvider extends ChangeNotifier {
 
   File get file => File(filePath);
 
-  int get cameraIndex => _cameraIndex;
-
-  set cameraIndex(int newCameraIndex) {
-    _cameraIndex = newCameraIndex;
-    cameraControllerFuture = _getCameraControllerFuture(cameraIndex);
+  void toggleCamera() {
+    // Changes the camera index and sets cameraControllerFuture to the correct
+    // camera future.
+    _cameraIndex = (_cameraIndex + 1) % 2;
+    cameraControllerFuture = _getCameraControllerFuture(_cameraIndex);
 
     notifyListeners();
   }
 
   Future<CameraController> _getCameraControllerFuture(int cameraIndex) async {
+    // Gets the camera controller and initializes it.
     CameraController controller;
 
     final cameras = await availableCameras();
@@ -76,13 +75,14 @@ class CameraProvider extends ChangeNotifier {
     showCapturedPost = false;
   }
 
-  Future<void> takeImage() async {
+  Future<void> takeImage(BuildContext context) async {
     // If the image has been taken with the user-facing camera, flips/rotates
-    // the image so that its orientation is correct.
+    // the image so that its orientation is correct. Pushs the user to the
+    // preview page after capturing the image.
     XFile file = await (await cameraControllerFuture).takePicture();
     filePath = file.path;
 
-    if (cameraIndex == 1) {
+    if (_cameraIndex == 1) {
       image.Image capturedImage =
           image.decodeImage(await File(filePath).readAsBytes());
       capturedImage = image.flip(capturedImage, image.Flip.vertical);
@@ -92,23 +92,43 @@ class CameraProvider extends ChangeNotifier {
     }
     isImage = true;
     showCapturedPost = true;
+
+    _pushPreviewPage(context);
   }
 
   Future<void> startRecording() async {
     (await cameraControllerFuture).startVideoRecording();
   }
 
-  Future<void> stopRecording() async {
+  Future<void> stopRecording(BuildContext context) async {
+    // Saves the recorded video and sends the user to the preview page.
     XFile file = await (await cameraControllerFuture).stopVideoRecording();
     filePath = file.path;
 
     showCapturedPost = true;
     isImage = false;
+
+    _pushPreviewPage(context);
+  }
+
+  Future<void> _pushPreviewPage(BuildContext context) async {
+    CameraController cameraController = await cameraControllerFuture;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => Preview(
+                  controller: cameraController,
+                  isImage: isImage,
+                  cameraUsage: cameraUsage,
+                  file: file,
+                  chat: chat,
+                ))).then((_) async => await deleteFile());
   }
 }
 
 class Camera extends StatelessWidget {
-  // Simply initializes the CameraProvider and Camera Page.
+  // Simply initializes the CameraProvider and Camera Page. Checks to see if
+  // it has to ask for permissions.
 
   Camera({
     @required this.cameraUsage,
@@ -149,9 +169,12 @@ class Camera extends StatelessWidget {
   }
 }
 
-class CameraPage extends StatelessWidget {
-  // Main Widget for the Camera Page. Displays the camera preview, along with
-  // a back button, a capture image/video button, and a flip camera button.
+class CameraPage extends StatefulWidget {
+  // Returns a stack with the camera view on bottom and a bunch of bottons on
+  // top. These buttons include a back arrow, a capture image/video button,
+  // a flip camera button, and a timer button. When the timer is pressed, a
+  // 3-second countdown is started. When this countdown ends, an image is
+  // captured.
 
   CameraPage({
     @required this.cameraUsage,
@@ -162,116 +185,147 @@ class CameraPage extends StatelessWidget {
   final Chat chat;
 
   @override
-  Widget build(BuildContext context) {
-    double height = .711 * globals.size.height;
+  State<CameraPage> createState() => _CameraPageState();
+}
 
+class _CameraPageState extends State<CameraPage> {
+  String _timerString = "";
+
+  @override
+  Widget build(BuildContext context) {
     CameraProvider provider =
         Provider.of<CameraProvider>(context, listen: false);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
+    return Stack(
       children: [
-        Container(
-            alignment: Alignment.topLeft,
-            padding: EdgeInsets.only(
-                top: .06 * globals.size.height,
-                left: .04 * globals.size.width,
-                bottom: .02 * globals.size.height),
-            child: GestureDetector(
-                child: BackArrow(), onTap: () => Navigator.pop(context))),
-        CameraView(
-          height: height,
+        CameraView(),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+                alignment: Alignment.topLeft,
+                padding: EdgeInsets.only(
+                    top: .06 * globals.size.height,
+                    left: .04 * globals.size.width,
+                    bottom: .02 * globals.size.height),
+                child: GestureDetector(
+                    child: BackArrow(color: Colors.white),
+                    onTap: () => Navigator.pop(context))),
+            Container(
+              padding: EdgeInsets.only(bottom: .06 * globals.size.height),
+              child: Column(children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      alignment: Alignment.bottomLeft,
+                      child: Container(
+                          width: .26 * globals.size.width,
+                          child: Center(
+                            child: GestureDetector(
+                                child: _button(
+                                  "Flip Camera",
+                                ),
+                                onTap: () => provider.toggleCamera()),
+                          )),
+                    ),
+                    PostButton(diameter: .12 * globals.size.height),
+                    Container(
+                      alignment: Alignment.bottomLeft,
+                      child: Container(
+                          width: .26 * globals.size.width,
+                          child: Center(
+                            child: GestureDetector(
+                                child: _button(
+                                  "Start Timer",
+                                ),
+                                onTap: () => _startTimer(context, provider)),
+                          )),
+                    ),
+                  ],
+                ),
+                Container(
+                    padding: EdgeInsets.only(top: .02 * globals.size.height),
+                    child: Text("Hold down to record video",
+                        style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: .016 * globals.size.height)))
+              ]),
+            ),
+          ],
         ),
         Container(
-          padding: EdgeInsets.only(top: .0059 * globals.size.height),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                alignment: Alignment.bottomLeft,
-                child: Container(
-                    width: .269 * globals.size.width,
-                    child: Center(
-                      child: GestureDetector(
-                          child: Button(
-                            buttonName: "Flip Camera",
-                          ),
-                          onTap: () => provider.cameraIndex =
-                              (provider.cameraIndex + 1) % 2),
-                    )),
-              ),
-              PostButton(diameter: .12 * globals.size.height),
-              Container(
-                width: .269 * globals.size.width,
-              )
-            ],
-          ),
-        ),
+            child: Center(
+                child: Text(_timerString,
+                    style: TextStyle(
+                        fontSize: .35 * globals.size.height,
+                        color: Colors.white))))
       ],
     );
+  }
+
+  Widget _button(String buttonName) {
+    return Container(
+      width: .2 * globals.size.width,
+      height: .0533 * globals.size.height,
+      decoration: new BoxDecoration(
+        borderRadius:
+            BorderRadius.all(Radius.circular(.02 * globals.size.height)),
+        color: Colors.grey[200].withOpacity(.7),
+      ),
+      child: Center(
+          child: Text(buttonName,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: .0213 * globals.size.height))),
+    );
+  }
+
+  Future<void> _startTimer(
+      BuildContext context, CameraProvider provider) async {
+    for (int i = 3; i >= 1; i--) {
+      _timerString = i.toString();
+      setState(() {});
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    ;
+    _timerString = "";
+    setState(() {});
+
+    provider.takeImage(context);
   }
 }
 
 class CameraView extends StatelessWidget {
-  // Displays what the camera sees in a rectangular container with rounded
-  // corners. Changes size and aspect ratio of camera preview to fit nicely
-  // in the container.
+  // Displays what the camera sees. Resizes this to take up the entire screen.
 
   const CameraView({
     Key key,
-    @required this.height,
   }) : super(key: key);
-
-  final double height;
 
   @override
   Widget build(BuildContext context) {
-    double width = height / globals.goldenRatio;
-    double cornerRadius = height * globals.cornerRadiusRatio;
-
     return Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Container(
-            height: height,
-            width: width,
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(cornerRadius),
-              border: Border.all(width: 1.0, color: globals.user.profileColor),
-            ),
-          ),
-          Container(
-              height: height - 2,
-              width: width - 2,
-              child: ClipRRect(
-                  borderRadius: BorderRadius.circular(cornerRadius - 1),
-                  child: Consumer<CameraProvider>(
-                      builder: (context, provider, child) => FutureBuilder(
-                            future: provider.cameraControllerFuture,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.done) {
-                                CameraController cameraController =
-                                    snapshot.data;
+      child: Consumer<CameraProvider>(
+          builder: (context, provider, child) => FutureBuilder(
+                future: provider.cameraControllerFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    CameraController cameraController = snapshot.data;
 
-                                return Transform.scale(
-                                  scale: (cameraController.value.aspectRatio) /
-                                      (globals.goldenRatio),
-                                  child: Center(
-                                    child: AspectRatio(
-                                        aspectRatio: (1 /
-                                            cameraController.value.aspectRatio),
-                                        child: CameraPreview(cameraController)),
-                                  ),
-                                );
-                              } else {
-                                return Container();
-                              }
-                            },
-                          )))),
-        ],
-      ),
+                    return Transform.scale(
+                      scale: (globals.size.height / globals.size.width) /
+                          (cameraController.value.aspectRatio),
+                      child: Center(
+                        child: AspectRatio(
+                            aspectRatio:
+                                (1 / cameraController.value.aspectRatio),
+                            child: CameraPreview(cameraController)),
+                      ),
+                    );
+                  } else {
+                    return Container();
+                  }
+                },
+              )),
     );
   }
 }
@@ -306,17 +360,15 @@ class _PostButtonState extends State<PostButton> {
 
     return Container(
       child: Stack(
-        alignment: Alignment.bottomCenter,
         children: <Widget>[
           Container(
-            alignment: Alignment.bottomCenter,
             child: GestureDetector(
                 child: (isRecording)
                     ? StreamBuilder(
                         stream: PostButtonVideoTimer().stream,
                         builder: (context, snapshot) {
                           return Stack(alignment: Alignment.center, children: [
-                            PostButtonCircle(diameter: widget.diameter),
+                            _postButtonCircle(widget.diameter),
                             SizedBox(
                               child: CircularProgressIndicator(
                                 strokeWidth: widget.strokeWidth,
@@ -330,10 +382,9 @@ class _PostButtonState extends State<PostButton> {
                           ]);
                         },
                       )
-                    : PostButtonCircle(diameter: widget.diameter),
+                    : _postButtonCircle(widget.diameter),
                 onTap: () async {
-                  await provider.takeImage();
-                  await pushPreviewPage(context, provider);
+                  await provider.takeImage(context);
                 },
                 onLongPress: () async {
                   await provider.startRecording();
@@ -342,8 +393,7 @@ class _PostButtonState extends State<PostButton> {
                   });
                 },
                 onLongPressEnd: (_) async {
-                  await provider.stopRecording();
-                  await pushPreviewPage(context, provider);
+                  await provider.stopRecording(context);
                   setState(() {
                     isRecording = false;
                   });
@@ -354,62 +404,27 @@ class _PostButtonState extends State<PostButton> {
     );
   }
 
-  Future<void> pushPreviewPage(
-      BuildContext context, CameraProvider provider) async {
-    CameraController cameraController = await provider.cameraControllerFuture;
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => Preview(
-                  controller: cameraController,
-                  isImage: provider.isImage,
-                  cameraUsage: provider.cameraUsage,
-                  file: provider.file,
-                  chat: provider.chat,
-                ))).then((_) async => await provider.deleteFile());
-  }
-}
-
-class PostButtonCircle extends StatelessWidget {
-  PostButtonCircle({@required this.diameter});
-
-  final double diameter;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _postButtonCircle(double diameter) {
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
-        PostButtonSubCircle(diameter: 1.00 * diameter, color: Colors.black),
-        PostButtonSubCircle(diameter: 0.95 * diameter, color: Colors.white),
-        PostButtonSubCircle(diameter: 0.85 * diameter, color: Colors.black),
-        PostButtonSubCircle(diameter: 0.80 * diameter, color: Colors.white),
+        _postButtonSubCircle(0.95 * diameter, Colors.white),
+        _postButtonSubCircle(0.80 * diameter, Colors.white),
       ],
     );
   }
-}
 
-class PostButtonSubCircle extends StatelessWidget {
-  /* A stack of PostButtonSubCircle of alternating colors is used to compose
-     the "capture image" button.
-  */
-  const PostButtonSubCircle({
-    Key key,
-    @required this.diameter,
-    @required this.color,
-  }) : super(key: key);
-
-  final double diameter;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _postButtonSubCircle(double diameter, Color color) {
     return Container(
       width: diameter,
       height: diameter,
       decoration: new BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
+        border: Border.all(
+          color: color,
+          width: 2,
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(globals.size.height)),
+        color: Colors.transparent,
       ),
     );
   }

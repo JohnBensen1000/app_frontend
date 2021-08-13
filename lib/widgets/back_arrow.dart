@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:adobe_xd/pinned.dart';
 
 class BackArrow extends StatelessWidget {
+  BackArrow({this.color = const Color(0xffa2a2a2)});
+  final Color color;
+
   @override
   Widget build(BuildContext context) {
     double size = 3;
@@ -23,9 +26,8 @@ class BackArrow extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(size * 30.0),
-                  color: const Color(0xffa2a2a2),
-                  border: Border.all(
-                      width: size * 1.0, color: const Color(0xffa2a2a2)),
+                  color: color,
+                  border: Border.all(width: size * 1.0, color: color),
                 ),
               ),
             ),
@@ -42,9 +44,8 @@ class BackArrow extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(size * 30.0),
-                    color: const Color(0xffa2a2a2),
-                    border: Border.all(
-                        width: size * 1.0, color: const Color(0xffa2a2a2)),
+                    color: color,
+                    border: Border.all(width: size * 1.0, color: color),
                   ),
                 ),
               ),
@@ -62,9 +63,8 @@ class BackArrow extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30.0),
-                    color: const Color(0xffa2a2a2),
-                    border: Border.all(
-                        width: size * 1.0, color: const Color(0xffa2a2a2)),
+                    color: color,
+                    border: Border.all(width: size * 1.0, color: color),
                   ),
                 ),
               ),
