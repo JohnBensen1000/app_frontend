@@ -4,15 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../repositories/blocked.dart';
+import '../../repositories/chats.dart';
+import '../../repositories/following.dart';
+import '../../repositories/new_activity.dart';
+import '../../repositories/profile.dart';
+import '../../repositories/user.dart';
+
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../widgets/alert_circle.dart';
 
-import '../global.dart';
+import 'home_drawer.dart';
+import 'search_page.dart';
+import 'chats.dart';
+
+// import '../global.dart';
 import '../profile_page/profile_page.dart';
 
-import 'home_drawer.dart';
-import 'chats_list.dart';
+// import 'chats_list.dart';
 
 enum PageLabel {
   discover,
@@ -74,6 +84,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
+    globals.blockedRepository = new BlockedRepository();
+    globals.profileRepository = new ProfileRepository();
+    globals.followingRepository = new FollowingRepository();
+    globals.newActivityRepository = new NewActivityRepository();
+    globals.userRepository = new UserRepository();
+    globals.chatsRepository = new ChatsRepository();
+
     super.initState();
   }
 
@@ -163,10 +180,10 @@ class HomePageHeaderButtons extends StatelessWidget {
                       child: _iconContainer(
                         Image.asset('assets/images/search_icon.png'),
                       ),
-                      // onTap: () => Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (context) => SearchPage()),
-                      // ),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SearchPage()),
+                      ),
                     ),
                     GestureDetector(
                       child: _iconContainer(
@@ -336,7 +353,11 @@ class HomePageBody extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget discover = Center(child: Text("discover"));
     // Widget friends = Center(child: Text("friends"));
-    Widget friends = Center(child: Friends(height: height));
+    Widget chats = Center(
+        child: Chats(
+      height: height,
+    ));
+    // Widget friends = Center(child: Friends(height: height));
     Widget following = Center(child: Text("following"));
 
     return Consumer<HomePageProvider>(builder: (context, provider, child) {
@@ -351,7 +372,7 @@ class HomePageBody extends StatelessWidget {
                 child: discover),
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset), 0),
-                child: friends),
+                child: chats),
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset + 1), 0),
                 child: following),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'welcome/welcome.dart';
+import 'sections/welcome.dart';
 
 main() => runApp(MyApp());
 
@@ -55,6 +55,7 @@ class _LifeCycleState extends State<LifeCycle> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // return MaterialApp();
     return MaterialApp(debugShowCheckedModeBanner: false, home: Welcome());
   }
 }

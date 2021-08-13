@@ -6,6 +6,7 @@ import '../../widgets/profile_pic.dart';
 import '../../models/post.dart';
 
 import '../profile_page/profile_page.dart';
+// import '../comments/comments.dart';
 
 import 'post_widget.dart';
 import 'post_page.dart';
@@ -90,16 +91,15 @@ class FullPostWidget extends StatelessWidget {
             child: Column(
               children: [
                 GestureDetector(
-                  child: Container(
-                      padding: EdgeInsets.symmetric(vertical: .01 * height),
-                      child:
-                          Profile(diameter: .08 * height, user: post.creator)),
-                  // onTap: () => Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         builder: (context) =>
-                  //             ProfilePage(user: post.creator)))),
-                ),
+                    child: Container(
+                        padding: EdgeInsets.symmetric(vertical: .01 * height),
+                        child: Profile(
+                            diameter: .08 * height, user: post.creator)),
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                ProfilePage(user: post.creator)))),
                 GestureDetector(
                     child: PostWidget(
                       post: post,
@@ -182,6 +182,7 @@ class _CommentsSnackBarState extends State<CommentsSnackBar> {
   @override
   void initState() {
     snackbarHeight = .7 * widget.height;
+    comments = Container();
     // comments = Comments(height: snackbarHeight, post: widget.post);
     super.initState();
   }

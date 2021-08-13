@@ -8,9 +8,9 @@ import '../../widgets/profile_pic.dart';
 import '../../main.dart';
 import '../../widgets/alert_dialog_container.dart';
 import 'package:test_flutter/widgets/generic_text_button.dart';
-import '../../repositories/account_repository.dart';
+// import '../../repositories/account_repository.dart';
 
-import '../camera/camera.dart';
+// import '../camera/camera.dart';
 
 // import '../personalization/choose_color.dart';
 // import '../personalization/preferences.dart';
@@ -90,7 +90,7 @@ class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
                             if (confirmLogOut != null && confirmLogOut) {
                               await handleRequest(
                                   context, updateDeviceToken(null));
-                              await AccountRepository().removeUid();
+                              await globals.accountRepository.removeUid();
                               Navigator.popUntil(
                                   context, (route) => route.isFirst);
 
@@ -167,32 +167,33 @@ class _ProfileDrawerHeaderState extends State<ProfileDrawerHeader> {
                 top: .02 * globals.size.height,
                 bottom: .02 * globals.size.height),
             child: GestureDetector(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    ProfilePic(
-                      diameter: .2 * globals.size.height,
-                      user: globals.user,
-                    ),
-                    Text("Take New Photo",
-                        style: TextStyle(
-                            shadows: <Shadow>[
-                              Shadow(
-                                offset: Offset(0, 0),
-                                blurRadius: 1.0,
-                                color: Color.fromARGB(255, 0, 0, 0),
-                              ),
-                            ],
-                            color: Colors.grey[200],
-                            fontSize: .02 * globals.size.height)),
-                  ],
-                ),
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => Camera(
-                              cameraUsage: CameraUsage.profile,
-                            )))),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  ProfilePic(
+                    diameter: .2 * globals.size.height,
+                    user: globals.user,
+                  ),
+                  Text("Take New Photo",
+                      style: TextStyle(
+                          shadows: <Shadow>[
+                            Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: 1.0,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          ],
+                          color: Colors.grey[200],
+                          fontSize: .02 * globals.size.height)),
+                ],
+              ),
+              // onTap: () => Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: (context) => Camera(
+              //               cameraUsage: CameraUsage.profile,
+              //             )))),
+            ),
           ),
           Text(
             "Edit Profile",

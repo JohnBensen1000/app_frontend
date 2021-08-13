@@ -25,3 +25,15 @@ Future<bool> getIfFollowing(User user) async {
       await BaseAPI().get('v2/followings/${globals.user.uid}/${user.uid}');
   return response['isFollowing'];
 }
+
+Future<List<String>> getFollowings() async {
+  var response = await BaseAPI().get('v2/followings/${globals.user.uid}');
+
+  if (response == null) return null;
+
+  List<String> followingList = [];
+
+  for (String uid in response["followings"]) followingList.add(uid);
+
+  return followingList;
+}

@@ -8,15 +8,15 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';
-import '../../widgets/wide_button.dart';
 import '../../models/user.dart';
+import '../../widgets/wide_button.dart';
 
-import '../../sections/global.dart';
+// import '../home/home_screen.dart';
+// import '../personalization/choose_color.dart';
+// import '../personalization/preferences.dart';
 
 import 'widgets/account_submit_button.dart';
 import 'widgets/account_app_bar.dart';
-
-import '../../repositories/account_repository.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
@@ -40,8 +40,6 @@ class PolicyAgreementProvider extends ChangeNotifier {
   PolicyAgreementProvider({@required this.policyAgreements});
 
   final List<PolicyAgreement> policyAgreements;
-
-  User user;
 
   void resetState() {
     notifyListeners();
@@ -187,12 +185,16 @@ class PolicyAgreementPage extends StatelessWidget {
     }
     if (areAgreementsAccepted) {
       if (await _createAccount(context)) {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Global()));
+        // Navigator.push(
+        //     context,
+        //     MaterialPageRoute(
+        //         builder: (context) => Home(
+        //               pageLabel: PageLabel.friends,
+        //             )));
 
         // Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
         // Navigator.push(context, SlideRightRoute(page: ColorsPage()));
-        // Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
+        Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
       }
     } else {
       showDialog(
@@ -226,16 +228,13 @@ class PolicyAgreementPage extends StatelessWidget {
     if (response != null) {
       await FirebaseMessaging.instance.requestPermission();
 
-      Provider.of<PolicyAgreementProvider>(context, listen: false).user =
-          await handleRequest(context, getUserFromUID(firebaseUser.uid));
-
       globals.user =
-          Provider.of<PolicyAgreementProvider>(context, listen: false).user;
+          await handleRequest(context, getUserFromUID(firebaseUser.uid));
 
       await handleRequest(context,
           updateDeviceToken(await FirebaseMessaging.instance.getToken()));
 
-      await AccountRepository().setUid(uid: firebaseUser.uid);
+      await globals.accountRepository.setUid(uid: firebaseUser.uid);
       return true;
     } else {
       await firebaseUser.delete();
@@ -404,17 +403,17 @@ class TakeProfilePage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // GestureDetector(
-                    //   child: WideButton(
-                    //     buttonName: "Take profile picture",
-                    //   ),
-                    //   onTap: () => Navigator.push(
-                    //       context,
-                    //       SlideRightRoute(
-                    //           page: Camera(
-                    //         cameraUsage: CameraUsage.profile,
-                    //       ))).then((_) => Navigator.pop(context)),
-                    // ),
+                    GestureDetector(
+                      child: WideButton(
+                        buttonName: "Take profile picture",
+                      ),
+                      // onTap: () => Navigator.push(
+                      //     context,
+                      //     SlideRightRoute(
+                      //         page: Camera(
+                      //       cameraUsage: CameraUsage.profile,
+                      //     ))).then((_) => Navigator.pop(context)),
+                    ),
                     GestureDetector(
                         child: WideButton(
                           buttonName: "Skip",

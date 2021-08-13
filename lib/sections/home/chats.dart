@@ -10,60 +10,48 @@ import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
 import '../../widgets/profile_pic.dart';
 
-class FriendsProvider extends ChangeNotifier {
-  // Allows any widget below this to rebuild the friends page from scratch.
-  void resetState() {
-    notifyListeners();
+class ChatsProvider extends ChangeNotifier {
+  ChatsProvider() {
+    _chatsList = globals.chatsRepository.chatsList;
+    _refreshCallback();
+  }
+  List<Chat> _chatsList;
+
+  List<Chat> get chatsList => (_chatsList != null) ? _chatsList : [];
+
+  void _refreshCallback() {
+    globals.chatsRepository.stream.listen((chatsList) {
+      _chatsList = chatsList;
+      notifyListeners();
+    });
   }
 }
 
-class Friends extends StatelessWidget {
-  // Gets a list of chats from the server. Returns a column of two widgets:
-  // NewFollowersAlert() and ChatsList(). NewFollowersAlert() shows how many
-  // new followers the user has and, when pressed, takes the user to a new page
-  // where they could follow/not follow these new followers back. ChatsList()
-  // is a ListView of every chat that the user is in.
-
-  Friends({@required this.height});
+class Chats extends StatelessWidget {
+  Chats({
+    @required this.height,
+  });
 
   final double height;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: height,
-      padding: EdgeInsets.symmetric(horizontal: .0256 * globals.size.width),
-      child: ChangeNotifierProvider(
-          create: (_) => FriendsProvider(),
-          child: Consumer<FriendsProvider>(
-              builder: (context, provider, child) => FutureBuilder(
-                    future: getListOfChats(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData) {
-                        return ChatsList(
-                          chatsList: snapshot.data,
-                        );
-                      } else {
-                        return Container();
-                      }
-                    },
-                  ))),
-    );
+        height: height,
+        padding: EdgeInsets.symmetric(horizontal: .0256 * globals.size.width),
+        child: ChangeNotifierProvider(
+            create: (_) => ChatsProvider(),
+            child: Consumer<ChatsProvider>(builder: (context, provider, child) {
+              return ChatsList(chatsList: provider.chatsList, key: UniqueKey());
+            })));
   }
 }
 
 class ChatsList extends StatefulWidget {
-  // Returns a list view of every chat that the user is in. Initiates a callback
-  // that listens to Firebase Messaging. Whenever some one sends a new chat in
-  // any of the chats, this callback gets a notification from Firebase. When
-  // this happens, the chat that has a new chat is sent to the top of the List
-  // View, and "New Chats!" is displayed on the chat widget. When the user
-  // returns from a direct message, the "New Chats!" is no longer displayed on
-  // the chat widget. If the user blocks another user from inside a direct
-  // message, then resetState is set to true.
-
-  ChatsList({@required this.chatsList});
+  ChatsList({
+    @required this.chatsList,
+    Key key,
+  }) : super(key: key);
 
   final List<Chat> chatsList;
 
@@ -85,18 +73,11 @@ class _ChatsListState extends State<ChatsList> {
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     List<ChatWidget> chatWidgetsList = chatWidgets.toList();
     return ListView.builder(
         padding: EdgeInsets.only(top: .0237 * globals.size.height),
         itemCount: chatWidgetsList.length,
-        // itemCount: 6,
         itemBuilder: (BuildContext context, int index) {
           return Container(
             child: Stack(

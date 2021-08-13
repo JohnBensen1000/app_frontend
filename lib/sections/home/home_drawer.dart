@@ -3,15 +3,14 @@ import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:test_flutter/widgets/generic_text_button.dart';
 import 'package:provider/provider.dart';
 
-import '../../repositories/new_activity_repository.dart';
 import '../../globals.dart' as globals;
-import '../global.dart';
 
 import '../../widgets/alert_circle.dart';
 
 // import '../profile_page/profile_page.dart';
 
-// import 'blocked_list.dart';
+import 'blocked_list.dart';
+import 'activity_page.dart';
 // import 'activity_page.dart';
 
 class HomeDrawerProvider extends ChangeNotifier {
@@ -92,26 +91,20 @@ class HomeDrawer extends StatelessWidget {
                                   return Container();
                               }),
                               GenericTextButton(
-                                buttonName: "Activity",
-                                // onPressed: () => Navigator.push(
-                                //         context,
-                                //         MaterialPageRoute(
-                                //             builder: (context) =>
-                                //                 ActivityPage())).then((value) {
-                                //       setState(() {
-                                //         isUserUpdated = true;
-                                //       });
-                                // }
-                              ),
+                                  buttonName: "Activity",
+                                  onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              ActivityPage())))
                             ],
                           ),
                           GenericTextButton(
-                            buttonName: "Unblock Creators",
-                            // onPressed: () => Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) => BlockedList()))
-                          ),
+                              buttonName: "Unblock Creators",
+                              onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => BlockedList()))),
                         ],
                       ),
                       Text(

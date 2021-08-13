@@ -2,13 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/sections/account/agreements.dart';
 import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../API/methods/users.dart';
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
-
-import 'agreements.dart';
 
 import 'widgets/input_field.dart';
 import 'widgets/account_app_bar.dart';

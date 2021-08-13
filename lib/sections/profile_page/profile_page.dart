@@ -5,38 +5,61 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
-import '../../API/methods/followings.dart';
 import '../../API/methods/blocked.dart';
 import '../../models/user.dart';
-import '../../models/profile.dart';
-import '../../models/post.dart';
-import '../../widgets/custom_drawer.dart';
 
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
-import '../../repositories/profile_repository.dart';
+import '../../widgets/alert_dialog_container.dart';
+import '../../widgets/generic_alert_dialog.dart';
 
-import '../global.dart';
 import 'widgets/profile_page_header_button.dart';
 import 'profile_page_drawer.dart';
 
 class ProfilePageProvider extends ChangeNotifier {
-  ProfilePageProvider({@required this.user});
+  ProfilePageProvider({@required this.user}) {
+    _followingCallback();
+  }
 
   final User user;
 
   bool get isMainUsersProfile => user.uid == globals.user.uid;
 
-  // Future<Post> get profileFuture async => isMainUsersProfile
-  //     ? await _profilePost
-  //     : await handleRequest(context, getProfile(user));
+  bool get isFollowing => globals.followingRepository.isFollowing(user.uid);
 
-  // void _profileCallback(BuildContext context) async {
-  //   globals.globalRepository.profilePostStream.listen((profilePost) {
-  //     _profilePost = profilePost;
-  //     notifyListeners();
-  //   });
-  // }
+  void toggleFollowing() {
+    isFollowing
+        ? globals.followingRepository.unfollow(user)
+        : globals.followingRepository.follow(user);
+  }
+
+  Future<void> blockCreator(BuildContext context) async {
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialogContainer(
+              dialogText: "Are you sure you want to block ${user.userID}?");
+        }).then((isBlockingUser) async {
+      if (isBlockingUser) {
+        var response = await globals.blockedRepository.block(user);
+        switch (response['denied']) {
+          default:
+            await showDialog(
+                context: context,
+                builder: (context) => GenericAlertDialog(
+                    text:
+                        "You have successfully blocked this user, so you will no longer see any content from them."));
+            Navigator.pop(context);
+        }
+      }
+    });
+  }
+
+  void _followingCallback() async {
+    globals.followingRepository.stream.listen((following) {
+      notifyListeners();
+    });
+  }
 }
 
 class ProfilePage extends StatelessWidget {
@@ -79,6 +102,9 @@ class ProfilePageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ProfilePageProvider provider =
+        Provider.of<ProfilePageProvider>(context, listen: false);
+
     return Container(
         padding: EdgeInsets.only(
             bottom: .02 * globals.size.height, top: .045 * globals.size.height),
@@ -99,50 +125,56 @@ class ProfilePageHeader extends StatelessWidget {
                 ],
               ),
             ),
-            Consumer<ProfilePageProvider>(
-              builder: (context, provider, child) => Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    ProfilePic(
-                      diameter: .18 * globals.size.height,
-                      user: provider.user,
-                    ),
-                    Container(
-                      child: Text(
-                        '${provider.user.username}',
-                        style: TextStyle(
-                          fontFamily: 'Helvetica Neue',
-                          fontSize: .03 * globals.size.height,
-                          color: const Color(0xff000000),
-                        ),
-                        textAlign: TextAlign.left,
+            Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  ProfilePic(
+                    diameter: .18 * globals.size.height,
+                    user: provider.user,
+                  ),
+                  Container(
+                    child: Text(
+                      '${provider.user.username}',
+                      style: TextStyle(
+                        fontFamily: 'Helvetica Neue',
+                        fontSize: .03 * globals.size.height,
+                        color: const Color(0xff000000),
                       ),
+                      textAlign: TextAlign.left,
                     ),
-                    Container(
-                      child: Text(
-                        '@${provider.user.userID}',
-                        style: TextStyle(
-                          fontFamily: 'Helvetica Neue',
-                          fontSize: .016 * globals.size.height,
-                          color: Colors.grey[400],
-                        ),
-                        textAlign: TextAlign.left,
+                  ),
+                  Container(
+                    child: Text(
+                      '@${provider.user.userID}',
+                      style: TextStyle(
+                        fontFamily: 'Helvetica Neue',
+                        fontSize: .016 * globals.size.height,
+                        color: Colors.grey[400],
                       ),
+                      textAlign: TextAlign.left,
                     ),
+                  ),
+                  Container(
+                    height: .02 * globals.size.height,
+                    child: SvgPicture.string(
+                      _svg_jmyh3o,
+                      allowDrawingOutsideViewBox: true,
+                    ),
+                  ),
+                  if (provider.user.uid != globals.user.uid)
                     Container(
-                      height: .02 * globals.size.height,
-                      child: SvgPicture.string(
-                        _svg_jmyh3o,
-                        allowDrawingOutsideViewBox: true,
+                      width: .48 * globals.size.width,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _followBackButton(context),
+                          _blockButton(context)
+                        ],
                       ),
-                    ),
-                    if (provider.user.uid != globals.user.uid)
-                      // FollowBlockButtons()
-                      Container()
-                    else
-                      _openDrawerButton(context),
-                  ]),
-            ),
+                    )
+                  else
+                    _openDrawerButton(context),
+                ]),
           ],
         ));
   }
@@ -156,6 +188,33 @@ class ProfilePageHeader extends StatelessWidget {
           borderColor: globals.user.profileColor,
         ),
         onTap: () => Scaffold.of(context).openDrawer());
+  }
+
+  Widget _followBackButton(BuildContext context) {
+    return Consumer<ProfilePageProvider>(builder: (context, provider, child) {
+      return GestureDetector(
+          child: ProfilePageHeaderButton(
+              name: (provider.isFollowing) ? "Following" : "Follow",
+              color: (provider.isFollowing)
+                  ? Colors.white
+                  : provider.user.profileColor,
+              borderColor: provider.user.profileColor,
+              width: .27 * globals.size.width),
+          onTap: () => provider.toggleFollowing());
+    });
+  }
+
+  Widget _blockButton(BuildContext context) {
+    return GestureDetector(
+        child: ProfilePageHeaderButton(
+          name: "Block",
+          borderColor: Colors.black,
+          color: Colors.white,
+          width: .19 * globals.size.width,
+        ),
+        onTap: () async =>
+            await Provider.of<ProfilePageProvider>(context, listen: false)
+                .blockCreator(context));
   }
 }
 

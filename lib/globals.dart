@@ -7,9 +7,13 @@ import 'API/baseAPI.dart';
 
 import 'models/user.dart';
 
-import 'repositories/new_activity_repository.dart';
-import 'repositories/account_repository.dart';
-import 'repositories/profile_repository.dart';
+import 'repositories/blocked.dart';
+import 'repositories/chats.dart';
+import 'repositories/following.dart';
+import 'repositories/new_activity.dart';
+import 'repositories/profile.dart';
+import 'repositories/user.dart';
+import 'repositories/account.dart';
 
 User user;
 double goldenRatio = 1.61803398875;
@@ -41,6 +45,11 @@ class SizeConfig {
 
 SizeConfig size;
 
+AccountRepository accountRepository = new AccountRepository();
+
+BlockedRepository blockedRepository;
+ChatsRepository chatsRepository;
+FollowingRepository followingRepository;
 NewActivityRepository newActivityRepository;
-AccountRepository accountRepository;
 ProfileRepository profileRepository;
+UserRepository userRepository;
