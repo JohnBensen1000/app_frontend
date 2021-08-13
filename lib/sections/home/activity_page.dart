@@ -256,6 +256,7 @@ class ActivityCommentWidget extends StatelessWidget {
             PostWidget(
                 post: post,
                 height: .08 * globals.size.height,
+                playVideo: false,
                 aspectRatio: 4 / 3)
           ],
         ),

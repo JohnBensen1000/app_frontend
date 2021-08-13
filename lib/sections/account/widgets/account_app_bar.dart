@@ -28,15 +28,9 @@ class AccountAppBar extends PreferredSize {
           width: double.infinity,
         ),
         Container(
-          width: .125 * globals.size.height,
-          height: .125 * globals.size.height,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: const AssetImage('assets/images/Entropy_small.PNG'),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
+            width: .18 * globals.size.height,
+            height: .18 * globals.size.height,
+            child: Image.asset('assets/images/entropy_small.png')),
       ]),
     );
   }

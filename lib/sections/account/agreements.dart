@@ -8,7 +8,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';
-import '../../models/user.dart';
 import '../../widgets/wide_button.dart';
 
 import '../home/home_screen.dart';
@@ -137,7 +136,7 @@ class PolicyAgreementPage extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   image: DecorationImage(
                                     image: const AssetImage(
-                                        'assets/images/Entropy.PNG'),
+                                        'assets/images/entropy_small.png'),
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -382,7 +381,7 @@ class TakeProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AccountAppBar(height: .21 * globals.size.height),
+        appBar: AccountAppBar(height: .25 * globals.size.height),
         body: Container(
           padding: EdgeInsets.only(top: .03 * globals.size.height),
           height: .24 * globals.size.height,

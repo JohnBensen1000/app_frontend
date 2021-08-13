@@ -46,15 +46,35 @@ class _WelcomeState extends State<Welcome> {
                       } else
                         return Center(
                           child: Container(
-                              child: Image.asset('assets/images/Entropy.jpg')),
+                            height: .4 * MediaQuery.of(context).size.height,
+                            width: .4 * MediaQuery.of(context).size.height,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: const AssetImage(
+                                      'assets/images/Entropy.PNG'),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
                         );
                     },
                   );
                 } else
                   return Center(
-                    child: Container(
-                        child: Image.asset('assets/images/Entropy.jpg')),
-                  );
+                      child: Container(
+                          height: .4 * MediaQuery.of(context).size.height,
+                          width: .4 * MediaQuery.of(context).size.height,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: const AssetImage(
+                                    'assets/images/Entropy.PNG'),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          )));
               }),
         ));
   }

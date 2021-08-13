@@ -130,7 +130,7 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
-    double titleBarHeight = .21;
+    double titleBarHeight = .25;
     double forwardButtonHeight = .15;
 
     bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
