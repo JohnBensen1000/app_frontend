@@ -28,21 +28,28 @@ class CameraProvider extends ChangeNotifier {
   // re-initialized every time cameraIndex changes.
   CameraProvider({@required this.cameraUsage, this.chat}) {
     _cameraIndex = 0;
+    _isTimerOn = false;
+
     isImage = true;
     showCapturedPost = false;
+    timerString = "";
     cameraControllerFuture = _getCameraControllerFuture(_cameraIndex);
   }
-
   final CameraUsage cameraUsage;
   final Chat chat;
 
   int _cameraIndex;
+  bool _isTimerOn;
+
   bool isImage;
   bool showCapturedPost;
   String filePath;
+  String timerString;
   Future<CameraController> cameraControllerFuture;
 
   File get file => File(filePath);
+
+  bool get isTimerOn => _isTimerOn;
 
   void toggleCamera() {
     // Changes the camera index and sets cameraControllerFuture to the correct
@@ -53,18 +60,9 @@ class CameraProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<CameraController> _getCameraControllerFuture(int cameraIndex) async {
-    // Gets the camera controller and initializes it.
-    CameraController controller;
-
-    final cameras = await availableCameras();
-    final camera = cameras[cameraIndex];
-
-    controller = CameraController(camera, ResolutionPreset.high);
-    await controller.initialize();
-    await controller.lockCaptureOrientation(DeviceOrientation.portraitUp);
-
-    return controller;
+  void toggleTimer() {
+    _isTimerOn = !_isTimerOn;
+    notifyListeners();
   }
 
   Future<void> deleteFile() async {
@@ -79,6 +77,8 @@ class CameraProvider extends ChangeNotifier {
     // If the image has been taken with the user-facing camera, flips/rotates
     // the image so that its orientation is correct. Pushs the user to the
     // preview page after capturing the image.
+    if (_isTimerOn) await _startTimer(context);
+
     XFile file = await (await cameraControllerFuture).takePicture();
     filePath = file.path;
 
@@ -109,6 +109,31 @@ class CameraProvider extends ChangeNotifier {
     isImage = false;
 
     _pushPreviewPage(context);
+  }
+
+  Future<CameraController> _getCameraControllerFuture(int cameraIndex) async {
+    // Gets the camera controller and initializes it.
+    CameraController controller;
+
+    final cameras = await availableCameras();
+    final camera = cameras[cameraIndex];
+
+    controller = CameraController(camera, ResolutionPreset.high);
+    await controller.initialize();
+    await controller.lockCaptureOrientation(DeviceOrientation.portraitUp);
+
+    return controller;
+  }
+
+  Future<void> _startTimer(BuildContext context) async {
+    for (int i = 3; i >= 1; i--) {
+      timerString = i.toString();
+      notifyListeners();
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    ;
+    timerString = "";
+    notifyListeners();
   }
 
   Future<void> _pushPreviewPage(BuildContext context) async {
@@ -172,9 +197,10 @@ class Camera extends StatelessWidget {
 class CameraPage extends StatefulWidget {
   // Returns a stack with the camera view on bottom and a bunch of bottons on
   // top. These buttons include a back arrow, a capture image/video button,
-  // a flip camera button, and a timer button. When the timer is pressed, a
-  // 3-second countdown is started. When this countdown ends, an image is
-  // captured.
+  // a flip camera button, and a timer toggle botton. If the timer is on, then
+  // when the user presses on the capture image button, a 3 second timer is
+  // started. When the time ends, an image is captured and the user is sent to
+  // the preview page.
 
   CameraPage({
     @required this.cameraUsage,
@@ -189,8 +215,6 @@ class CameraPage extends StatefulWidget {
 }
 
 class _CameraPageState extends State<CameraPage> {
-  String _timerString = "";
-
   @override
   Widget build(BuildContext context) {
     CameraProvider provider =
@@ -222,9 +246,7 @@ class _CameraPageState extends State<CameraPage> {
                           width: .26 * globals.size.width,
                           child: Center(
                             child: GestureDetector(
-                                child: _button(
-                                  "Flip Camera",
-                                ),
+                                child: _button("Flip Camera", Colors.grey[400]),
                                 onTap: () => provider.toggleCamera()),
                           )),
                     ),
@@ -232,15 +254,22 @@ class _CameraPageState extends State<CameraPage> {
                     Container(
                       alignment: Alignment.bottomLeft,
                       child: Container(
-                          width: .26 * globals.size.width,
-                          child: Center(
-                            child: GestureDetector(
-                                child: _button(
-                                  "Start Timer",
-                                ),
-                                onTap: () => _startTimer(context, provider)),
-                          )),
-                    ),
+                        width: .26 * globals.size.width,
+                        child: Center(
+                            child: Consumer<CameraProvider>(
+                          builder: (context, provider, child) =>
+                              GestureDetector(
+                                  child: _button(
+                                      provider.isTimerOn
+                                          ? "Timer On"
+                                          : "Timer Off",
+                                      provider.isTimerOn
+                                          ? Colors.white
+                                          : Colors.grey[400]),
+                                  onTap: () => provider.toggleTimer()),
+                        )),
+                      ),
+                    )
                   ],
                 ),
                 Container(
@@ -253,44 +282,32 @@ class _CameraPageState extends State<CameraPage> {
             ),
           ],
         ),
-        Container(
-            child: Center(
-                child: Text(_timerString,
-                    style: TextStyle(
-                        fontSize: .35 * globals.size.height,
-                        color: Colors.white))))
+        Consumer<CameraProvider>(
+            builder: (context, provider, child) => Container(
+                child: Center(
+                    child: Text(provider.timerString,
+                        style: TextStyle(
+                            fontSize: .35 * globals.size.height,
+                            color: Colors.white)))))
       ],
     );
   }
 
-  Widget _button(String buttonName) {
+  Widget _button(String buttonName, Color color) {
     return Container(
-      width: .2 * globals.size.width,
-      height: .0533 * globals.size.height,
+      width: .22 * globals.size.width,
+      height: .054 * globals.size.height,
+      padding: EdgeInsets.all(.001 * globals.size.height),
       decoration: new BoxDecoration(
         borderRadius:
             BorderRadius.all(Radius.circular(.02 * globals.size.height)),
-        color: Colors.grey[200].withOpacity(.7),
+        color: color.withOpacity(.8),
       ),
       child: Center(
           child: Text(buttonName,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: .0213 * globals.size.height))),
     );
-  }
-
-  Future<void> _startTimer(
-      BuildContext context, CameraProvider provider) async {
-    for (int i = 3; i >= 1; i--) {
-      _timerString = i.toString();
-      setState(() {});
-      await Future.delayed(const Duration(seconds: 1));
-    }
-    ;
-    _timerString = "";
-    setState(() {});
-
-    provider.takeImage(context);
   }
 }
 
