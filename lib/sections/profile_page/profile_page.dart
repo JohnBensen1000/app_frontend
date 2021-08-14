@@ -7,24 +7,33 @@ import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
 import '../../API/methods/blocked.dart';
 import '../../models/user.dart';
+import '../../models/post.dart';
 
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_dialog_container.dart';
 import '../../widgets/generic_alert_dialog.dart';
+import '../../widgets/wide_button.dart';
+
+import '../post/full_post_widget.dart';
+import '../post/post_widget.dart';
+import '../post/post_page.dart';
 
 import 'widgets/profile_page_header_button.dart';
 import 'profile_page_drawer.dart';
 
 class ProfilePageProvider extends ChangeNotifier {
   ProfilePageProvider({@required this.user}) {
-    _followingCallback();
+    _getUsersPosts();
+    _callbacks();
   }
 
-  final User user;
+  User user;
 
+  List<Post> _postsList;
+
+  List<Post> get postsList => _postsList;
   bool get isMainUsersProfile => user.uid == globals.user.uid;
-
   bool get isFollowing => globals.followingRepository.isFollowing(user.uid);
 
   void toggleFollowing() {
@@ -33,7 +42,7 @@ class ProfilePageProvider extends ChangeNotifier {
         : globals.followingRepository.follow(user);
   }
 
-  Future<void> blockCreator(BuildContext context) async {
+  Future<void> block(BuildContext context) async {
     await showDialog(
         context: context,
         builder: (context) {
@@ -55,8 +64,26 @@ class ProfilePageProvider extends ChangeNotifier {
     });
   }
 
-  void _followingCallback() async {
+  Future<void> delete(Post post) async {
+    bool response = await deletePost(post);
+
+    if (response != null && response) {
+      _postsList.remove(post);
+      notifyListeners();
+    }
+  }
+
+  void _getUsersPosts() async {
+    _postsList = await getUsersPosts(user);
+    notifyListeners();
+  }
+
+  void _callbacks() async {
     globals.followingRepository.stream.listen((following) {
+      notifyListeners();
+    });
+    globals.userRepository.stream.listen((updatedUser) {
+      user = updatedUser;
       notifyListeners();
     });
   }
@@ -83,11 +110,11 @@ class ProfilePage extends StatelessWidget {
                 ProfilePageHeader(
                   height: headerHeight,
                 ),
-                // ProfilePostBody(
-                //     user: user,
-                //     height: bodyHeight,
-                //     sidePadding: .05 * globals.size.width,
-                //     betweenPadding: .01 * globals.size.width),
+                ProfilePostBody(
+                    user: user,
+                    height: bodyHeight,
+                    sidePadding: .05 * globals.size.width,
+                    betweenPadding: .01 * globals.size.width),
               ],
             ),
             drawer: Container(
@@ -102,81 +129,80 @@ class ProfilePageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ProfilePageProvider provider =
-        Provider.of<ProfilePageProvider>(context, listen: false);
-
     return Container(
         padding: EdgeInsets.only(
             bottom: .02 * globals.size.height, top: .045 * globals.size.height),
         height: height,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: EdgeInsets.only(
-                top: .01 * globals.size.height,
-                left: .06 * globals.size.width,
-              ),
-              child: Row(
-                children: <Widget>[
-                  GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Center(child: BackArrow())),
-                ],
-              ),
-            ),
-            Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  ProfilePic(
-                    diameter: .18 * globals.size.height,
-                    user: provider.user,
-                  ),
-                  Container(
-                    child: Text(
-                      '${provider.user.username}',
-                      style: TextStyle(
-                        fontFamily: 'Helvetica Neue',
-                        fontSize: .03 * globals.size.height,
-                        color: const Color(0xff000000),
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                  Container(
-                    child: Text(
-                      '@${provider.user.userID}',
-                      style: TextStyle(
-                        fontFamily: 'Helvetica Neue',
-                        fontSize: .016 * globals.size.height,
-                        color: Colors.grey[400],
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                  Container(
-                    height: .02 * globals.size.height,
-                    child: SvgPicture.string(
-                      _svg_jmyh3o,
-                      allowDrawingOutsideViewBox: true,
-                    ),
-                  ),
-                  if (provider.user.uid != globals.user.uid)
+        child: Consumer<ProfilePageProvider>(
+            builder: (context, provider, child) => Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Container(
-                      width: .48 * globals.size.width,
+                      padding: EdgeInsets.only(
+                        top: .01 * globals.size.height,
+                        left: .06 * globals.size.width,
+                      ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _followBackButton(context),
-                          _blockButton(context)
+                        children: <Widget>[
+                          GestureDetector(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Center(child: BackArrow())),
                         ],
                       ),
-                    )
-                  else
-                    _openDrawerButton(context),
-                ]),
-          ],
-        ));
+                    ),
+                    Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          ProfilePic(
+                            diameter: .18 * globals.size.height,
+                            user: provider.user,
+                          ),
+                          Container(
+                            child: Text(
+                              '${provider.user.username}',
+                              style: TextStyle(
+                                fontFamily: 'Helvetica Neue',
+                                fontSize: .03 * globals.size.height,
+                                color: const Color(0xff000000),
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                          Container(
+                            child: Text(
+                              '@${provider.user.userID}',
+                              style: TextStyle(
+                                fontFamily: 'Helvetica Neue',
+                                fontSize: .016 * globals.size.height,
+                                color: Colors.grey[400],
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                          Container(
+                            height: .02 * globals.size.height,
+                            child: SvgPicture.string(
+                              _svg_jmyh3o,
+                              allowDrawingOutsideViewBox: true,
+                            ),
+                          ),
+                          if (provider.user.uid != globals.user.uid)
+                            Container(
+                              width: .48 * globals.size.width,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _followBackButton(context),
+                                  _blockButton(context)
+                                ],
+                              ),
+                            )
+                          else
+                            _openDrawerButton(context),
+                        ]),
+                  ],
+                )));
   }
 
   Widget _openDrawerButton(BuildContext context) {
@@ -185,7 +211,9 @@ class ProfilePageHeader extends StatelessWidget {
           width: .32 * globals.size.width,
           name: "Edit Profile",
           color: Colors.transparent,
-          borderColor: globals.user.profileColor,
+          borderColor: Provider.of<ProfilePageProvider>(context, listen: false)
+              .user
+              .profileColor,
         ),
         onTap: () => Scaffold.of(context).openDrawer());
   }
@@ -214,7 +242,7 @@ class ProfilePageHeader extends StatelessWidget {
         ),
         onTap: () async =>
             await Provider.of<ProfilePageProvider>(context, listen: false)
-                .blockCreator(context));
+                .block(context));
   }
 }
 
@@ -235,34 +263,187 @@ class ProfilePostBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: handleRequest(context, getUsersPosts(user)),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.data.length == 0)
-              return Center(child: Text("Nothing to display"));
-            else {
-              // List<Widget> profilePostsList =
-              //     _getProfilePostsList(context, snapshot.data);
+    return Consumer<ProfilePageProvider>(builder: (context, provider, child) {
+      if (provider.postsList == null || provider.postsList.length == 0)
+        return Center(child: Text("Nothing to display"));
+      else {
+        List<Widget> profilePostsList =
+            _getProfilePostsList(context, provider.postsList);
 
-              return Padding(
-                padding: EdgeInsets.only(left: sidePadding, right: sidePadding),
-                child: SizedBox(
-                  height: height,
-                  // child: new ListView.builder(
-                  //   padding: EdgeInsets.only(top: .01 * globals.size.height),
-                  //   itemCount: profilePostsList.length,
-                  //   itemBuilder: (BuildContext context, int index) {
-                  //     return profilePostsList[index];
-                  //   },
-                  // ),
-                ),
-              );
-            }
-          } else {
-            return Container();
+        return Padding(
+          padding: EdgeInsets.only(left: sidePadding, right: sidePadding),
+          child: SizedBox(
+            height: height,
+            child: new ListView.builder(
+              padding: EdgeInsets.only(top: .01 * globals.size.height),
+              itemCount: profilePostsList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return profilePostsList[index];
+              },
+            ),
+          ),
+        );
+      }
+    });
+  }
+
+  List<Widget> _getProfilePostsList(BuildContext context, List<Post> postList) {
+    // Determines width and height for every post on the profile page. The first
+    // widget in the return list is a large ProfilePostWidget(). The remaining
+    // posts are broken up into rows of rowSize (int) ProfilePostWidget().
+
+    double width = MediaQuery.of(context).size.width;
+    double mainPostHeight = (width - 2 * sidePadding) / globals.goldenRatio;
+    double bodyPostHeight =
+        (((width - 2 * sidePadding) / rowSize) - betweenPadding) *
+            globals.goldenRatio;
+
+    List<Widget> profilePosts = [
+      Padding(
+          padding: EdgeInsets.only(bottom: betweenPadding),
+          child: ProfilePostWidget(
+              post: postList[0],
+              height: mainPostHeight,
+              aspectRatio: 1 / globals.goldenRatio,
+              key: UniqueKey()))
+    ];
+
+    List<Widget> subPostsList = _getSubPostsList(postList, bodyPostHeight);
+
+    for (int i = 0; i < subPostsList.length; i += rowSize) {
+      profilePosts.add(Padding(
+        padding: EdgeInsets.only(bottom: betweenPadding),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: subPostsList.sublist(i, i + rowSize),
+        ),
+      ));
+    }
+    return profilePosts;
+  }
+
+  List<Widget> _getSubPostsList(List<dynamic> postList, double postHeight) {
+    // Creates a list of the remaining posts (not the main post). Adds empty
+    // containers so that the return list is evenly divisible by rowSize (int).
+
+    List<Widget> subPostsList = [];
+    int i = 1;
+
+    while ((i < postList.length) || ((i - 1) % rowSize != 0)) {
+      if (i < postList.length) {
+        Post post = postList[i];
+        subPostsList.add(ProfilePostWidget(
+            post: postList[i],
+            height: postHeight,
+            aspectRatio: globals.goldenRatio,
+            key: UniqueKey()));
+      } else {
+        subPostsList.add(
+          Container(
+            height: postHeight,
+            width: postHeight / globals.goldenRatio,
+          ),
+        );
+      }
+      i++;
+    }
+    return subPostsList;
+  }
+}
+
+class ProfilePostWidget extends StatefulWidget {
+  // The entire point of this widget is to keep each element in profile body's
+  // ListView.builder() alive when scrolling down. That way, it doesn't jump to
+  // the top when scrolling up.
+  ProfilePostWidget({
+    @required this.height,
+    @required this.post,
+    @required this.aspectRatio,
+    Key key,
+  }) : super(key: key);
+
+  final double height;
+  final Post post;
+  final double aspectRatio;
+
+  @override
+  _ProfilePostWidgetState createState() => _ProfilePostWidgetState();
+}
+
+class _ProfilePostWidgetState extends State<ProfilePostWidget>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        child: PostWidget(
+          post: widget.post,
+          height: widget.height,
+          aspectRatio: widget.aspectRatio,
+          playVideo: false,
+        ),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    PostPage(isFullPost: true, post: widget.post))),
+        onLongPress: () {
+          if (widget.post.creator.uid == globals.user.uid) {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return ProfilePostAlertDialog(post: widget.post);
+                }).then((willDelete) async {
+              if (willDelete != null && willDelete) {
+                await Provider.of<ProfilePageProvider>(context, listen: false)
+                    .delete(widget.post);
+              }
+            });
           }
         });
+  }
+}
+
+class ProfilePostAlertDialog extends StatelessWidget {
+  const ProfilePostAlertDialog({@required this.post});
+
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        content: Container(
+            height: .32 * globals.size.height,
+            width: .4 * globals.size.width,
+            padding: EdgeInsets.all(.02 * globals.size.height),
+            decoration: BoxDecoration(
+                color: Colors.white.withOpacity(.9),
+                border: Border.all(
+                  color: Colors.grey[800].withOpacity(.9),
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(20))),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                PostWidget(
+                    post: post,
+                    height: .2 * globals.size.height,
+                    aspectRatio: globals.goldenRatio),
+                GestureDetector(
+                    child: WideButton(buttonName: "Delete"),
+                    onTap: () => showDialog(
+                            context: context,
+                            builder: (BuildContext _) => AlertDialogContainer(
+                                dialogText:
+                                    "Are you sure you want to delete this post? It will be permanently removed from the app."))
+                        .then(
+                            (willDelete) => Navigator.pop(context, willDelete)))
+              ],
+            )));
   }
 }
 

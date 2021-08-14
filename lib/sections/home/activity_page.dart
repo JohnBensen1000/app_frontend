@@ -57,6 +57,8 @@ class ActivityProvider extends ChangeNotifier {
     await dontFollowBack(follower);
     await snapshot.reference.delete();
   }
+
+  Future<void> setIsUpdated() => globals.newActivityRepository.update();
 }
 
 class ActivityPage extends StatelessWidget {
@@ -95,6 +97,8 @@ class ActivityPage extends StatelessWidget {
                             child: Container(
                                 width: .35 * globals.size.width,
                                 height: .03 * globals.size.height,
+                                margin: EdgeInsets.symmetric(
+                                    vertical: .01 * globals.size.height),
                                 decoration: BoxDecoration(
                                     border: Border.all(
                                         color: Colors.grey[400], width: 2),
@@ -136,15 +140,14 @@ class ActivityPage extends StatelessWidget {
                           }).toList();
                         }), builder: (context, snapshot) {
                           if (snapshot.hasData) {
-                            globals.newActivityRepository.update();
+                            provider.setIsUpdated();
 
                             return Expanded(
                                 child: Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: .02 * globals.size.width),
                               child: ListView.builder(
-                                  padding: EdgeInsets.only(
-                                      top: .02 * globals.size.height),
+                                  padding: EdgeInsets.only(top: 0),
                                   itemCount: snapshot.data.length,
                                   itemBuilder: (context, index) =>
                                       snapshot.data[index]),

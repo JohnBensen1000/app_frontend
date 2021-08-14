@@ -21,7 +21,8 @@ import 'chats.dart';
 
 // import '../global.dart';
 import '../profile_page/profile_page.dart';
-
+import '../camera/camera.dart';
+import '../feeds/discover.dart';
 // import 'chats_list.dart';
 
 enum PageLabel {
@@ -86,9 +87,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     globals.blockedRepository = new BlockedRepository();
     globals.profileRepository = new ProfileRepository();
+    globals.userRepository = new UserRepository();
     globals.followingRepository = new FollowingRepository();
     globals.newActivityRepository = new NewActivityRepository();
-    globals.userRepository = new UserRepository();
     globals.chatsRepository = new ChatsRepository();
 
     super.initState();
@@ -188,13 +189,14 @@ class HomePageHeaderButtons extends StatelessWidget {
                     GestureDetector(
                       child: _iconContainer(
                           Image.asset('assets/images/camera_icon.png')),
-                      // onTap: () => Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //       builder: (context) => Camera(
-                      //             cameraUsage: CameraUsage.post,
-                      //           )),
-                    ),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Camera(
+                                  cameraUsage: CameraUsage.post,
+                                )),
+                      ),
+                    )
                   ],
                 ),
               )
@@ -351,7 +353,8 @@ class HomePageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget discover = Center(child: Text("discover"));
+    // Widget discover = Center(child: Text("discover"));
+    Widget discover = Center(child: DiscoverPage(height: height));
     // Widget friends = Center(child: Text("friends"));
     Widget chats = Center(
         child: Chats(

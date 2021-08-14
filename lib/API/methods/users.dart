@@ -20,6 +20,8 @@ Future<List<User>> getUsersFromSearchString(String searchString) async {
 Future<User> getUserFromUID(String uid) async {
   var response = await globals.baseAPI.get('v2/users/$uid');
 
+  if (response == null) return null;
+
   return User.fromJson(response);
 }
 
@@ -50,7 +52,7 @@ Future<Map> updatedThatUserIsUpdated() async {
   return await globals.baseAPI.put('v2/users/${globals.user.uid}/activity', {});
 }
 
-Future<Map> changeUsername(String username) async {
+Future<Map> updateUsername(String username) async {
   return await globals.baseAPI
       .put('v2/users/${globals.user.uid}', {'username': username});
 }

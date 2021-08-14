@@ -93,16 +93,19 @@ class ProfilePic extends StatelessWidget {
                       } else
                         return Container();
                     })),
-            Container(
-                width: diameter,
-                height: diameter,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius:
-                      BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-                  border: Border.all(
-                      width: .02 * diameter, color: user.profileColor),
-                )),
+            if (user.uid == globals.user.uid)
+              StreamBuilder(
+                  stream: globals.userRepository.stream,
+                  builder: (context, snapshot) {
+                    return FutureBuilder(
+                        future: globals.userRepository.get(user.uid),
+                        builder: (context, snapshot) => _profileBorder(
+                            snapshot.hasData
+                                ? snapshot.data.profileColor
+                                : Colors.transparent));
+                  })
+            else
+              _profileBorder(user.profileColor)
           ],
         ),
       ),
@@ -110,6 +113,17 @@ class ProfilePic extends StatelessWidget {
         if (user.uid != globals.user.uid) await _reportProfile(context);
       },
     );
+  }
+
+  Widget _profileBorder(Color color) {
+    return Container(
+        width: diameter,
+        height: diameter,
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
+          border: Border.all(width: .02 * diameter, color: color),
+        ));
   }
 
   Future<void> _reportProfile(BuildContext context) async {

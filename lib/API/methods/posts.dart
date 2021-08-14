@@ -39,6 +39,9 @@ Future<Map> uploadProfilePic(bool isImage, File file) async {
 
 Future<Post> getProfile(User user) async {
   var response = await globals.baseAPI.get('v2/posts/${user.uid}/profile');
+
+  if (response == null) return null;
+
   Profile profile = Profile.fromJson(response);
 
   if (profile.exists)
