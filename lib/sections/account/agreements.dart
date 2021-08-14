@@ -136,7 +136,7 @@ class PolicyAgreementPage extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   image: DecorationImage(
                                     image: const AssetImage(
-                                        'assets/images/entropy_small.png'),
+                                        'assets/images/Entropy_small.PNG'),
                                     fit: BoxFit.cover,
                                   ),
                                 ),

@@ -236,7 +236,7 @@ class HomeHeaderButtons extends StatelessWidget {
             GestureDetector(
                 child: Container(
                     height: .065 * globals.size.height,
-                    child: Image.asset('assets/images/Entropy.PNG')),
+                    child: Image.asset('assets/images/Entropy_small.PNG')),
                 onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(

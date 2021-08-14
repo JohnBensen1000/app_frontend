@@ -11,7 +11,8 @@ class AccountSubmitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
+      color: Colors.transparent,
       width: .446 * globals.size.width,
       height: .0616 * globals.size.height,
       child: Stack(

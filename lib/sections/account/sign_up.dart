@@ -152,7 +152,7 @@ class _SignUpState extends State<SignUp> {
                 children: <Widget>[
                   Container(
                       padding: EdgeInsets.only(
-                        top: .05 * globals.size.height,
+                        top: .01 * globals.size.height,
                       ),
                       height: (keyboardActivated)
                           ? (1 - titleBarHeight) * globals.size.height -

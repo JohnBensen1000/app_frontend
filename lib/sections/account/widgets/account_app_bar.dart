@@ -15,6 +15,7 @@ class AccountAppBar extends PreferredSize {
   Widget build(BuildContext context) {
     return Container(
       height: height,
+      padding: EdgeInsets.only(top: .05 * globals.size.height),
       child:
           Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
         Container(
@@ -27,10 +28,10 @@ class AccountAppBar extends PreferredSize {
         Container(
           width: double.infinity,
         ),
-        Container(
-            width: .18 * globals.size.height,
-            height: .18 * globals.size.height,
-            child: Image.asset('assets/images/entropy_small.png')),
+        Expanded(
+            // width: .18 * globals.size.height,
+            // height: .18 * globals.size.height,
+            child: Image.asset('assets/images/Entropy_small.PNG')),
       ]),
     );
   }
