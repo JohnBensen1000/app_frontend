@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/API/methods/posts.dart';
 import 'package:test_flutter/API/methods/users.dart';
 
 import '../../globals.dart' as globals;
@@ -8,13 +7,12 @@ import '../../widgets/profile_pic.dart';
 import '../../main.dart';
 import '../../widgets/alert_dialog_container.dart';
 import 'package:test_flutter/widgets/generic_text_button.dart';
-// import '../../repositories/account_repository.dart';
 
 import '../camera/camera.dart';
 
 import '../personalization/choose_color.dart';
-import '../personalization/preferences.dart';
 import '../personalization/change_username.dart';
+import '../personalization/preferences.dart';
 
 // import 'blocked_list.dart';
 
@@ -57,12 +55,11 @@ class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
                             MaterialPageRoute(
                                 builder: (context) => ColorsPage()))),
                     GenericTextButton(
-                      buttonName: "Set preferences",
-                      // onPressed: () => Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //         builder: (context) => PreferencesPage()))),
-                    ),
+                        buttonName: "Set preferences",
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => PreferencesPage()))),
                     GenericTextButton(
                         buttonName: "Change username",
                         onPressed: () => Navigator.push(
@@ -162,10 +159,13 @@ class _ProfileDrawerHeaderState extends State<ProfileDrawerHeader> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    ProfilePic(
-                      diameter: .2 * globals.size.height,
-                      user: globals.user,
-                    ),
+                    FutureBuilder(
+                        future: globals.userRepository.get(globals.uid),
+                        builder: (context, snapshot) => snapshot.hasData
+                            ? ProfilePic(
+                                diameter: .2 * globals.size.height,
+                                user: snapshot.data)
+                            : Container()),
                     Text("Take New Photo",
                         style: TextStyle(
                             shadows: <Shadow>[

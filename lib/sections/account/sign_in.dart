@@ -9,7 +9,7 @@ import 'widgets/input_field.dart';
 import 'widgets/account_submit_button.dart';
 
 import '../../globals.dart' as globals;
-// import '../home/home_screen.dart';
+import '../home/home_page.dart';
 import '../../API/methods/users.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
@@ -39,9 +39,6 @@ class _SignInState extends State<SignIn> {
   @override
   Widget build(BuildContext context) {
     bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
-
-    // emailInputField.textEditingController.text = 'john@gmail.com';
-    // passwordInputField.textEditingController.text = 'test12345';
 
     return Scaffold(
         appBar: AccountAppBar(height: .21 * globals.size.height),
@@ -100,19 +97,15 @@ class _SignInState extends State<SignIn> {
           AuthorizationStatus.authorized)
         await FirebaseMessaging.instance.requestPermission();
 
-      globals.user =
-          await handleRequest(context, getUserFromUID(firebaseUser.uid));
+      globals.uid =
+          (await handleRequest(context, getUserFromUID(firebaseUser.uid))).uid;
       await handleRequest(context,
           updateDeviceToken(await FirebaseMessaging.instance.getToken()));
 
       await globals.accountRepository.setUid(uid: firebaseUser.uid);
 
-      // Navigator.push(
-      //     context,
-      //     MaterialPageRoute(
-      //         builder: (context) => Home(
-      //               pageLabel: PageLabel.friends,
-      //             )));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => HomePage()));
     } on firebase_auth.FirebaseAuthException catch (error) {
       _displayErrorMessages(error.code);
     }

@@ -17,9 +17,8 @@ firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 class SignUpProvider extends ChangeNotifier {
   // Contains state of entire sign up page. Contains InputField object for
   // every input field. Has functionality for checking if input data is
-  // valid and creating a new account. If there are any errors  with the input
-  // data, create appropriate error messages. Creates both a firebase and a
-  // user account in the database.
+  // valid and creating a new account. If there are any errors with the input
+  // data, create appropriate error messages.
 
   final InputField name;
   final InputField email;
@@ -35,10 +34,12 @@ class SignUpProvider extends ChangeNotifier {
 
   List<InputField> get inputFields => [name, email, username, password];
 
-  Future<bool> createNewAccount(BuildContext context) async {
+  Future<void> createNewAccount(BuildContext context) async {
     // Clears all error messages. Checks if the inputs are valid and if the
     // given userID and/or email have been taken. Also checks if the passwords
-    // are strong enough. Returns true if all checks pass, false otherwise.
+    // are strong enough. Returns true if all checks pass, false otherwise. If
+    // the new account is valid, sends user to agreements page. Otherwise,
+    // rebuilds sign up page with appropriate error messages.
 
     for (InputField inputField in inputFields) inputField.errorText = "";
     bool isNewAccountValid = true;
@@ -48,12 +49,21 @@ class SignUpProvider extends ChangeNotifier {
     } else {
       if (!_checkIfEmailValid()) isNewAccountValid = false;
       if (!(await _checkIfEmailNotTaken())) isNewAccountValid = false;
-      if (!(await _checkIfUserIdAvailable(context))) isNewAccountValid = false;
+      if (!(await _checkIfUserIdAvailable())) isNewAccountValid = false;
       if (!_checkIfPasswordStrongEnough()) isNewAccountValid = false;
     }
-
-    notifyListeners();
-    return isNewAccountValid;
+    if (isNewAccountValid)
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PolicyAgreementPage(
+                    name: name.textEditingController.text,
+                    email: email.textEditingController.text,
+                    username: username.textEditingController.text,
+                    password: password.textEditingController.text,
+                  )));
+    else
+      notifyListeners();
   }
 
   bool _checkIfEmpty() {
@@ -79,9 +89,21 @@ class SignUpProvider extends ChangeNotifier {
     return isEmailValid;
   }
 
-  Future<bool> _checkIfUserIdAvailable(BuildContext context) async {
-    List<User> users = await handleRequest(context,
-        getUsersFromSearchString((username.textEditingController.text)));
+  Future<bool> _checkIfEmailNotTaken() async {
+    // Uses the method fetchSignInMethodsForEmail() to check if the given email
+    // exists in firebase. Returns true if the email is taken, false otherwise.
+
+    bool isEmailNotTaken = (await auth
+            .fetchSignInMethodsForEmail(email.textEditingController.text))
+        .isEmpty;
+
+    if (!isEmailNotTaken) email.errorText = "Email is already taken.";
+    return isEmailNotTaken;
+  }
+
+  Future<bool> _checkIfUserIdAvailable() async {
+    List<User> users =
+        await getUsersFromSearchString((username.textEditingController.text));
 
     bool isUserIdTaken = false;
 
@@ -93,18 +115,6 @@ class SignUpProvider extends ChangeNotifier {
     if (isUserIdTaken) username.errorText = "Username already taken";
 
     return !isUserIdTaken;
-  }
-
-  Future<bool> _checkIfEmailNotTaken() async {
-    // Uses the method fetchSignInMethodsForEmail() to check if the given email
-    // exists in firebase. Returns true if the email is taken, false otherwise.
-
-    bool isEmailNotTaken = (await auth
-            .fetchSignInMethodsForEmail(email.textEditingController.text))
-        .isEmpty;
-
-    if (!isEmailNotTaken) email.errorText = "Email is already taken.";
-    return isEmailNotTaken;
   }
 
   bool _checkIfPasswordStrongEnough() {
@@ -120,8 +130,7 @@ class SignUpProvider extends ChangeNotifier {
 class SignUp extends StatefulWidget {
   // Initializes SignUpProvider() with all the appropraite InputFields. Returns
   // a ListView.builder() with all the InputWidgets. Hides AccountSubmitButton()
-  // when the user starts typing in one of the InputFieldWidgets(). If the
-  // input fields are valid, sends the user to the agreements page
+  // when the user starts typing in one of the InputFieldWidgets().
 
   @override
   _SignUpState createState() => _SignUpState();
@@ -134,7 +143,6 @@ class _SignUpState extends State<SignUp> {
     double forwardButtonHeight = .15;
 
     bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
-
     double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return ChangeNotifierProvider(
@@ -171,22 +179,7 @@ class _SignUpState extends State<SignUp> {
                       alignment: Alignment.topCenter,
                       child: GestureDetector(
                           child: ForwardArrow(),
-                          onTap: () async {
-                            if (await provider.createNewAccount(context))
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => PolicyAgreementPage(
-                                            name: provider.name
-                                                .textEditingController.text,
-                                            email: provider.email
-                                                .textEditingController.text,
-                                            username: provider.username
-                                                .textEditingController.text,
-                                            password: provider.password
-                                                .textEditingController.text,
-                                          )));
-                          }),
+                          onTap: () => provider.createNewAccount(context)),
                     ),
                 ],
               ),

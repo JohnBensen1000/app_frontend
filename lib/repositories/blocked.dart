@@ -6,19 +6,19 @@ import 'package:test_flutter/repositories/repository.dart';
 import '../../models/user.dart';
 
 class BlockedRepository extends Repository<List<User>> {
-  BlockedRepository() {
-    _getInitialValue();
-  }
-
   List<User> _blockedList;
 
-  List<User> get blockedList => _blockedList;
+  List<User> get blockedList {
+    if (_blockedList != null) return _blockedList;
+    _getBlockedList();
+    return [];
+  }
 
   Future<Map> block(User user) async {
     var response = await blockUser(user);
 
     if (response != null && !response.containsKey("denied")) {
-      _blockedList.add(User.fromJson(response));
+      blockedList.add(user);
       super.controller.sink.add(_blockedList);
       return {};
     }
@@ -36,7 +36,7 @@ class BlockedRepository extends Repository<List<User>> {
     return false;
   }
 
-  Future<void> _getInitialValue() async {
+  Future<void> _getBlockedList() async {
     var response = await getBlockedUsers();
 
     if (response != null) {

@@ -8,7 +8,7 @@ Future<Map> createNewAccount(Map postBody) async {
 
 Future<List<User>> getUsersFromSearchString(String searchString) async {
   Map<String, dynamic> queryParameters = {'contains': searchString};
-  if (globals.user != null) queryParameters['uid'] = globals.user.uid;
+  if (globals.uid != null) queryParameters['uid'] = globals.uid;
   var response =
       await globals.baseAPI.get("v2/users", queryParameters: queryParameters);
 
@@ -26,33 +26,33 @@ Future<User> getUserFromUID(String uid) async {
 }
 
 Future<bool> deleteAccount() async {
-  var response = await globals.baseAPI.delete('v2/users/${globals.user.uid}');
+  var response = await globals.baseAPI.delete('v2/users/${globals.uid}');
 
   return response['deleted'];
 }
 
 Future<Map> updateDeviceToken(String deviceToken) async {
   return await globals.baseAPI
-      .put('v2/users/${globals.user.uid}', {'deviceToken': deviceToken});
+      .put('v2/users/${globals.uid}', {'deviceToken': deviceToken});
 }
 
 Future<Map> updateColor(String profileColor) async {
   return await globals.baseAPI
-      .put('v2/users/${globals.user.uid}', {'profileColor': profileColor});
+      .put('v2/users/${globals.uid}', {'profileColor': profileColor});
 }
 
 Future<bool> getIfUserIsUpdated() async {
-  var response =
-      await globals.baseAPI.get('v2/users/${globals.user.uid}/activity');
+  var response = await globals.baseAPI.get('v2/users/${globals.uid}/activity');
 
+  if (response == null) return null;
   return response['isUpdated'];
 }
 
 Future<Map> updatedThatUserIsUpdated() async {
-  return await globals.baseAPI.put('v2/users/${globals.user.uid}/activity', {});
+  return await globals.baseAPI.put('v2/users/${globals.uid}/activity', {});
 }
 
 Future<Map> updateUsername(String username) async {
   return await globals.baseAPI
-      .put('v2/users/${globals.user.uid}', {'username': username});
+      .put('v2/users/${globals.uid}', {'username': username});
 }

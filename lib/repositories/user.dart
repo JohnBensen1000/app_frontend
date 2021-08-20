@@ -9,26 +9,28 @@ import '../../globals.dart' as globals;
 import 'repository.dart';
 
 class UserRepository extends Repository<User> {
-  Map<String, User> _users = new Map<String, User>();
+  Map<String, Future<User>> _users = {};
 
   Future<User> get(String uid) async {
     if (!_users.containsKey(uid)) {
-      var response = await getUserFromUID(uid);
-      if (response == null) return null;
-      _users[uid] = response;
+      _users[uid] = getUserFromUID(uid);
     }
-    return _users[uid];
+    return await _users[uid];
   }
 
   Future<void> changeColor(String colorCode) async {
     Map response = await updateColor(colorCode);
-    _users[globals.user.uid] = User.fromJson(response);
-    super.controller.sink.add(_users[globals.user.uid]);
+    _users[globals.uid] = _getUserFromJson(response);
+    super.controller.sink.add(await _users[globals.uid]);
   }
 
   Future<void> changeUsername(String newUsername) async {
     Map response = await updateUsername(newUsername);
-    _users[globals.user.uid] = User.fromJson(response);
-    super.controller.sink.add(_users[globals.user.uid]);
+    _users[globals.uid] = _getUserFromJson(response);
+    super.controller.sink.add(await _users[globals.uid]);
+  }
+
+  Future<User> _getUserFromJson(Map response) async {
+    return User.fromJson(response);
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test_flutter/API/handle_requests.dart';
-// import 'package:test_flutter/sections/camera/camera.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,9 +10,10 @@ import '../../API/methods/users.dart';
 import '../../models/user.dart';
 import '../../widgets/wide_button.dart';
 
-// import '../home/home_screen.dart';
-// import '../personalization/choose_color.dart';
-// import '../personalization/preferences.dart';
+import '../personalization/choose_color.dart';
+import '../personalization/preferences.dart';
+import '../home/home_page.dart';
+import '../camera/camera.dart';
 
 import 'widgets/account_submit_button.dart';
 import 'widgets/account_app_bar.dart';
@@ -35,14 +35,98 @@ class PolicyAgreement {
 }
 
 class PolicyAgreementProvider extends ChangeNotifier {
-  // Contains a list of PolicyAgreements that are used throughout the page.
+  // Contains a list of PolicyAgreements that are used throughout the page. Also
+  // contains functionality for creating an account. If the two agreements are
+  // agreed to, creates a new account and sends the user to the next page.
+  // If the agreements are not agreed to, displays an alert dialog telling the
+  // user that they have to agree to the agreements.
 
-  PolicyAgreementProvider({@required this.policyAgreements});
+  PolicyAgreementProvider(
+      {@required this.policyAgreements,
+      @required this.name,
+      @required this.email,
+      @required this.username,
+      @required this.password});
+
+  final String name;
+  final String email;
+  final String username;
+  final String password;
 
   final List<PolicyAgreement> policyAgreements;
 
   void resetState() {
     notifyListeners();
+  }
+
+  Future<void> createAccountIfAgreementsAreAccepted(
+      BuildContext context) async {
+    // Goes through each policyAgreement and checks if the user has accepted. If
+    // the user accepted all the policies, creates a new account for the user,
+    // then, if no error occur in creating the new account, pushes the user to
+    // the a list of pages that will customize their account. If the user has
+    // not agreed to all the policies, shows an alert dialog telling the user
+    // that they still have to agree to all the policies.
+
+    bool areAgreementsAccepted = true;
+
+    for (PolicyAgreement policyAgreement in policyAgreements) {
+      if (policyAgreement.isAccepted == false) {
+        areAgreementsAccepted = false;
+        break;
+      }
+    }
+    if (areAgreementsAccepted) {
+      if (await createAccount()) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => HomePage()));
+
+        Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
+        Navigator.push(context, SlideRightRoute(page: ColorsPage()));
+        Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
+      }
+    } else {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) => AgreementsAlertDialog());
+    }
+  }
+
+  Future<bool> createAccount() async {
+    // Creates a firebase account and an account in the database. Asks the user
+    // for permission to send push notifications. Then sets globals.user to the
+    // newly created account. If an error occurs in creating the account on the
+    // backend, deletes the firebase account and returns false. Returns true
+    // otherwise.
+
+    firebase_auth.User firebaseUser =
+        (await auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    ))
+            .user;
+
+    Map newAccount = {
+      'uid': firebaseUser.uid,
+      'userID': username,
+      'username': name,
+      'email': email,
+    };
+
+    var response = await createNewAccount(newAccount);
+    if (response != null) {
+      await FirebaseMessaging.instance.requestPermission();
+
+      globals.uid = firebaseUser.uid;
+
+      await updateDeviceToken(await FirebaseMessaging.instance.getToken());
+
+      await globals.accountRepository.setUid(uid: firebaseUser.uid);
+      return true;
+    } else {
+      await firebaseUser.delete();
+      return false;
+    }
   }
 }
 
@@ -68,17 +152,21 @@ class PolicyAgreementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (BuildContext context) =>
-            PolicyAgreementProvider(policyAgreements: [
-              PolicyAgreement(
-                  policyName: "Privacy",
-                  policyUrl:
-                      "https://www.freeprivacypolicy.com/live/352d97f4-51ce-44a1-9364-93a39be1f31a"),
-              PolicyAgreement(
-                  policyName: "EULA",
-                  policyUrl:
-                      'https://www.termsfeed.com/live/f1bf5631-dbd3-4245-92fd-a63f45d16db7')
-            ]),
+        create: (BuildContext context) => PolicyAgreementProvider(
+                name: name,
+                email: email,
+                username: username,
+                password: password,
+                policyAgreements: [
+                  PolicyAgreement(
+                      policyName: "Privacy",
+                      policyUrl:
+                          "https://www.freeprivacypolicy.com/live/352d97f4-51ce-44a1-9364-93a39be1f31a"),
+                  PolicyAgreement(
+                      policyName: "EULA",
+                      policyUrl:
+                          'https://www.termsfeed.com/live/f1bf5631-dbd3-4245-92fd-a63f45d16db7')
+                ]),
         child: Consumer<PolicyAgreementProvider>(
             builder: (context, provider, child) => Scaffold(
                 backgroundColor: const Color(0xffffffff),
@@ -158,88 +246,11 @@ class PolicyAgreementPage extends StatelessWidget {
                           child: AccountSubmitButton(
                             buttonName: "Sign Up",
                           ),
-                          onTap: () async =>
-                              await _createAccountIfAgreementsAreAccepted(
-                                  context, provider))
+                          onTap: () async => await provider
+                              .createAccountIfAgreementsAreAccepted(context))
                     ],
                   ),
                 ))));
-  }
-
-  Future<void> _createAccountIfAgreementsAreAccepted(
-      BuildContext context, PolicyAgreementProvider provider) async {
-    // Goes through each policyAgreement and checks if the user has accepted. If
-    // the user accepted all the policies, creates a new account for the user,
-    // then, if no error occur in creating the new account, pushes the user to
-    // the a list of pages that will customize their account. If the user has
-    // not agreed to all the policies, shows an alert dialog telling the user
-    // that they still have to agree to all the policies.
-
-    bool areAgreementsAccepted = true;
-
-    for (PolicyAgreement policyAgreement in provider.policyAgreements) {
-      if (policyAgreement.isAccepted == false) {
-        areAgreementsAccepted = false;
-        break;
-      }
-    }
-    if (areAgreementsAccepted) {
-      if (await _createAccount(context)) {
-        // Navigator.push(
-        //     context,
-        //     MaterialPageRoute(
-        //         builder: (context) => Home(
-        //               pageLabel: PageLabel.friends,
-        //             )));
-
-        // Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
-        // Navigator.push(context, SlideRightRoute(page: ColorsPage()));
-        Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
-      }
-    } else {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) => AgreementsAlertDialog());
-    }
-  }
-
-  Future<bool> _createAccount(BuildContext context) async {
-    // Creates a firebase account and an account in the database. Asks the user
-    // for permission to send push notifications. Then sets globals.user to the
-    // newly created account. If an error occurs in creating the account on the
-    // backend, deletes the firebase account and returns false. Returns true
-    // otherwise.
-
-    firebase_auth.User firebaseUser =
-        (await auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    ))
-            .user;
-
-    Map newAccount = {
-      'uid': firebaseUser.uid,
-      'userID': username,
-      'username': name,
-      'email': email,
-    };
-
-    var response = await handleRequest(context, createNewAccount(newAccount));
-    if (response != null) {
-      await FirebaseMessaging.instance.requestPermission();
-
-      globals.user =
-          await handleRequest(context, getUserFromUID(firebaseUser.uid));
-
-      await handleRequest(context,
-          updateDeviceToken(await FirebaseMessaging.instance.getToken()));
-
-      await globals.accountRepository.setUid(uid: firebaseUser.uid);
-      return true;
-    } else {
-      await firebaseUser.delete();
-      return false;
-    }
   }
 }
 
@@ -407,12 +418,12 @@ class TakeProfilePage extends StatelessWidget {
                       child: WideButton(
                         buttonName: "Take profile picture",
                       ),
-                      // onTap: () => Navigator.push(
-                      //     context,
-                      //     SlideRightRoute(
-                      //         page: Camera(
-                      //       cameraUsage: CameraUsage.profile,
-                      //     ))).then((_) => Navigator.pop(context)),
+                      onTap: () => Navigator.push(
+                          context,
+                          SlideRightRoute(
+                              page: Camera(
+                            cameraUsage: CameraUsage.profile,
+                          ))).then((_) => Navigator.pop(context)),
                     ),
                     GestureDetector(
                         child: WideButton(

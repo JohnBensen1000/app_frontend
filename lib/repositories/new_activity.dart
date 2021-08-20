@@ -17,8 +17,10 @@ class NewActivityRepository extends Repository<bool> {
 
   Future<void> update() async {
     Map response = await updatedThatUserIsUpdated();
-    _newActivity = !response['isUpdated'];
-    super.controller.sink.add(_newActivity);
+    if (response != null) {
+      _newActivity = !response['isUpdated'];
+      super.controller.sink.add(_newActivity);
+    }
   }
 
   Future<void> _newActivityCallback() async {

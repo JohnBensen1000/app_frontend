@@ -9,7 +9,7 @@ import '../baseAPI.dart';
 
 Future<Map> postNewPost(
     bool isImage, bool isPrivate, File file, String caption) async {
-  String downloadURL = await uploadFile(file, globals.user.uid, isImage);
+  String downloadURL = await uploadFile(file, globals.uid, isImage);
 
   Map postBody = {
     'isImage': isImage,
@@ -18,7 +18,7 @@ Future<Map> postNewPost(
     'caption': caption,
   };
 
-  return await globals.baseAPI.post("v2/posts/${globals.user.uid}", postBody);
+  return await globals.baseAPI.post("v2/posts/${globals.uid}", postBody);
 }
 
 Future<List<Post>> getUsersPosts(User user) async {
@@ -30,11 +30,11 @@ Future<List<Post>> getUsersPosts(User user) async {
 }
 
 Future<Map> uploadProfilePic(bool isImage, File file) async {
-  String downloadURL = await uploadFile(file, globals.user.uid, isImage);
+  String downloadURL = await uploadFile(file, globals.uid, isImage);
 
   Map postBody = {'isImage': isImage, 'downloadURL': downloadURL};
   return await globals.baseAPI
-      .post("v2/posts/${globals.user.uid}/profile", postBody);
+      .post("v2/posts/${globals.uid}/profile", postBody);
 }
 
 Future<Post> getProfile(User user) async {
@@ -62,8 +62,8 @@ Future<Post> getPostFromPostID(User user, Post post) async {
 }
 
 Future<bool> deletePost(Post post) async {
-  var response = await globals.baseAPI
-      .delete('v2/posts/${globals.user.uid}/${post.postID}');
+  var response =
+      await globals.baseAPI.delete('v2/posts/${globals.uid}/${post.postID}');
 
   return response['deleted'];
 }

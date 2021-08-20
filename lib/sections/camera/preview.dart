@@ -224,14 +224,20 @@ class PreviewView extends StatelessWidget {
 
     return Center(
       child: Stack(alignment: Alignment.center, children: <Widget>[
-        Container(
-          height: height,
-          width: width,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(cornerRadius),
-            border: Border.all(width: 1.0, color: globals.user.profileColor),
-          ),
-        ),
+        FutureBuilder(
+            future: globals.userRepository.get(globals.uid),
+            builder: (context, snapshot) => Container(
+                  height: height,
+                  width: width,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(cornerRadius),
+                    border: Border.all(
+                        width: 1.0,
+                        color: snapshot.hasData
+                            ? snapshot.data.profileColor
+                            : Colors.grey[300]),
+                  ),
+                )),
         Container(
             height: height - 2,
             width: width - 2,

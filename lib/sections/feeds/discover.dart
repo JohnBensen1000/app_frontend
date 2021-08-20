@@ -25,7 +25,7 @@ class DiscoverPage extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(top: .0118 * globals.size.height),
       child: PostList(
-        function: getRecommendations,
+        repository: globals.recommendationPostsRepository,
         height: height,
       ),
     );

@@ -36,7 +36,7 @@ class _WelcomeState extends State<Welcome> {
                       globals.size = globals.SizeConfig(context: context);
 
                       if (snapshot.hasData) {
-                        globals.user = snapshot.data;
+                        globals.uid = snapshot.data.uid;
 
                         return HomePage();
                       } else

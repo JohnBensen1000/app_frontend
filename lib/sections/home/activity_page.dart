@@ -19,7 +19,7 @@ class ActivityProvider extends ChangeNotifier {
   CollectionReference<Map<String, dynamic>> activityCollection =
       FirebaseFirestore.instance
           .collection('ACTIVITY')
-          .doc(globals.user.uid)
+          .doc(globals.uid)
           .collection('activity');
 
   bool get onlyShowNewFollowers => _onlyShowNewFollowers;
@@ -116,27 +116,26 @@ class ActivityPage extends StatelessWidget {
                         StreamBuilder(
                             stream: provider.activitiesStream.map((snapshot) {
                           return snapshot.docs.map((snapshot) {
-                            return Container(
-                              height: .1 * globals.size.height,
-                              child: Row(children: [
-                                snapshot.data()['isNew']
-                                    ? Container(
-                                        width: .05 * globals.size.width,
-                                        child: Center(
-                                            child: AlertCircle(
-                                          diameter: .01 * globals.size.width,
-                                          color: globals.user.profileColor,
-                                        )),
-                                      )
-                                    : Container(
-                                        width: .05 * globals.size.width,
-                                      ),
-                                Expanded(
-                                    child: Container(
-                                        child: _getActivityWidget(snapshot,
-                                            provider.onlyShowNewFollowers)))
-                              ]),
-                            );
+                            return _getActivityItem(
+                                snapshot, provider.onlyShowNewFollowers);
+                            // return Container(
+                            //   height: .1 * globals.size.height,
+                            //   child: Row(children: [
+                            //     snapshot.data()['isNew']
+                            //         ? Container(
+                            //             width: .05 * globals.size.width,
+                            //             child: Center(
+                            //                 child: AlertCircle(
+                            //               diameter: .02 * globals.size.width,
+                            //             )),
+                            //           )
+                            //         : Container(
+                            //             width: .05 * globals.size.width,
+                            //           ),
+                            //     Expanded(
+                            //         child: Container(
+                            //             child: _getActivityWidget(snapshot,
+                            //                 provider.onlyShowNewFollowers)))
                           }).toList();
                         }), builder: (context, snapshot) {
                           if (snapshot.hasData) {
@@ -160,13 +159,32 @@ class ActivityPage extends StatelessWidget {
                     ))));
   }
 
-  Widget _getActivityWidget(var snapshot, bool onlyShowNewFollowers) {
+  Widget _getActivityItem(var snapshot, bool onlyShowNewFollowers) {
     Map docData = snapshot.data();
 
     if (onlyShowNewFollowers && docData['type'] != 'new_follower')
       return Container();
 
-    switch (docData['type']) {
+    return Container(
+        height: .1 * globals.size.height,
+        child: Row(children: [
+          snapshot.data()['isNew']
+              ? Container(
+                  width: .05 * globals.size.width,
+                  child: Center(
+                      child: AlertCircle(
+                    diameter: .02 * globals.size.width,
+                  )),
+                )
+              : Container(
+                  width: .05 * globals.size.width,
+                ),
+          Expanded(child: Container(child: _getActivityWidget(snapshot)))
+        ]));
+  }
+
+  Widget _getActivityWidget(var snapshot) {
+    switch (snapshot.data()['type']) {
       case 'comment':
         return ActivityCommentWidget(snapshot: snapshot);
       case 'new_follower':
@@ -239,14 +257,14 @@ class ActivityCommentWidget extends StatelessWidget {
   }
 
   Future<void> _handleOnTap(BuildContext context, Post post) async {
-    // await Navigator.push(
-    //     context,
-    //     MaterialPageRoute(
-    //         builder: (context) => PostPage(
-    //               post: post,
-    //               isFullPost: true,
-    //               showComments: true,
-    //             )));
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => PostPage(
+                  post: post,
+                  isFullPost: true,
+                  showComments: true,
+                )));
     await Provider.of<ActivityProvider>(context, listen: false)
         .setNotNew(snapshot);
   }
@@ -379,10 +397,10 @@ class ActivityFollowerWidget extends StatelessWidget {
           ),
         ),
         onTap: () async {
-          // await Navigator.push(
-          //     context,
-          //     MaterialPageRoute(
-          //         builder: (context) => ProfilePage(user: follower)));
+          await Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ProfilePage(user: follower)));
           await Provider.of<ActivityProvider>(context, listen: false)
               .setNotNew(snapshot);
         });

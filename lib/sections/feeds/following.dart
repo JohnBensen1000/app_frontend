@@ -24,7 +24,7 @@ class FollowingPage extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(top: .0118 * globals.size.height),
       child: PostList(
-        function: getFollowingPosts,
+        repository: globals.followingPostsRepository,
         height: height,
       ),
     );

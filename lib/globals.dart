@@ -14,8 +14,11 @@ import 'repositories/new_activity.dart';
 import 'repositories/profile.dart';
 import 'repositories/user.dart';
 import 'repositories/account.dart';
+import 'repositories/post_list.dart';
 
-User user;
+// User user;
+String uid;
+
 double goldenRatio = 1.61803398875;
 double cornerRadiusRatio = 1 / 19; // Fraction of height that corner radius is
 
@@ -53,3 +56,6 @@ FollowingRepository followingRepository;
 NewActivityRepository newActivityRepository;
 ProfileRepository profileRepository;
 UserRepository userRepository;
+PostListRepository recommendationPostsRepository;
+PostListRepository followingPostsRepository;
+// CommentsRepository commentsRepository;

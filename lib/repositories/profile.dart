@@ -12,7 +12,12 @@ import 'repository.dart';
 class ProfileRepository extends Repository<Post> {
   Map<String, Post> _profilePostsMap = new Map<String, Post>();
 
-  Future<Post> get(User user) async {
+  bool contains(User user) => _profilePostsMap.containsKey(user.uid);
+  Post get(User user) => _profilePostsMap.containsKey(user.uid)
+      ? _profilePostsMap[user.uid]
+      : null;
+
+  Future<Post> getFuture(User user) async {
     if (!_profilePostsMap.containsKey(user.uid))
       _profilePostsMap[user.uid] = await getProfile(user);
 
@@ -24,13 +29,15 @@ class ProfileRepository extends Repository<Post> {
 
     if (response.containsKey("denied")) return response;
 
-    _profilePostsMap[globals.user.uid] = Post(
-        creator: globals.user,
+    User user = await globals.userRepository.get(globals.uid);
+
+    _profilePostsMap[globals.uid] = Post(
+        creator: user,
         postID: 'profile',
         isImage: response['isImage'],
         downloadURL: response['downloadURL']);
 
-    super.controller.sink.add(_profilePostsMap[globals.user.uid]);
+    super.controller.sink.add(_profilePostsMap[globals.uid]);
 
     return {};
   }

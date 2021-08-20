@@ -49,6 +49,5 @@ class FollowingRepository extends Repository<Map<String, bool>> {
 
   Future<void> _refreshCallback() async {
     globals.blockedRepository.stream.listen((_) => _getFollowingMap());
-    // globals.userRepository.stream.listen((_) => print("Hello"));
   }
 }

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import 'sections/welcome.dart';
 
+import 'globals.dart' as globals;
+
 main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
@@ -50,7 +52,8 @@ class _LifeCycleState extends State<LifeCycle> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) setState(() {});
+    if (state == AppLifecycleState.resumed) if (globals.chatsRepository != null)
+      globals.chatsRepository.refreshChatsList() ;
   }
 
   @override

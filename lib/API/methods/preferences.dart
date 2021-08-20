@@ -11,6 +11,5 @@ Future<List<String>> getPreferenceFields() async {
 Future<Map> postUserPreferences(List<String> updatePreferences) async {
   Map<String, List<String>> postBody = {'preferences': updatePreferences};
 
-  return await globals.baseAPI
-      .put('v2/preferences/${globals.user.uid}', postBody);
+  return await globals.baseAPI.put('v2/preferences/${globals.uid}', postBody);
 }

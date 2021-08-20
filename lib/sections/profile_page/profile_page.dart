@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
-import '../../API/methods/blocked.dart';
 import '../../models/user.dart';
 import '../../models/post.dart';
 
@@ -15,7 +13,6 @@ import '../../widgets/alert_dialog_container.dart';
 import '../../widgets/generic_alert_dialog.dart';
 import '../../widgets/wide_button.dart';
 
-import '../post/full_post_widget.dart';
 import '../post/post_widget.dart';
 import '../post/post_page.dart';
 
@@ -23,7 +20,15 @@ import 'widgets/profile_page_header_button.dart';
 import 'profile_page_drawer.dart';
 
 class ProfilePageProvider extends ChangeNotifier {
+  // Keeps track of the list of the creator's posts, whether the profile page
+  // belongs to the main user, and if the main user is following the profile
+  // page's creator. Also allows the user to start/stop following the creator,
+  // and allows the user to block the creator. If the profile page belongs to
+  // the user, then allows the user to delete their posts. Rebuilds the profile
+  // page whenever the user changes any of their settings.
+
   ProfilePageProvider({@required this.user}) {
+    _allowFollowingChange = true;
     _getUsersPosts();
     _callbacks();
   }
@@ -31,15 +36,20 @@ class ProfilePageProvider extends ChangeNotifier {
   User user;
 
   List<Post> _postsList;
+  bool _allowFollowingChange;
 
   List<Post> get postsList => _postsList;
-  bool get isMainUsersProfile => user.uid == globals.user.uid;
+  bool get isMainUsersProfile => user.uid == globals.uid;
   bool get isFollowing => globals.followingRepository.isFollowing(user.uid);
 
-  void toggleFollowing() {
-    isFollowing
-        ? globals.followingRepository.unfollow(user)
-        : globals.followingRepository.follow(user);
+  void toggleFollowing() async {
+    if (_allowFollowingChange) {
+      _allowFollowingChange = false;
+      isFollowing
+          ? await globals.followingRepository.unfollow(user)
+          : await globals.followingRepository.follow(user);
+      _allowFollowingChange = true;
+    }
   }
 
   Future<void> block(BuildContext context) async {
@@ -90,6 +100,8 @@ class ProfilePageProvider extends ChangeNotifier {
 }
 
 class ProfilePage extends StatelessWidget {
+  // Broken up into a header and a body.
+
   ProfilePage({@required this.user});
 
   final User user;
@@ -123,6 +135,12 @@ class ProfilePage extends StatelessWidget {
 }
 
 class ProfilePageHeader extends StatelessWidget {
+  // Returns a back button, the creator's profile pic, username, and userID.
+  // If the profile page belongs to the user, then returns a button that lets
+  // the user open up the settings drawer. If the profile page belongs to
+  // someone else, then returns a row of buttons that lets the user start/stop
+  // following the creator and block the user.
+
   const ProfilePageHeader({@required this.height});
 
   final double height;
@@ -186,7 +204,7 @@ class ProfilePageHeader extends StatelessWidget {
                               allowDrawingOutsideViewBox: true,
                             ),
                           ),
-                          if (provider.user.uid != globals.user.uid)
+                          if (provider.user.uid != globals.uid)
                             Container(
                               width: .48 * globals.size.width,
                               child: Row(
@@ -247,6 +265,8 @@ class ProfilePageHeader extends StatelessWidget {
 }
 
 class ProfilePostBody extends StatelessWidget {
+  // Returns a scrollable list of all of the creator's posts. Breaks it up into:
+  // one main post on top, and then rows of three posts at a time.
   ProfilePostBody({
     @required this.user,
     @required this.height,
@@ -390,7 +410,7 @@ class _ProfilePostWidgetState extends State<ProfilePostWidget>
                 builder: (context) =>
                     PostPage(isFullPost: true, post: widget.post))),
         onLongPress: () {
-          if (widget.post.creator.uid == globals.user.uid) {
+          if (widget.post.creator.uid == globals.uid) {
             showDialog(
                 context: context,
                 builder: (BuildContext context) {

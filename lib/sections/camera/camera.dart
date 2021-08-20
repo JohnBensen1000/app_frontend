@@ -379,19 +379,23 @@ class _PostButtonState extends State<PostButton> {
       child: Stack(
         children: <Widget>[
           Container(
-            child: GestureDetector(
+              child: FutureBuilder(
+            future: globals.userRepository.get(globals.uid),
+            builder: (context, snapshot) => GestureDetector(
                 child: (isRecording)
                     ? StreamBuilder(
                         stream: PostButtonVideoTimer().stream,
-                        builder: (context, snapshot) {
+                        builder: (context, timerSnapshot) {
                           return Stack(alignment: Alignment.center, children: [
                             _postButtonCircle(widget.diameter),
                             SizedBox(
                               child: CircularProgressIndicator(
                                 strokeWidth: widget.strokeWidth,
-                                value: snapshot.data,
+                                value: timerSnapshot.data,
                                 valueColor: new AlwaysStoppedAnimation<Color>(
-                                    globals.user.profileColor),
+                                    snapshot.hasData
+                                        ? snapshot.data.profileColor
+                                        : Colors.white),
                               ),
                               height: widget.diameter + widget.strokeWidth,
                               width: widget.diameter + widget.strokeWidth,
@@ -415,7 +419,7 @@ class _PostButtonState extends State<PostButton> {
                     isRecording = false;
                   });
                 }),
-          )
+          ))
         ],
       ),
     );

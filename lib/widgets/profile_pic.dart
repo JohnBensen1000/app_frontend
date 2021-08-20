@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/generic_alert_dialog.dart';
@@ -46,7 +48,7 @@ class Profile extends StatelessWidget {
   }
 }
 
-class ProfilePic extends StatelessWidget {
+class ProfilePic extends StatefulWidget {
   ProfilePic({
     @required this.diameter,
     @required this.user,
@@ -56,74 +58,104 @@ class ProfilePic extends StatelessWidget {
   final User user;
 
   @override
+  State<ProfilePic> createState() => _ProfilePicState();
+}
+
+class _ProfilePicState extends State<ProfilePic> {
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       child: Container(
-        width: diameter,
-        height: diameter,
+        width: widget.diameter,
+        height: widget.diameter,
         child: Stack(
           children: <Widget>[
             ClipPath(
                 clipper: ProfilePicClip(
-                  diameter: diameter,
+                  diameter: widget.diameter,
                   heightOffset: 0,
                 ),
-                child: FutureBuilder(
-                    future: globals.profileRepository.get(user),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData) {
-                        if (user.uid == globals.user.uid) {
-                          return StreamBuilder(
-                              stream: globals.profileRepository.stream,
-                              builder: (context, streamSnapshot) {
-                                return PostWidget(
-                                    post: streamSnapshot.hasData
-                                        ? streamSnapshot.data
-                                        : snapshot.data,
-                                    height: diameter,
-                                    aspectRatio: 1);
-                              });
-                        } else {
-                          return PostWidget(
-                              post: snapshot.data,
-                              height: diameter,
-                              aspectRatio: 1);
-                        }
-                      } else
-                        return Container();
-                    })),
-            if (user.uid == globals.user.uid)
+                child: globals.profileRepository.contains(widget.user)
+                    ? _profileBody(globals.profileRepository.get(widget.user))
+                    : FutureBuilder(
+                        future:
+                            globals.profileRepository.getFuture(widget.user),
+                        builder: (context, snapshot) =>
+                            _profileBody(snapshot.data))),
+            if (widget.user.uid == globals.uid)
               StreamBuilder(
                   stream: globals.userRepository.stream,
                   builder: (context, snapshot) {
                     return FutureBuilder(
-                        future: globals.userRepository.get(user.uid),
+                        future: globals.userRepository.get(widget.user.uid),
                         builder: (context, snapshot) => _profileBorder(
                             snapshot.hasData
                                 ? snapshot.data.profileColor
                                 : Colors.transparent));
                   })
             else
-              _profileBorder(user.profileColor)
+              _profileBorder(widget.user.profileColor)
           ],
         ),
       ),
       onLongPress: () async {
-        if (user.uid != globals.user.uid) await _reportProfile(context);
+        if (widget.user.uid != globals.uid) await _reportProfile(context);
       },
     );
   }
 
+  Widget _profileBody(Post profile) {
+    return widget.user.uid == globals.uid
+        ? StreamBuilder(
+            stream: globals.profileRepository.stream,
+            builder: (context, streamSnapshot) {
+              return profile != null
+                  ? PostWidget(
+                      post: streamSnapshot.hasData
+                          ? streamSnapshot.data
+                          : profile,
+                      height: widget.diameter,
+                      aspectRatio: 1)
+                  : _profileBase();
+            })
+        : profile != null
+            ? PostWidget(post: profile, height: widget.diameter, aspectRatio: 1)
+            : _profileBase();
+  }
+
   Widget _profileBorder(Color color) {
     return Container(
-        width: diameter,
-        height: diameter,
+        width: widget.diameter,
+        height: widget.diameter,
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.all(Radius.elliptical(9999.0, 9999.0)),
-          border: Border.all(width: .02 * diameter, color: color),
+          border: Border.all(width: .02 * widget.diameter, color: color),
         ));
+  }
+
+  Widget _profileBase() {
+    return widget.user.uid == globals.uid
+        ? StreamBuilder(
+            stream: globals.userRepository.stream,
+            builder: (context, snapshot) => _profileSolidBackground(
+                snapshot.hasData ? snapshot.data : widget.user))
+        : _profileSolidBackground(widget.user);
+  }
+
+  Widget _profileSolidBackground(User user) {
+    return Container(
+        color: user.profileColor,
+        child: Center(
+            child: Text(
+          widget.user.username.substring(
+              0,
+              min(
+                2,
+                widget.user.username.length,
+              )),
+          style: TextStyle(fontSize: .4 * widget.diameter, color: Colors.white),
+        )));
   }
 
   Future<void> _reportProfile(BuildContext context) async {
@@ -133,7 +165,7 @@ class ProfilePic extends StatelessWidget {
                 dialogText: "Do you want to report this profile picture?")))
         .then((willReportProfile) {
       if (willReportProfile) {
-        reportProfile(user);
+        reportProfile(widget.user);
         showDialog(
             context: context,
             builder: (context) => GenericAlertDialog(
