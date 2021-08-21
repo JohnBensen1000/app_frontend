@@ -18,8 +18,10 @@ class ProfileRepository extends Repository<Post> {
       : null;
 
   Future<Post> getFuture(User user) async {
-    if (!_profilePostsMap.containsKey(user.uid))
-      _profilePostsMap[user.uid] = await getProfile(user);
+    if (!_profilePostsMap.containsKey(user.uid)) {
+      Post profile = await getProfile(user);
+      if (profile != null) _profilePostsMap[user.uid] = profile;
+    }
 
     return _profilePostsMap[user.uid];
   }

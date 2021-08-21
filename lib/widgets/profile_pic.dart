@@ -109,7 +109,7 @@ class _ProfilePicState extends State<ProfilePic> {
         ? StreamBuilder(
             stream: globals.profileRepository.stream,
             builder: (context, streamSnapshot) {
-              return profile != null
+              return profile != null || streamSnapshot.hasData
                   ? PostWidget(
                       post: streamSnapshot.hasData
                           ? streamSnapshot.data

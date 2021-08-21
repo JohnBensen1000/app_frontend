@@ -25,31 +25,48 @@ class CameraProvider extends ChangeNotifier {
   // captured a post and whether the post is an image or video. Also provides
   // functionality for taking an image and starting/stopping a video recording.
   // Contains a future of a camera controller. This camera controller is
-  // re-initialized every time cameraIndex changes.
+  // re-initialized every time cameraIndex changes. Also keeps track of which
+  // flash mode the camera is currently in.
+
   CameraProvider({@required this.cameraUsage, this.chat}) {
     _cameraIndex = 0;
     _isTimerOn = false;
+    _flashIndex = 0;
 
     isImage = true;
     showCapturedPost = false;
     timerString = "";
     cameraControllerFuture = _getCameraControllerFuture(_cameraIndex);
+    flashModes = [FlashMode.auto, FlashMode.always, FlashMode.off];
   }
   final CameraUsage cameraUsage;
   final Chat chat;
 
   int _cameraIndex;
   bool _isTimerOn;
+  int _flashIndex;
 
   bool isImage;
   bool showCapturedPost;
   String filePath;
   String timerString;
   Future<CameraController> cameraControllerFuture;
+  List<FlashMode> flashModes;
 
   File get file => File(filePath);
-
   bool get isTimerOn => _isTimerOn;
+  String get flashModeName {
+    switch (_flashIndex) {
+      case 0:
+        return "Auto";
+      case 1:
+        return "On";
+      case 2:
+        return "Off";
+      default:
+        return "";
+    }
+  }
 
   void toggleCamera() {
     // Changes the camera index and sets cameraControllerFuture to the correct
@@ -57,6 +74,13 @@ class CameraProvider extends ChangeNotifier {
     _cameraIndex = (_cameraIndex + 1) % 2;
     cameraControllerFuture = _getCameraControllerFuture(_cameraIndex);
 
+    notifyListeners();
+  }
+
+  void toggleFlash() async {
+    CameraController controller = await cameraControllerFuture;
+    _flashIndex = (_flashIndex + 1) % flashModes.length;
+    await controller.setFlashMode(flashModes[_flashIndex]);
     notifyListeners();
   }
 
@@ -217,85 +241,103 @@ class CameraPage extends StatefulWidget {
 class _CameraPageState extends State<CameraPage> {
   @override
   Widget build(BuildContext context) {
-    CameraProvider provider =
-        Provider.of<CameraProvider>(context, listen: false);
-    return Stack(
-      children: [
-        CameraView(),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-                alignment: Alignment.topLeft,
-                padding: EdgeInsets.only(
-                    top: .06 * globals.size.height,
-                    left: .04 * globals.size.width,
-                    bottom: .02 * globals.size.height),
-                child: GestureDetector(
-                    child: BackArrow(color: Colors.white),
-                    onTap: () => Navigator.pop(context))),
-            Container(
-              padding: EdgeInsets.only(bottom: .06 * globals.size.height),
-              child: Column(children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+    return Consumer<CameraProvider>(
+        builder: (context, provider, child) => Stack(
+              children: [
+                CameraView(),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      alignment: Alignment.bottomLeft,
-                      child: Container(
-                          width: .26 * globals.size.width,
-                          child: Center(
-                            child: GestureDetector(
-                                child: _button("Flip Camera", Colors.grey[400]),
-                                onTap: () => provider.toggleCamera()),
-                          )),
-                    ),
-                    PostButton(diameter: .12 * globals.size.height),
-                    Container(
-                      alignment: Alignment.bottomLeft,
-                      child: Container(
-                        width: .26 * globals.size.width,
-                        child: Center(
-                            child: Consumer<CameraProvider>(
-                          builder: (context, provider, child) =>
+                      padding: EdgeInsets.only(
+                        top: .06 * globals.size.height,
+                        left: .04 * globals.size.width,
+                        right: .04 * globals.size.width,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                              child: BackArrow(color: Colors.white),
+                              onTap: () => Navigator.pop(context)),
+                          Column(
+                            children: [
                               GestureDetector(
                                   child: _button(
-                                      provider.isTimerOn
-                                          ? "Timer On"
-                                          : "Timer Off",
-                                      provider.isTimerOn
-                                          ? Colors.white
-                                          : Colors.grey[400]),
-                                  onTap: () => provider.toggleTimer()),
-                        )),
+                                      "Flash: " + provider.flashModeName,
+                                      Colors.grey[400]),
+                                  onTap: () => provider.toggleFlash()),
+                            ],
+                          )
+                        ],
                       ),
-                    )
+                    ),
+                    Container(
+                      padding:
+                          EdgeInsets.only(bottom: .06 * globals.size.height),
+                      child: Column(children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              alignment: Alignment.bottomLeft,
+                              child: Container(
+                                  width: .26 * globals.size.width,
+                                  child: Center(
+                                    child: GestureDetector(
+                                        child: _button(
+                                            "Flip Camera", Colors.grey[400]),
+                                        onTap: () => provider.toggleCamera()),
+                                  )),
+                            ),
+                            Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: .02 * globals.size.width),
+                                child: PostButton(
+                                    diameter: .12 * globals.size.height)),
+                            Container(
+                              alignment: Alignment.bottomLeft,
+                              child: Container(
+                                width: .26 * globals.size.width,
+                                child: Center(
+                                  child: GestureDetector(
+                                      child: _button(
+                                          provider.isTimerOn
+                                              ? "Timer On"
+                                              : "Timer Off",
+                                          provider.isTimerOn
+                                              ? Colors.white
+                                              : Colors.grey[400]),
+                                      onTap: () => provider.toggleTimer()),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                        Container(
+                            padding:
+                                EdgeInsets.only(top: .02 * globals.size.height),
+                            child: Text("Hold down to record video",
+                                style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: .016 * globals.size.height)))
+                      ]),
+                    ),
                   ],
                 ),
                 Container(
-                    padding: EdgeInsets.only(top: .02 * globals.size.height),
-                    child: Text("Hold down to record video",
-                        style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: .016 * globals.size.height)))
-              ]),
-            ),
-          ],
-        ),
-        Consumer<CameraProvider>(
-            builder: (context, provider, child) => Container(
-                child: Center(
-                    child: Text(provider.timerString,
-                        style: TextStyle(
-                            fontSize: .35 * globals.size.height,
-                            color: Colors.white)))))
-      ],
-    );
+                    child: Center(
+                        child: Text(provider.timerString,
+                            style: TextStyle(
+                                fontSize: .35 * globals.size.height,
+                                color: Colors.white))))
+              ],
+            ));
   }
 
   Widget _button(String buttonName, Color color) {
     return Container(
-      width: .22 * globals.size.width,
+      width: .25 * globals.size.width,
       height: .054 * globals.size.height,
       padding: EdgeInsets.all(.001 * globals.size.height),
       decoration: new BoxDecoration(
@@ -320,29 +362,29 @@ class CameraView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    CameraProvider provider =
+        Provider.of<CameraProvider>(context, listen: false);
     return Center(
-      child: Consumer<CameraProvider>(
-          builder: (context, provider, child) => FutureBuilder(
-                future: provider.cameraControllerFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    CameraController cameraController = snapshot.data;
+      child: FutureBuilder(
+        future: provider.cameraControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            CameraController cameraController = snapshot.data;
 
-                    return Transform.scale(
-                      scale: (globals.size.height / globals.size.width) /
-                          (cameraController.value.aspectRatio),
-                      child: Center(
-                        child: AspectRatio(
-                            aspectRatio:
-                                (1 / cameraController.value.aspectRatio),
-                            child: CameraPreview(cameraController)),
-                      ),
-                    );
-                  } else {
-                    return Container();
-                  }
-                },
-              )),
+            return Transform.scale(
+              scale: (globals.size.height / globals.size.width) /
+                  (cameraController.value.aspectRatio),
+              child: Center(
+                child: AspectRatio(
+                    aspectRatio: (1 / cameraController.value.aspectRatio),
+                    child: CameraPreview(cameraController)),
+              ),
+            );
+          } else {
+            return Container();
+          }
+        },
+      ),
     );
   }
 }

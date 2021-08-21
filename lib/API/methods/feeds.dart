@@ -6,6 +6,8 @@ Future<List<Post>> getFollowingPosts() async {
   var response = await globals.baseAPI
       .get('v2/feeds/following', queryParameters: {'uid': globals.uid});
 
+  if (response == null) return null;
+
   if (response["posts"].length == 0) return null;
 
   return [for (var postJson in response["posts"]) Post.fromJson(postJson)];
