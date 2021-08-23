@@ -68,12 +68,14 @@ class FullPostWidget extends StatefulWidget {
   FullPostWidget(
       {@required this.post,
       @required this.height,
+      this.playVideo = true,
       this.isFullPage = false,
       this.showComments = false,
       this.showCaption = false});
 
   final Post post;
   final double height;
+  final bool playVideo;
   final bool isFullPage;
   final bool showComments;
   final bool showCaption;
@@ -113,6 +115,7 @@ class _FullPostWidgetState extends State<FullPostWidget> {
                       height: postWidgetHeight,
                       aspectRatio: globals.goldenRatio,
                       showCaption: widget.showCaption,
+                      playVideo: widget.playVideo,
                     ),
                     onTap: () {
                       if (!widget.isFullPage) {

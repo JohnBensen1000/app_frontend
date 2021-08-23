@@ -6,7 +6,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:test_flutter/API/methods/feeds.dart';
 import 'package:test_flutter/repositories/post_list.dart';
 import 'package:test_flutter/sections/feeds/following.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../repositories/blocked.dart';
 import '../../repositories/chats.dart';

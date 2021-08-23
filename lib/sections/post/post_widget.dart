@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
@@ -203,33 +203,33 @@ class _VideoContainerState extends State<VideoContainer> with RouteAware {
           if (snapshot.connectionState == ConnectionState.done &&
               _videoPlayerController != null)
             return VisibilityDetector(
-                key: Key("unique key"),
-                child: Container(
-                    width: widget.width - 2,
-                    height: widget.height - 2,
-                    child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(widget.cornerRadius - 1),
-                        child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: SizedBox(
-                                height:
-                                    _videoPlayerController.value.size?.height ??
-                                        0,
-                                width:
-                                    _videoPlayerController.value.size?.width ??
-                                        0,
-                                child: VideoPlayer(
-                                  _videoPlayerController,
-                                ))))),
-                onVisibilityChanged: (VisibilityInfo info) {
-                  if (_isDisposed == false) {
-                    if (info.visibleFraction == 1.0)
-                      _videoPlayerController.play();
-                    else
-                      _videoPlayerController.pause();
-                  }
-                });
+              key: Key(widget.post.postID),
+              child: Container(
+                  width: widget.width - 2,
+                  height: widget.height - 2,
+                  child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(widget.cornerRadius - 1),
+                      child: FittedBox(
+                          fit: BoxFit.cover,
+                          child: SizedBox(
+                              height:
+                                  _videoPlayerController.value.size?.height ??
+                                      0,
+                              width:
+                                  _videoPlayerController.value.size?.width ?? 0,
+                              child: VideoPlayer(
+                                _videoPlayerController,
+                              ))))),
+              onVisibilityChanged: (info) {
+                if (_isDisposed != true && _videoPlayerController != null) {
+                  if (info.visibleFraction == 1.0)
+                    _videoPlayerController.play();
+                  else
+                    _videoPlayerController.pause();
+                }
+              },
+            );
           else
             return Container(
               height: widget.height - 2,

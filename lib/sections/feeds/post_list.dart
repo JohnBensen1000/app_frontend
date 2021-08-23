@@ -10,12 +10,9 @@ import 'package:test_flutter/widgets/report_button.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/handle_requests.dart';
 import '../../models/post.dart';
-import '../../models/user.dart';
 
 import '../post/full_post_widget.dart';
-import '../post/post_page.dart';
 
 class PostListProvider extends ChangeNotifier {
   // Acts as an in-between betweent he post list UI and post list repository.
@@ -44,12 +41,15 @@ class PostListProvider extends ChangeNotifier {
   Post get currentPost => _repository.currentPost;
   Post get nextPost => _repository.nextPost;
 
+  String get repositoryName => _repository.function.toString();
+
   void moveDown() {
     _repository.moveDown();
   }
 
   void moveUp() async {
-    double userRating = stopWatch.elapsed.inMilliseconds / 1000.0;
+    double userRating = stopWatch.elapsed.inMilliseconds.toDouble() / 1000.0;
+    print(" [x] User Rating: $userRating");
     await recordWatched(_repository.currentPost.postID, userRating);
 
     _repository.moveUp();
@@ -100,37 +100,36 @@ class _PostListState extends State<PostList>
             ),
         child: Consumer<PostListProvider>(builder: (context, provider, child) {
           if (provider.isListNotEmpty) {
-            return PostListPage(
-                previousPostView: _buildPostWidget(provider.previousPost),
-                currentPostView: _buildPostWidget(provider.currentPost),
-                nextPostView: _buildPostWidget(provider.nextPost),
-                height: widget.height,
-                key: UniqueKey());
-            // return VisibilityDetector(
-            //     key: Key("unique key"),
-            //     child: PostListPage(
-            //         previousPostView: _buildPostWidget(provider.previousPost),
-            //         currentPostView: _buildPostWidget(provider.currentPost),
-            //         nextPostView: _buildPostWidget(provider.nextPost),
-            //         height: widget.height,
-            //         key: UniqueKey()),
-            //     onVisibilityChanged: (VisibilityInfo info) {
-            //       print(info.visibleFraction);
-            //       if (info.visibleFraction == 1.0) {
-            //         provider.stopWatch.start();
-            //       } else {
-            //         provider.stopWatch.stop();
-            //       }
-            //     });
+            return VisibilityDetector(
+                key: Key(provider.repositoryName),
+                child: PostListPage(
+                    previousPostView:
+                        _buildPostWidget(provider.previousPost, false),
+                    currentPostView:
+                        _buildPostWidget(provider.currentPost, true),
+                    nextPostView: _buildPostWidget(provider.nextPost, false),
+                    height: widget.height,
+                    key: UniqueKey()),
+                onVisibilityChanged: (VisibilityInfo info) {
+                  if (info.visibleFraction == 1.0) {
+                    provider.stopWatch.start();
+                  } else {
+                    provider.stopWatch.stop();
+                  }
+                });
           } else {
             return _refreshButton();
           }
         }));
   }
 
-  FullPostWidget _buildPostWidget(Post post) {
+  FullPostWidget _buildPostWidget(Post post, bool playVideo) {
     return post != null
-        ? FullPostWidget(post: post, height: widget.height, showCaption: true)
+        ? FullPostWidget(
+            post: post,
+            height: widget.height,
+            playVideo: playVideo,
+            showCaption: true)
         : null;
   }
 
@@ -159,7 +158,10 @@ class PostListPage extends StatefulWidget {
   // continuously as the user swipes up or down. If the user swiped far enough
   // up or down, updates the current post index and moves to the next or
   // previous post. If the user holds down on a post, displays an alert dialog
-  // that allows the user to report the post or block the user.
+  // that allows the user to report the post or block the user. Uses the
+  // WidgetsBindingObserver to detect if the user leaves the app. If they do,
+  // pauses the stop watch and when the user returns to the app, resumes the
+  // stop watch.
 
   PostListPage({
     @required this.previousPostView,
@@ -178,12 +180,28 @@ class PostListPage extends StatefulWidget {
   _PostListPageState createState() => _PostListPageState();
 }
 
-class _PostListPageState extends State<PostListPage> {
+class _PostListPageState extends State<PostListPage>
+    with WidgetsBindingObserver {
   int offset = 0;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed)
+      Provider.of<PostListProvider>(context, listen: false).stopWatch.start();
+    else
+      Provider.of<PostListProvider>(context, listen: false).stopWatch.stop();
   }
 
   @override
