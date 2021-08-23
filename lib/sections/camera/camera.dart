@@ -264,7 +264,7 @@ class _CameraPageState extends State<CameraPage> {
                             children: [
                               GestureDetector(
                                   child: _button(
-                                      "Flash: " + provider.flashModeName,
+                                      "Flash:\n" + provider.flashModeName,
                                       Colors.grey[400]),
                                   onTap: () => provider.toggleFlash()),
                             ],
@@ -337,7 +337,7 @@ class _CameraPageState extends State<CameraPage> {
 
   Widget _button(String buttonName, Color color) {
     return Container(
-      width: .25 * globals.size.width,
+      width: .22 * globals.size.width,
       height: .054 * globals.size.height,
       padding: EdgeInsets.all(.001 * globals.size.height),
       decoration: new BoxDecoration(
