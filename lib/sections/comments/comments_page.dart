@@ -34,7 +34,7 @@ class CommentsPageProvider extends ChangeNotifier {
   }
 }
 
-class CommentsPage extends StatelessWidget {
+class CommentsPage extends StatefulWidget {
   // Determines the layout of the comments page. The comments page is a
   // semi-transparent column of 3 sections that is placed on top of the post.
   // These three sections are: header, body, and footer. The header displays
@@ -54,6 +54,11 @@ class CommentsPage extends StatelessWidget {
   final CommentsSectionRepository repository;
 
   @override
+  State<CommentsPage> createState() => _CommentsPageState();
+}
+
+class _CommentsPageState extends State<CommentsPage> {
+  @override
   Widget build(BuildContext context) {
     double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     double height = MediaQuery.of(context).size.height - keyboardHeight;
@@ -65,13 +70,13 @@ class CommentsPage extends StatelessWidget {
     return Scaffold(
         body: ChangeNotifierProvider(
             create: (context) => CommentsPageProvider(
-                post: post,
-                commentsList: commentsList,
-                repository: repository,
-                parentComment: parentComment),
+                post: widget.post,
+                commentsList: widget.commentsList,
+                repository: widget.repository,
+                parentComment: widget.parentComment),
             child: Stack(children: <Widget>[
               PostWidget(
-                post: post,
+                post: widget.post,
                 height: height,
                 aspectRatio: height / width,
                 cornerRadiusFraction: 0,
@@ -92,8 +97,9 @@ class CommentsPage extends StatelessWidget {
                   ),
                   CommentsPageBody(
                     height: height - headerHeight - footerHeight,
-                    parentCommentOffset:
-                        (parentComment != null) ? parentComment.level + 1 : 0,
+                    parentCommentOffset: (widget.parentComment != null)
+                        ? widget.parentComment.level + 1
+                        : 0,
                   ),
                   CommentsPageFooter(
                     height: footerHeight,

@@ -38,26 +38,20 @@ class PostListProvider extends ChangeNotifier {
 
   PostListRepository _repository;
   Stopwatch stopWatch;
-  Map<Post, FullPostWidget> _postWidgets = new Map<Post, FullPostWidget>();
 
   bool get isListNotEmpty => _repository.isListNotEmpty;
   Post get previousPost => _repository.previousPost;
   Post get currentPost => _repository.currentPost;
   Post get nextPost => _repository.nextPost;
 
-  FullPostWidget get previousPostWidget => _getFullPostWidget(previousPost);
-  FullPostWidget get currentPostWidget => _getFullPostWidget(currentPost);
-  FullPostWidget get nextPostWidget => _getFullPostWidget(nextPost);
-
   void moveDown() {
-    _postWidgets.remove(nextPost);
     _repository.moveDown();
   }
 
   void moveUp() async {
     double userRating = stopWatch.elapsed.inMilliseconds / 1000.0;
     await recordWatched(_repository.currentPost.postID, userRating);
-    _postWidgets.remove(previousPost);
+
     _repository.moveUp();
     stopWatch.reset();
   }
@@ -73,14 +67,6 @@ class PostListProvider extends ChangeNotifier {
 
   void _refreshPostListCallback() {
     _repository.stream.listen((_) => notifyListeners());
-  }
-
-  Widget _getFullPostWidget(Post post) {
-    if (!_postWidgets.containsKey(post)) {
-      _postWidgets[post] =
-          post != null ? FullPostWidget(post: post, height: height) : null;
-    }
-    return _postWidgets[post];
   }
 }
 
@@ -114,25 +100,38 @@ class _PostListState extends State<PostList>
             ),
         child: Consumer<PostListProvider>(builder: (context, provider, child) {
           if (provider.isListNotEmpty) {
-            return VisibilityDetector(
-                key: Key("unique key"),
-                child: PostListPage(
-                    previousPostView: provider.previousPostWidget,
-                    currentPostView: provider.currentPostWidget,
-                    nextPostView: provider.nextPostWidget,
-                    height: widget.height,
-                    key: UniqueKey()),
-                onVisibilityChanged: (VisibilityInfo info) {
-                  if (info.visibleFraction == 1.0) {
-                    provider.stopWatch.start();
-                  } else {
-                    provider.stopWatch.stop();
-                  }
-                });
+            return PostListPage(
+                previousPostView: _buildPostWidget(provider.previousPost),
+                currentPostView: _buildPostWidget(provider.currentPost),
+                nextPostView: _buildPostWidget(provider.nextPost),
+                height: widget.height,
+                key: UniqueKey());
+            // return VisibilityDetector(
+            //     key: Key("unique key"),
+            //     child: PostListPage(
+            //         previousPostView: _buildPostWidget(provider.previousPost),
+            //         currentPostView: _buildPostWidget(provider.currentPost),
+            //         nextPostView: _buildPostWidget(provider.nextPost),
+            //         height: widget.height,
+            //         key: UniqueKey()),
+            //     onVisibilityChanged: (VisibilityInfo info) {
+            //       print(info.visibleFraction);
+            //       if (info.visibleFraction == 1.0) {
+            //         provider.stopWatch.start();
+            //       } else {
+            //         provider.stopWatch.stop();
+            //       }
+            //     });
           } else {
             return _refreshButton();
           }
         }));
+  }
+
+  FullPostWidget _buildPostWidget(Post post) {
+    return post != null
+        ? FullPostWidget(post: post, height: widget.height, showCaption: true)
+        : null;
   }
 
   Widget _refreshButton() {

@@ -115,12 +115,13 @@ class _FullPostWidgetState extends State<FullPostWidget> {
                       showCaption: widget.showCaption,
                     ),
                     onTap: () {
-                      if (!widget.isFullPage)
+                      if (!widget.isFullPage) {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => PostPage(
                                     isFullPost: true, post: widget.post)));
+                      }
                     }),
                 CommentsButton(),
               ],

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:video_player/video_player.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
 import '../../widgets/post_caption.dart';
+
+import '../../main.dart';
 
 class PostWidget extends StatelessWidget {
   // Returns a stack of the post outline and the post. The post is centered
@@ -129,6 +130,15 @@ class _ImageContainerState extends State<ImageContainer> {
 }
 
 class VideoContainer extends StatefulWidget {
+  // When this widget is first built, calls a future that initializes the video
+  // player and saves this future in the variable _videoPlayerFuture. Also
+  // subscribes to the routeObserver (initialized in main.dart). When another
+  // route is pushed on top of this widget, the callback didPushNext() is called
+  // and the video is paused. This widget also uses the visibility detector to
+  // pause the video when it is hidden from view, and play the video when it is
+  // 100% in view. Disposes of the video controller when this widget is
+  // disposed.
+
   VideoContainer(
       {@required this.post,
       @required this.height,
@@ -146,56 +156,86 @@ class VideoContainer extends StatefulWidget {
   _VideoContainerState createState() => _VideoContainerState();
 }
 
-class _VideoContainerState extends State<VideoContainer> {
+class _VideoContainerState extends State<VideoContainer> with RouteAware {
+  Future _videoPlayerFuture;
   VideoPlayerController _videoPlayerController;
+  bool _isDisposed;
+
+  @override
+  void initState() {
+    _videoPlayerFuture = _initializeVideoController();
+    _isDisposed = false;
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context));
+  }
+
+  @override
+  void didPushNext() {
+    if (_videoPlayerController != null) {
+      _videoPlayerController.pause();
+    }
+  }
+
+  @override
+  void didPop() {
+    if (_videoPlayerController != null) {
+      _videoPlayerController.pause();
+    }
+  }
 
   @override
   void dispose() {
-    _videoPlayerController.dispose();
+    _disposeVideoController();
+    routeObserver.unsubscribe(this);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (ModalRoute.of(context).isCurrent) {
-      return FutureBuilder(
-          future: _initializeVideoController(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return VisibilityDetector(
-                  key: Key("unique key"),
-                  child: Container(
-                      width: widget.width - 2,
-                      height: widget.height - 2,
-                      child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(widget.cornerRadius - 1),
-                          child: FittedBox(
-                              fit: BoxFit.cover,
-                              child: SizedBox(
-                                  height: _videoPlayerController
-                                          .value.size?.height ??
-                                      0,
-                                  width: _videoPlayerController
-                                          .value.size?.width ??
-                                      0,
-                                  child: VideoPlayer(
-                                    _videoPlayerController,
-                                  ))))),
-                  onVisibilityChanged: (VisibilityInfo info) {
+    return FutureBuilder(
+        future: _videoPlayerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              _videoPlayerController != null)
+            return VisibilityDetector(
+                key: Key("unique key"),
+                child: Container(
+                    width: widget.width - 2,
+                    height: widget.height - 2,
+                    child: ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(widget.cornerRadius - 1),
+                        child: FittedBox(
+                            fit: BoxFit.cover,
+                            child: SizedBox(
+                                height:
+                                    _videoPlayerController.value.size?.height ??
+                                        0,
+                                width:
+                                    _videoPlayerController.value.size?.width ??
+                                        0,
+                                child: VideoPlayer(
+                                  _videoPlayerController,
+                                ))))),
+                onVisibilityChanged: (VisibilityInfo info) {
+                  if (_isDisposed == false) {
                     if (info.visibleFraction == 1.0)
                       _videoPlayerController.play();
                     else
                       _videoPlayerController.pause();
-                  });
-            } else
-              return Container(
-                height: widget.height - 2,
-                width: widget.width - 2,
-              );
-          });
-    } else
-      return Container();
+                  }
+                });
+          else
+            return Container(
+              height: widget.height - 2,
+              width: widget.width - 2,
+            );
+        });
   }
 
   Future<void> _initializeVideoController() async {
@@ -206,6 +246,14 @@ class _VideoContainerState extends State<VideoContainer> {
     await _videoPlayerController.initialize();
 
     if (!widget.playWithVolume) await _videoPlayerController.setVolume(0.0);
+  }
+
+  Future<void> _disposeVideoController() async {
+    if (_videoPlayerController != null) {
+      await _videoPlayerController.pause();
+      await _videoPlayerController.dispose();
+      _isDisposed = true;
+    }
   }
 }
 

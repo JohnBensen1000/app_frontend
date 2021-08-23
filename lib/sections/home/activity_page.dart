@@ -118,24 +118,6 @@ class ActivityPage extends StatelessWidget {
                           return snapshot.docs.map((snapshot) {
                             return _getActivityItem(
                                 snapshot, provider.onlyShowNewFollowers);
-                            // return Container(
-                            //   height: .1 * globals.size.height,
-                            //   child: Row(children: [
-                            //     snapshot.data()['isNew']
-                            //         ? Container(
-                            //             width: .05 * globals.size.width,
-                            //             child: Center(
-                            //                 child: AlertCircle(
-                            //               diameter: .02 * globals.size.width,
-                            //             )),
-                            //           )
-                            //         : Container(
-                            //             width: .05 * globals.size.width,
-                            //           ),
-                            //     Expanded(
-                            //         child: Container(
-                            //             child: _getActivityWidget(snapshot,
-                            //                 provider.onlyShowNewFollowers)))
                           }).toList();
                         }), builder: (context, snapshot) {
                           if (snapshot.hasData) {
