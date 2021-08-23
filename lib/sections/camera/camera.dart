@@ -106,7 +106,7 @@ class CameraProvider extends ChangeNotifier {
     XFile file = await (await cameraControllerFuture).takePicture();
     filePath = file.path;
 
-    if (_cameraIndex == 1) {
+    if (_cameraIndex == 1 && Platform.isIOS) {
       image.Image capturedImage =
           image.decodeImage(await File(filePath).readAsBytes());
       capturedImage = image.flip(capturedImage, image.Flip.vertical);
