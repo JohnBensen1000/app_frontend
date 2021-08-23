@@ -3,167 +3,134 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_flutter/API/methods/reports.dart';
 import 'package:test_flutter/API/methods/watched.dart';
+import 'package:test_flutter/repositories/post_list.dart';
 import 'package:test_flutter/widgets/report_button.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/handle_requests.dart';
 import '../../models/post.dart';
-import '../../models/user.dart';
 
 import '../post/full_post_widget.dart';
-import '../post/post_page.dart';
 
 class PostListProvider extends ChangeNotifier {
-  // Contains the list of posts for the post list. Whenever the user changes the
-  // post that they are on, this provider checks if user is approaching the end
-  // of the post list. if they are, calls the Function function to get a new
-  // list of posts. Provides functions for removing an individual post for when
-  // the user reports a post and removing all posts from a creator when the user
-  // blocks a user.
-  // Uses a stop watch to keep track of how long the user spends on a post. This
-  // is used to determine how much the user likes the post. timeInFullScreen
-  // keeps track of how much time the user spent in full screen mode of the
-  // post.
+  // Acts as an in-between betweent he post list UI and post list repository.
+  // Responsible for wrapping the post list repository with an API accessible
+  // by the UI layer. Also takes care of other functionality not associated with
+  // the post list repository. This includes recording the length of time that
+  // the user spends on a post, allowing the user to block a post's creator,
+  // and allowing the user to report a post.
 
-  final Function function;
-  final BuildContext context;
+  PostListProvider({
+    @required PostListRepository repository,
+    @required this.height,
+  }) {
+    stopWatch = Stopwatch();
+    _repository = repository;
+    _refreshPostListCallback();
+  }
 
-  List<Post> _postsList;
-  int _currentPostIndex;
+  final double height;
 
+  PostListRepository _repository;
   Stopwatch stopWatch;
 
-  PostListProvider(
-      {@required this.function,
-      @required this.context,
-      @required List<Post> postsList}) {
-    _postsList = postsList;
-    _currentPostIndex = 0;
+  bool get isListNotEmpty => _repository.isListNotEmpty;
+  Post get previousPost => _repository.previousPost;
+  Post get currentPost => _repository.currentPost;
+  Post get nextPost => _repository.nextPost;
 
-    stopWatch = new Stopwatch();
+  String get repositoryName => _repository.function.toString();
+
+  void moveDown() {
+    _repository.moveDown();
   }
 
-  double get userRating => stopWatch.elapsed.inMilliseconds / 1000.0;
+  void moveUp() async {
+    double userRating = stopWatch.elapsed.inMilliseconds.toDouble() / 1000.0;
+    print(" [x] User Rating: $userRating");
+    await recordWatched(_repository.currentPost.postID, userRating);
 
-  set currentPostIndex(int newCurrentPostIndex) {
-    _currentPostIndex = newCurrentPostIndex;
-    if (_currentPostIndex >= _postsList.length - 2) refreshPostsList();
+    _repository.moveUp();
     stopWatch.reset();
-
-    notifyListeners();
-  }
-
-  int get currentPostIndex => _currentPostIndex;
-
-  Post get currentPost => _postsList[_currentPostIndex];
-
-  void refreshPostsList() async {
-    List<Post> newPosts = await handleRequest(context, function());
-    if (newPosts != null) _postsList += newPosts;
   }
 
   void reportCurrentPost() {
-    _postsList.remove(currentPost);
-    if (currentPostIndex == _postsList.length) currentPostIndex--;
-
-    notifyListeners();
+    reportPost(_repository.currentPost);
+    _repository.removeCurrentPost();
   }
 
   void blockCurrentCreator() {
-    User blockedCreator = currentPost.creator;
+    globals.blockedRepository.block(currentPost.creator);
+  }
 
-    for (int i = _postsList.length - 1; i >= 0; i--) {
-      if (_postsList[i].creator.uid == blockedCreator.uid) {
-        _postsList.removeAt(i);
-        currentPostIndex--;
-      }
-    }
-
-    if (currentPostIndex < 0)
-      currentPostIndex = 0;
-    else if (currentPostIndex >= _postsList.length - 1)
-      currentPostIndex = _postsList.length - 1;
-    else
-      currentPostIndex = currentPostIndex + 1;
-
-    notifyListeners();
+  void _refreshPostListCallback() {
+    _repository.stream.listen((_) => notifyListeners());
   }
 }
 
 class PostList extends StatefulWidget {
-  // Calls the function to get the posts for the post list. Builds three post
-  // widgets at a time (current, previous, and next posts). These three posts
-  // are rebuilt every time the user goes to a new post (updated by provider).
-  // If there are no posts in the posts lists, displays a refresh button. Starts
-  // the stop watch when the PostList comes into view, and pauses it when it
-  // goes out of view.
+  // Builds three post widgets at a time (current, previous, and next). These
+  // three posts are rebuilt every time the user goes to a new post (updated by
+  // provider). If there are no posts in the posts lists, displays a refresh
+  // button. Starts the stop watch when the PostList comes into view, and pauses
+  // it when it goes out of view.
 
-  PostList({@required this.height, @required this.function});
+  PostList({@required this.height, @required this.repository});
 
   final double height;
-  final Function function;
+  final PostListRepository repository;
 
   @override
   _PostListState createState() => _PostListState();
 }
 
-class _PostListState extends State<PostList> {
+class _PostListState extends State<PostList>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: handleRequest(context, widget.function()),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData) {
-          return ChangeNotifierProvider(
-              create: (context) => PostListProvider(
-                  function: widget.function,
-                  context: context,
-                  postsList: snapshot.data),
-              child: Consumer<PostListProvider>(
-                  builder: (context, provider, child) {
-                List<Post> postsList = provider._postsList;
-                int currentIndex = provider.currentPostIndex;
-
-                if (postsList.length != 0) {
-                  return VisibilityDetector(
-                      key: Key("unique key"),
-                      child: PostListPage(
-                          previousPostView:
-                              _buildPostView(postsList, currentIndex - 1),
-                          currentPostView:
-                              _buildPostView(postsList, currentIndex),
-                          nextPostView:
-                              _buildPostView(postsList, currentIndex + 1),
-                          height: widget.height,
-                          key: UniqueKey()),
-                      onVisibilityChanged: (VisibilityInfo info) {
-                        if (info.visibleFraction == 1.0) {
-                          provider.stopWatch.start();
-                        } else {
-                          provider.stopWatch.stop();
-                        }
-                      });
-                } else {
-                  return _refreshButton();
-                }
-              }));
-        } else {
-          return _refreshButton();
-        }
-      },
-    );
+    return ChangeNotifierProvider(
+        create: (context) => PostListProvider(
+              height: widget.height,
+              repository: widget.repository,
+            ),
+        child: Consumer<PostListProvider>(builder: (context, provider, child) {
+          if (provider.isListNotEmpty) {
+            return VisibilityDetector(
+                key: Key(provider.repositoryName),
+                child: PostListPage(
+                    previousPostView:
+                        _buildPostWidget(provider.previousPost, false),
+                    currentPostView:
+                        _buildPostWidget(provider.currentPost, true),
+                    nextPostView: _buildPostWidget(provider.nextPost, false),
+                    height: widget.height,
+                    key: UniqueKey()),
+                onVisibilityChanged: (VisibilityInfo info) {
+                  if (info.visibleFraction == 1.0) {
+                    provider.stopWatch.start();
+                  } else {
+                    provider.stopWatch.stop();
+                  }
+                });
+          } else {
+            return _refreshButton();
+          }
+        }));
   }
 
-  Widget _buildPostView(List<Post> postList, int index) {
-    if (index < 0 || index >= postList.length) {
-      return null;
-    } else {
-      return FullPostWidget(
-          post: postList[index], height: widget.height, showCaption: true);
-    }
+  FullPostWidget _buildPostWidget(Post post, bool playVideo) {
+    return post != null
+        ? FullPostWidget(
+            post: post,
+            height: widget.height,
+            playVideo: playVideo,
+            showCaption: true)
+        : null;
   }
 
   Widget _refreshButton() {
@@ -191,7 +158,10 @@ class PostListPage extends StatefulWidget {
   // continuously as the user swipes up or down. If the user swiped far enough
   // up or down, updates the current post index and moves to the next or
   // previous post. If the user holds down on a post, displays an alert dialog
-  // that allows the user to report the post or block the user.
+  // that allows the user to report the post or block the user. Uses the
+  // WidgetsBindingObserver to detect if the user leaves the app. If they do,
+  // pauses the stop watch and when the user returns to the app, resumes the
+  // stop watch.
 
   PostListPage({
     @required this.previousPostView,
@@ -210,12 +180,28 @@ class PostListPage extends StatefulWidget {
   _PostListPageState createState() => _PostListPageState();
 }
 
-class _PostListPageState extends State<PostListPage> {
+class _PostListPageState extends State<PostListPage>
+    with WidgetsBindingObserver {
   int offset = 0;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed)
+      Provider.of<PostListProvider>(context, listen: false).stopWatch.start();
+    else
+      Provider.of<PostListProvider>(context, listen: false).stopWatch.stop();
   }
 
   @override
@@ -250,14 +236,10 @@ class _PostListPageState extends State<PostListPage> {
         });
       },
       onVerticalDragEnd: (value) async {
-        List<Post> postsList = provider._postsList;
-        int currentIndex = provider.currentPostIndex;
-
-        if (offset > .2 * widget.height && currentIndex - 1 >= 0) {
-          _swipeUp(currentIndex, provider);
-        } else if (offset < -.2 * widget.height &&
-            currentIndex + 1 < postsList.length) {
-          _swipeDown(currentIndex, provider);
+        if (offset > .2 * widget.height && provider.previousPost != null) {
+          _swipeUp(provider);
+        } else if (offset < -.2 * widget.height && provider.nextPost != null) {
+          _swipeDown(provider);
         } else {
           await _swipeToPosition(0, (offset > 0) ? -1 : 1);
         }
@@ -278,32 +260,17 @@ class _PostListPageState extends State<PostListPage> {
           }
         });
       },
-      // onTap: () {
-      //   int startTime = DateTime.now().millisecondsSinceEpoch;
-
-      //   Navigator.push(
-      //           context,
-      //           MaterialPageRoute(
-      //               builder: (context) => PostPage(
-      //                   isFullPost: true, post: provider.currentPost)))
-      //       .then((_) => provider.timeInFullScreen +=
-      //           DateTime.now().millisecondsSinceEpoch - startTime);
-      // }
     );
   }
 
-  void _swipeUp(int currentIndex, PostListProvider provider) async {
+  void _swipeUp(PostListProvider provider) async {
     await _swipeToPosition(widget.height, 1);
-
-    provider.currentPostIndex = currentIndex - 1;
+    provider.moveDown();
   }
 
-  void _swipeDown(int currentIndex, PostListProvider provider) async {
+  void _swipeDown(PostListProvider provider) async {
     await _swipeToPosition(-widget.height, -1);
-    print(provider.userRating);
-    handleRequest(context,
-        recordWatched(provider.currentPost.postID, provider.userRating));
-    provider.currentPostIndex = currentIndex + 1;
+    provider.moveUp();
   }
 
   Future<void> _swipeToPosition(double position, int direction) async {

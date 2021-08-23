@@ -3,6 +3,11 @@ import 'package:flutter/services.dart';
 
 import 'sections/welcome.dart';
 
+import 'globals.dart' as globals;
+
+RouteObserver<PageRoute<dynamic>> routeObserver =
+    RouteObserver<PageRoute<dynamic>>();
+
 main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
@@ -50,12 +55,18 @@ class _LifeCycleState extends State<LifeCycle> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) setState(() {});
+    if (state == AppLifecycleState.resumed) if (globals.chatsRepository != null)
+      globals.chatsRepository.refreshChatsList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: Welcome());
+    // return MaterialApp();
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Welcome(),
+      navigatorObservers: <NavigatorObserver>[routeObserver],
+    );
   }
 }
 // gcloud app logs tail -s default

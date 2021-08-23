@@ -74,11 +74,6 @@ class ReportContentAlertDialog extends StatelessWidget {
                   buttonName: "Report",
                 ),
                 onTap: () async {
-                  if (comment == null) {
-                    await handleRequest(context, reportPost(post));
-                  } else {
-                    await handleRequest(context, reportComment(post, comment));
-                  }
                   Navigator.pop(context, ActionTaken.reported);
                 }),
             GestureDetector(
@@ -86,8 +81,6 @@ class ReportContentAlertDialog extends StatelessWidget {
                   buttonName: "Block this user",
                 ),
                 onTap: () async {
-                  User creator = comment == null ? post.creator : comment.user;
-                  await handleRequest(context, blockUser(creator));
                   Navigator.pop(context, ActionTaken.blocked);
                 }),
           ],

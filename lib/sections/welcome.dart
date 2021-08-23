@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:upgrader/upgrader.dart';
 
 import '../globals.dart' as globals;
 
-import 'home/home_screen.dart';
+import 'home/home_page.dart';
 
 import 'account/enter_account.dart';
 
@@ -25,25 +24,21 @@ class _WelcomeState extends State<Welcome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: const Color(0xffffffff),
-        body: UpgradeAlert(
-          child: FutureBuilder(
-              future: registerNotifications(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return FutureBuilder(
-                    future: globals.accountRepository.getUser(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        globals.size = globals.SizeConfig(context: context);
+      backgroundColor: const Color(0xffffffff),
+      body: FutureBuilder(
+          future: registerNotifications(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return FutureBuilder(
+                  future: globals.accountRepository.getUser(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      globals.size = globals.SizeConfig(context: context);
 
-                        if (snapshot.hasData) {
-                          globals.user = snapshot.data;
-
-                          return Home();
-                        } else
-                          return LogInScreen();
-                      } else
+                      if (snapshot.hasData) {
+                        globals.uid = snapshot.data.uid;
+                        return HomePage();
+                      } else {
                         return Center(
                           child: Container(
                             height: .4 * MediaQuery.of(context).size.height,
@@ -59,24 +54,28 @@ class _WelcomeState extends State<Welcome> {
                             ),
                           ),
                         );
-                    },
-                  );
-                } else
-                  return Center(
+                      }
+                    } else {
+                      return Container();
+                    }
+                  });
+            } else {
+              return Center(
+                  child: Container(
+                      height: .4 * MediaQuery.of(context).size.height,
+                      width: .4 * MediaQuery.of(context).size.height,
                       child: Container(
-                          height: .4 * MediaQuery.of(context).size.height,
-                          width: .4 * MediaQuery.of(context).size.height,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: const AssetImage(
-                                    'assets/images/Entropy.PNG'),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          )));
-              }),
-        ));
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image:
+                                const AssetImage('assets/images/Entropy.PNG'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )));
+            }
+          }),
+    );
   }
 
   Future<void> registerNotifications() async {

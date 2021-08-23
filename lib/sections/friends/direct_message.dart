@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';
-import '../../API/methods/blocked.dart';
 import '../../models/user.dart';
 import '../../models/chat.dart';
 import '../../models/post.dart';
@@ -22,24 +20,36 @@ import '../profile_page/profile_page.dart';
 enum PopAction { removeChat, moveToTop }
 
 class ChatPageProvider extends ChangeNotifier {
-  // Contains variables used throughout the entire page. The boolean,
-  // hasSentChat is set to true when the user sends a new chat. This value will
-  // be returned to the friends page.
+  // Contains variables used throughout the entire page.
 
   CollectionReference chatCollection;
   Chat chat;
 
-  bool hasSentChat;
-
   ChatPageProvider({
     @required this.chatCollection,
     @required this.chat,
-  }) {
-    hasSentChat = false;
+  });
+
+  Future<void> blockChatMember(BuildContext context) async {
+    await showDialog(
+            context: context,
+            builder: (BuildContext context) => AlertDialogContainer(
+                dialogText: "Do you want to block this user?"))
+        .then((isUserBlocked) async {
+      if (isUserBlocked != null && isUserBlocked) {
+        await globals.blockedRepository.block(chat.members[0]);
+        await showDialog(
+            context: context,
+            builder: (context) => GenericAlertDialog(
+                text:
+                    "You have successfylly blocked this user, you will no longer have a direct message with them and you will not see any of their content"));
+        Navigator.pop(context, PopAction.removeChat);
+      }
+    });
   }
 }
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
   // Main widget for the chat page's UI. Returns a column of the chat's header,
   // body, and footer. The header displays the name and profile of the chat. The
   // footer allows the user to send a new chat. The body is a scrollable list of
@@ -51,6 +61,23 @@ class ChatPage extends StatelessWidget {
   final Chat chat;
 
   @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  @override
+  void initState() {
+    globals.chatsRepository.setOpenedChatId(widget.chat.chatID);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    globals.chatsRepository.clearOpenedChatId();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     double headerHeight = .25 * globals.size.height;
     double footerHeight = .14 * globals.size.height;
@@ -58,7 +85,7 @@ class ChatPage extends StatelessWidget {
     return ChangeNotifierProvider(
         create: (context) => ChatPageProvider(
             chatCollection: FirebaseFirestore.instance.collection("Chats"),
-            chat: chat),
+            chat: widget.chat),
         child: WillPopScope(
           onWillPop: () async {
             return true;
@@ -68,7 +95,7 @@ class ChatPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               ChatPageHeader(
-                chat: chat,
+                chat: widget.chat,
                 height: headerHeight,
               ),
               ChatPageBody(),
@@ -112,8 +139,7 @@ class ChatPageHeader extends PreferredSize {
               children: [
                 GestureDetector(
                   child: BackArrow(),
-                  onTap: () => Navigator.pop(context,
-                      provider.hasSentChat ? PopAction.moveToTop : null),
+                  onTap: () => Navigator.pop(context, PopAction.moveToTop),
                 )
               ],
             ),
@@ -133,7 +159,7 @@ class ChatPageHeader extends PreferredSize {
                               TextStyle(fontSize: .0237 * globals.size.height),
                         ),
                       ),
-                      onLongPress: () async => await _blockUser(context),
+                      onLongPress: () => provider.blockChatMember(context),
                     )
                   ],
                 ),
@@ -147,27 +173,6 @@ class ChatPageHeader extends PreferredSize {
                 })
           ],
         ));
-  }
-
-  Future<void> _blockUser(BuildContext context) async {
-    ChatPageProvider provider =
-        Provider.of<ChatPageProvider>(context, listen: false);
-
-    await showDialog(
-            context: context,
-            builder: (BuildContext context) => AlertDialogContainer(
-                dialogText: "Do you want to block this user?"))
-        .then((isUserBlocked) async {
-      if (isUserBlocked != null && isUserBlocked) {
-        await handleRequest(context, blockUser(provider.chat.members[0]));
-        await showDialog(
-            context: context,
-            builder: (context) => GenericAlertDialog(
-                text:
-                    "You have successfylly blocked this user, you will no longer have a direct message with them and you will not see any of their content"));
-        Navigator.pop(context, PopAction.removeChat);
-      }
-    });
   }
 }
 
@@ -185,7 +190,7 @@ class ChatPageBody extends StatelessWidget {
     ChatPageProvider provider =
         Provider.of<ChatPageProvider>(context, listen: false);
 
-    handleRequest(context, postIsUpdated(provider.chat.chatID));
+    globals.chatsRepository.setAsUpdated(provider.chat.chatID);
 
     return Expanded(
         child: StreamBuilder(
@@ -208,10 +213,8 @@ class ChatPageBody extends StatelessWidget {
 
                 if (chatItemWidgets.length == 0) return Container();
 
-                if (chatItemWidgets[0].chatItem.uid != globals.user.uid)
-                  handleRequest(context, postIsUpdated(provider.chat.chatID));
-                else
-                  provider.hasSentChat = true;
+                if (chatItemWidgets[0].chatItem.uid != globals.uid)
+                  globals.chatsRepository.setAsUpdated(provider.chat.chatID);
 
                 return Container(
                   padding: EdgeInsets.symmetric(
@@ -255,7 +258,7 @@ class _ChatItemWidgetState extends State<ChatItemWidget>
     MainAxisAlignment chatAxisAlignment;
     Color backgroundColor;
 
-    if (widget.user.uid == globals.user.uid) {
+    if (widget.user.uid == globals.uid) {
       chatAxisAlignment = MainAxisAlignment.end;
       backgroundColor = Colors.grey[100];
     } else {
@@ -364,9 +367,6 @@ class ChatItemWidgetPost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ChatPageProvider provider =
-        Provider.of<ChatPageProvider>(context, listen: false);
-
     Post post = Post.fromChatItem(chatItem);
 
     return GestureDetector(
@@ -466,10 +466,8 @@ class _ChatPageFooterState extends State<ChatPageFooter> {
                       setState(() {
                         allowSendChat = false;
                       });
-                      Map response = await handleRequest(
-                          context,
-                          postChatText(
-                              _chatController.text, provider.chat.chatID));
+                      Map response = await postChatText(
+                          _chatController.text, provider.chat.chatID);
 
                       switch (response["denied"]) {
                         case "profanity":

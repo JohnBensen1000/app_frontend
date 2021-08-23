@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../widgets/profile_pic.dart';
 import '../../../widgets/alert_dialog_container.dart';
 import '../../../models/comment.dart';
+import '../../../models/user.dart';
 import '../../../models/post.dart';
 import '../../../API/methods/users.dart';
 import '../../../API/methods/comments.dart';
@@ -18,15 +19,16 @@ class CommentWidget extends StatefulWidget {
   // Displays a comment, the comment's owner's profile and username.  When this
   // widget is held down, an alert dialog will appear asking if the current user
   // wants to report the comment or block the comment's creator.
-  CommentWidget({
-    @required this.comment,
-    @required this.leftPadding,
-    @required this.post,
-  });
+  CommentWidget(
+      {@required this.comment,
+      @required this.leftPadding,
+      @required this.post,
+      @required this.commenter});
 
   final Comment comment;
   final double leftPadding;
   final Post post;
+  final User commenter;
 
   @override
   _CommentWidgetState createState() => _CommentWidgetState();
@@ -44,6 +46,8 @@ class _CommentWidgetState extends State<CommentWidget>
     double margin = 2.5;
     double width = MediaQuery.of(context).size.width;
 
+    if (widget.comment == null) return Container();
+
     return GestureDetector(
         child: Container(
             color: Colors.transparent,
@@ -60,7 +64,7 @@ class _CommentWidgetState extends State<CommentWidget>
                     child: Column(
                       children: [
                         ProfilePic(
-                            diameter: profilePicSize, user: widget.comment.user)
+                            diameter: profilePicSize, user: widget.commenter)
                       ],
                     ),
                   ),
@@ -78,7 +82,7 @@ class _CommentWidgetState extends State<CommentWidget>
                                   color: Colors.black),
                               children: <TextSpan>[
                             TextSpan(
-                                text: "${widget.comment.user.username} ",
+                                text: "${widget.commenter.username} ",
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                             TextSpan(text: widget.comment.commentText)
                           ]))),
@@ -86,7 +90,7 @@ class _CommentWidgetState extends State<CommentWidget>
               ),
             )),
         onLongPress: () async {
-          if (widget.comment.user.uid != globals.user.uid) {
+          if (widget.commenter.uid != globals.uid) {
             showDialog(
                 context: context,
                 builder: (BuildContext context) => ReportContentAlertDialog(
@@ -121,12 +125,6 @@ class _CommentWidgetState extends State<CommentWidget>
         builder: (context) => GenericAlertDialog(
             text:
                 "You have sucessfully blocked this user, you will no longer see any content from them."));
-
-    try {
-      Provider.of<CommentsProvider>(context, listen: false).resetState();
-    } on ProviderNotFoundException {
-      Navigator.pop(context);
-    }
   }
 
   Future<void> _reportComment() async {

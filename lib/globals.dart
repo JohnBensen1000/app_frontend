@@ -6,11 +6,19 @@ import 'package:flutter/widgets.dart';
 import 'API/baseAPI.dart';
 
 import 'models/user.dart';
-import 'repository/post_repository.dart';
-import 'repository/profile_repository.dart';
-import 'repository/account_repository.dart';
 
-User user;
+import 'repositories/blocked.dart';
+import 'repositories/chats.dart';
+import 'repositories/following.dart';
+import 'repositories/new_activity.dart';
+import 'repositories/profile.dart';
+import 'repositories/user.dart';
+import 'repositories/account.dart';
+import 'repositories/post_list.dart';
+
+// User user;
+String uid;
+
 double goldenRatio = 1.61803398875;
 double cornerRadiusRatio = 1 / 19; // Fraction of height that corner radius is
 
@@ -24,10 +32,6 @@ Map<String, Color> colorsMap = {
   '5': Color.fromRGBO(255, 199, 0, 1.0),
   '6': Color.fromRGBO(247, 0, 16, 1.0),
 };
-
-PostRepository postRepository = new PostRepository();
-ProfileRepository profileRepository = new ProfileRepository();
-AccountRepository accountRepository = new AccountRepository();
 
 BaseAPI baseAPI = new BaseAPI();
 
@@ -43,3 +47,15 @@ class SizeConfig {
 }
 
 SizeConfig size;
+
+AccountRepository accountRepository = new AccountRepository();
+
+BlockedRepository blockedRepository;
+ChatsRepository chatsRepository;
+FollowingRepository followingRepository;
+NewActivityRepository newActivityRepository;
+ProfileRepository profileRepository;
+UserRepository userRepository;
+PostListRepository recommendationPostsRepository;
+PostListRepository followingPostsRepository;
+// CommentsRepository commentsRepository;

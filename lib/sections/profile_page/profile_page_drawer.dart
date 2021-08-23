@@ -11,28 +11,29 @@ import 'package:test_flutter/widgets/generic_text_button.dart';
 import '../camera/camera.dart';
 
 import '../personalization/choose_color.dart';
-import '../personalization/preferences.dart';
 import '../personalization/change_username.dart';
+import '../personalization/preferences.dart';
 
 // import 'blocked_list.dart';
 
-class ProfileDrawer extends StatefulWidget {
+class ProfilePageDrawer extends StatefulWidget {
   // The profile widget pops out from the left side of the screen. It contains
   // the user's profile picture and a list of buttons. Each button allows the
   // user to change a different aspect of their their profile.
 
-  ProfileDrawer({
+  ProfilePageDrawer({
     Key key,
   }) : super(key: key);
 
   @override
-  _ProfileDrawerState createState() => _ProfileDrawerState();
+  _ProfilePageDrawerState createState() => _ProfilePageDrawerState();
 }
 
-class _ProfileDrawerState extends State<ProfileDrawer> {
+class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: Colors.white,
       padding: EdgeInsets.only(
           top: .047 * globals.size.height, bottom: .1 * globals.size.height),
       child: Column(
@@ -48,15 +49,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                 Column(
                   children: [
                     GenericTextButton(
-                      buttonName: "Choose color",
-                      onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ColorsPage()))
-                          .then((value) {
-                        setState(() {});
-                      }),
-                    ),
+                        buttonName: "Choose color",
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ColorsPage()))),
                     GenericTextButton(
                         buttonName: "Set preferences",
                         onPressed: () => Navigator.push(
@@ -64,15 +61,11 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
                             MaterialPageRoute(
                                 builder: (context) => PreferencesPage()))),
                     GenericTextButton(
-                      buttonName: "Change username",
-                      onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ChangeUsernamePage()))
-                          .then((value) {
-                        setState(() {});
-                      }),
-                    ),
+                        buttonName: "Change username",
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ChangeUsernamePage()))),
                   ],
                 ),
                 Column(
@@ -159,17 +152,20 @@ class _ProfileDrawerHeaderState extends State<ProfileDrawerHeader> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Padding(
-              padding: EdgeInsets.only(
-                  top: .02 * globals.size.height,
-                  bottom: .02 * globals.size.height),
-              child: GestureDetector(
+            padding: EdgeInsets.only(
+                top: .02 * globals.size.height,
+                bottom: .02 * globals.size.height),
+            child: GestureDetector(
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    ProfilePic(
-                      diameter: .2 * globals.size.height,
-                      user: globals.user,
-                    ),
+                    FutureBuilder(
+                        future: globals.userRepository.get(globals.uid),
+                        builder: (context, snapshot) => snapshot.hasData
+                            ? ProfilePic(
+                                diameter: .2 * globals.size.height,
+                                user: snapshot.data)
+                            : Container()),
                     Text("Take New Photo",
                         style: TextStyle(
                             shadows: <Shadow>[
@@ -188,10 +184,8 @@ class _ProfileDrawerHeaderState extends State<ProfileDrawerHeader> {
                     MaterialPageRoute(
                         builder: (context) => Camera(
                               cameraUsage: CameraUsage.profile,
-                            ))).then((value) {
-                  setState(() {});
-                }),
-              )),
+                            )))),
+          ),
           Text(
             "Edit Profile",
             style: TextStyle(

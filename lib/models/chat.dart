@@ -28,7 +28,7 @@ class Chat {
     for (User user in this.members) {
       this.membersMap[user.uid] = user;
     }
-    this.members.removeWhere((item) => item.uid == globals.user.uid);
+    this.members.removeWhere((item) => item.uid == globals.uid);
 
     if (this.isDirectMessage) {
       this.chatName = this.members[0].username;

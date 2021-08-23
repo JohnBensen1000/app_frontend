@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/sections/profile_page/profile_drawer.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
-import '../../API/methods/followings.dart';
-import '../../API/methods/blocked.dart';
 import '../../models/user.dart';
 import '../../models/post.dart';
-import '../../widgets/custom_drawer.dart';
 
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
@@ -21,27 +16,92 @@ import '../../widgets/wide_button.dart';
 import '../post/post_widget.dart';
 import '../post/post_page.dart';
 
-class ProfileProvider extends ChangeNotifier {
-  // Simply keeps track of if the setting should be open or closed.
-  bool _isProfileDrawerOpen = false;
+import 'widgets/profile_page_header_button.dart';
+import 'profile_page_drawer.dart';
 
-  bool get isDrawerOpen => _isProfileDrawerOpen;
+class ProfilePageProvider extends ChangeNotifier {
+  // Keeps track of the list of the creator's posts, whether the profile page
+  // belongs to the main user, and if the main user is following the profile
+  // page's creator. Also allows the user to start/stop following the creator,
+  // and allows the user to block the creator. If the profile page belongs to
+  // the user, then allows the user to delete their posts. Rebuilds the profile
+  // page whenever the user changes any of their settings.
 
-  set isDrawerOpen(newIsProfileDrawerOpen) {
-    _isProfileDrawerOpen = newIsProfileDrawerOpen;
+  ProfilePageProvider({@required this.user}) {
+    _allowFollowingChange = true;
+    _getUsersPosts();
+    _callbacks();
+  }
+
+  User user;
+
+  List<Post> _postsList;
+  bool _allowFollowingChange;
+
+  List<Post> get postsList => _postsList;
+  bool get isMainUsersProfile => user.uid == globals.uid;
+  bool get isFollowing => globals.followingRepository.isFollowing(user.uid);
+
+  void toggleFollowing() async {
+    if (_allowFollowingChange) {
+      _allowFollowingChange = false;
+      isFollowing
+          ? await globals.followingRepository.unfollow(user)
+          : await globals.followingRepository.follow(user);
+      _allowFollowingChange = true;
+    }
+  }
+
+  Future<void> block(BuildContext context) async {
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialogContainer(
+              dialogText: "Are you sure you want to block ${user.userID}?");
+        }).then((isBlockingUser) async {
+      if (isBlockingUser) {
+        var response = await globals.blockedRepository.block(user);
+        switch (response['denied']) {
+          default:
+            await showDialog(
+                context: context,
+                builder: (context) => GenericAlertDialog(
+                    text:
+                        "You have successfully blocked this user, so you will no longer see any content from them."));
+            Navigator.pop(context);
+        }
+      }
+    });
+  }
+
+  Future<void> delete(Post post) async {
+    bool response = await deletePost(post);
+
+    if (response != null && response) {
+      _postsList.remove(post);
+      notifyListeners();
+    }
+  }
+
+  void _getUsersPosts() async {
+    _postsList = await getUsersPosts(user);
     notifyListeners();
   }
 
-  void resetState() {
-    notifyListeners();
+  void _callbacks() async {
+    globals.followingRepository.stream.listen((following) {
+      notifyListeners();
+    });
+    globals.userRepository.stream.listen((updatedUser) {
+      user = updatedUser;
+      notifyListeners();
+    });
   }
 }
 
 class ProfilePage extends StatelessWidget {
-  // Returns a stack of the profile page and the profile drawer. Only displays
-  // the profile drawer if it has been opened. The profile drawer contains
-  // a profile widget that is placed on top of the profile page (hence the need
-  // for a stack).
+  // Broken up into a header and a body.
+
   ProfilePage({@required this.user});
 
   final User user;
@@ -49,54 +109,40 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double headerHeight = .42 * globals.size.height;
-
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return ChangeNotifierProvider(
-        create: (context) => ProfileProvider(),
+        create: (context) => ProfilePageProvider(
+              user: user,
+            ),
         child: Scaffold(
-            body: Consumer<ProfileProvider>(
-                builder: (context, provider, child) => Stack(
-                      children: [
-                        Container(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: <Widget>[
-                              ProfilePageHeader(
-                                user: user,
-                                height: headerHeight,
-                              ),
-                              ProfilePostBody(
-                                  user: user,
-                                  height: bodyHeight,
-                                  sidePadding: .05 * globals.size.width,
-                                  betweenPadding: .01 * globals.size.width),
-                            ],
-                          ),
-                        ),
-                        (provider.isDrawerOpen)
-                            ? CustomDrawer(
-                                child: ProfileDrawer(),
-                                parentProvider: provider,
-                              )
-                            : Container()
-                      ],
-                    ))));
+            body: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                ProfilePageHeader(
+                  height: headerHeight,
+                ),
+                ProfilePostBody(
+                    user: user,
+                    height: bodyHeight,
+                    sidePadding: .05 * globals.size.width,
+                    betweenPadding: .01 * globals.size.width),
+              ],
+            ),
+            drawer: Container(
+                width: .7 * globals.size.width, child: ProfilePageDrawer())));
   }
 }
 
 class ProfilePageHeader extends StatelessWidget {
-  // Part of profile page that stays static as the user scrolls through the
-  // creator's posts. Displays the creator's profile pic, username and userID.
-  // Also displays a button that lets the user start/stop following this
-  // creator.
+  // Returns a back button, the creator's profile pic, username, and userID.
+  // If the profile page belongs to the user, then returns a button that lets
+  // the user open up the settings drawer. If the profile page belongs to
+  // someone else, then returns a row of buttons that lets the user start/stop
+  // following the creator and block the user.
 
-  ProfilePageHeader({
-    @required this.user,
-    @required this.height,
-  });
+  const ProfilePageHeader({@required this.height});
 
-  final User user;
   final double height;
 
   @override
@@ -105,229 +151,122 @@ class ProfilePageHeader extends StatelessWidget {
         padding: EdgeInsets.only(
             bottom: .02 * globals.size.height, top: .045 * globals.size.height),
         height: height,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: EdgeInsets.only(
-                top: .01 * globals.size.height,
-                left: .06 * globals.size.width,
-              ),
-              child: Row(
-                children: <Widget>[
-                  GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Center(child: BackArrow())),
-                ],
-              ),
-            ),
-            Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Consumer<ProfileProvider>(
-                      builder: (context, provider, child) => ProfilePic(
-                          diameter: .18 * globals.size.height, user: user)),
-                  Container(
-                    child: Text(
-                      '${user.username}',
-                      style: TextStyle(
-                        fontFamily: 'Helvetica Neue',
-                        fontSize: .03 * globals.size.height,
-                        color: const Color(0xff000000),
+        child: Consumer<ProfilePageProvider>(
+            builder: (context, provider, child) => Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(
+                        top: .01 * globals.size.height,
+                        left: .06 * globals.size.width,
                       ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                  Container(
-                    child: Text(
-                      '@${user.userID}',
-                      style: TextStyle(
-                        fontFamily: 'Helvetica Neue',
-                        fontSize: .016 * globals.size.height,
-                        color: Colors.grey[400],
+                      child: Row(
+                        children: <Widget>[
+                          GestureDetector(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Center(child: BackArrow())),
+                        ],
                       ),
-                      textAlign: TextAlign.left,
                     ),
-                  ),
-                  Container(
-                    height: .02 * globals.size.height,
-                    child: SvgPicture.string(
-                      _svg_jmyh3o,
-                      allowDrawingOutsideViewBox: true,
-                    ),
-                  ),
-                  if (user.uid != globals.user.uid)
-                    FollowBlockButtons(user: user)
-                  else
-                    OpenProfileDrawerButton(),
-                ]),
-          ],
-        ));
-  }
-}
-
-class FollowBlockButtons extends StatefulWidget {
-  // Returns a row of two buttons: Follow/Following and Block.
-  // The Follow/Following button allows the user to follow the creator if they
-  // are currently not following them, and allows the user to unfollower the
-  // creator if they are currently following them. This widget is rebuilt every
-  // time this button is pressed. The Block button allows the user to block the
-  // creator. When pressed, an alert dialog is displayed to confirm the user's
-  // decision. When confirmed, the profile page is popped.
-
-  const FollowBlockButtons({
-    @required this.user,
-    Key key,
-  }) : super(key: key);
-
-  final User user;
-
-  @override
-  _FollowBlockButtonsState createState() => _FollowBlockButtonsState();
-}
-
-class _FollowBlockButtonsState extends State<FollowBlockButtons> {
-  bool allowChangeFollow = true;
-  bool isFollowing;
-
-  @override
-  Widget build(BuildContext context) {
-    double followButtonWidth = .26 * globals.size.width;
-
-    return Container(
-      width: .47 * globals.size.width,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          FutureBuilder(
-              future: handleRequest(context, getIfFollowing(widget.user)),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
-                  isFollowing = snapshot.data;
-                  return GestureDetector(
-                    child: ProfilePageHeaderButton(
-                        name: (isFollowing) ? "Following" : "Follow",
-                        color: (isFollowing)
-                            ? Colors.white
-                            : widget.user.profileColor,
-                        borderColor: widget.user.profileColor,
-                        width: followButtonWidth),
-                    onTap: () async {
-                      if (allowChangeFollow) {
-                        allowChangeFollow = false;
-                        await changeFollowing(context);
-                        allowChangeFollow = true;
-                      }
-                    },
-                  );
-                } else
-                  return Container(
-                    width: followButtonWidth,
-                  );
-              }),
-          GestureDetector(
-            child: ProfilePageHeaderButton(
-              name: "Block",
-              borderColor: Colors.black,
-              color: Colors.white,
-              width: .19 * globals.size.width,
-            ),
-            onTap: () => showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialogContainer(
-                      dialogText:
-                          "Are you sure you want to block ${widget.user.userID}?");
-                }).then((isBlockingUser) async {
-              if (isBlockingUser) {
-                await handleRequest(context, blockUser(widget.user));
-                await showDialog(
-                    context: context,
-                    builder: (context) => GenericAlertDialog(
-                        text:
-                            "You have successfully blocked this user, so you will no longer see any content from them."));
-                Navigator.pop(context);
-              }
-            }),
-          )
-        ],
-      ),
-    );
+                    Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          ProfilePic(
+                            diameter: .18 * globals.size.height,
+                            user: provider.user,
+                          ),
+                          Container(
+                            child: Text(
+                              '${provider.user.username}',
+                              style: TextStyle(
+                                fontFamily: 'Helvetica Neue',
+                                fontSize: .03 * globals.size.height,
+                                color: const Color(0xff000000),
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                          Container(
+                            child: Text(
+                              '@${provider.user.userID}',
+                              style: TextStyle(
+                                fontFamily: 'Helvetica Neue',
+                                fontSize: .016 * globals.size.height,
+                                color: Colors.grey[400],
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                          Container(
+                            height: .02 * globals.size.height,
+                            child: SvgPicture.string(
+                              _svg_jmyh3o,
+                              allowDrawingOutsideViewBox: true,
+                            ),
+                          ),
+                          if (provider.user.uid != globals.uid)
+                            Container(
+                              width: .48 * globals.size.width,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _followBackButton(context),
+                                  _blockButton(context)
+                                ],
+                              ),
+                            )
+                          else
+                            _openDrawerButton(context),
+                        ]),
+                  ],
+                )));
   }
 
-  Future<void> changeFollowing(BuildContext context) async {
-    (isFollowing)
-        ? await handleRequest(context, stopFollowing(widget.user))
-        : await handleRequest(context, startFollowing(widget.user));
-
-    isFollowing = !isFollowing;
-
-    setState(() {});
-  }
-}
-
-class OpenProfileDrawerButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    ProfileProvider provider =
-        Provider.of<ProfileProvider>(context, listen: false);
-
+  Widget _openDrawerButton(BuildContext context) {
     return GestureDetector(
         child: ProfilePageHeaderButton(
           width: .32 * globals.size.width,
           name: "Edit Profile",
           color: Colors.transparent,
-          borderColor: globals.user.profileColor,
+          borderColor: Provider.of<ProfilePageProvider>(context, listen: false)
+              .user
+              .profileColor,
         ),
-        onTap: () => provider.isDrawerOpen = true);
+        onTap: () => Scaffold.of(context).openDrawer());
   }
-}
 
-class ProfilePageHeaderButton extends StatelessWidget {
-  const ProfilePageHeaderButton(
-      {Key key,
-      @required this.name,
-      @required this.color,
-      @required this.borderColor,
-      @required this.width})
-      : super(key: key);
+  Widget _followBackButton(BuildContext context) {
+    return Consumer<ProfilePageProvider>(builder: (context, provider, child) {
+      return GestureDetector(
+          child: ProfilePageHeaderButton(
+              name: (provider.isFollowing) ? "Following" : "Follow",
+              color: (provider.isFollowing)
+                  ? Colors.white
+                  : provider.user.profileColor,
+              borderColor: provider.user.profileColor,
+              width: .27 * globals.size.width),
+          onTap: () => provider.toggleFollowing());
+    });
+  }
 
-  final String name;
-  final Color color;
-  final Color borderColor;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: .034 * globals.size.height,
-      width: width,
-      decoration: BoxDecoration(
-          border: Border.all(color: borderColor, width: 2.0),
-          color: color,
-          borderRadius: BorderRadius.all(Radius.circular(globals.size.height))),
-      child: Center(
-        child: Text(
-          name,
-          style: TextStyle(
-            fontFamily: 'Helvetica Neue',
-            fontSize: .024 * globals.size.height,
-            color: const Color(0xff000000),
-          ),
+  Widget _blockButton(BuildContext context) {
+    return GestureDetector(
+        child: ProfilePageHeaderButton(
+          name: "Block",
+          borderColor: Colors.black,
+          color: Colors.white,
+          width: .19 * globals.size.width,
         ),
-      ),
-    );
+        onTap: () async =>
+            await Provider.of<ProfilePageProvider>(context, listen: false)
+                .block(context));
   }
 }
 
 class ProfilePostBody extends StatelessWidget {
-  // Gets and returns a all of the creator's publics posts. The posts are
-  // organized into a list of widgets. This list runs vertically and starts off
-  // with a big ProfilePostWidget() that takes up the entire width of the page.
-  // The rest of the list is a series of Rows(), each row is made of up 3
-  // ProfilePostWidget().
-
+  // Returns a scrollable list of all of the creator's posts. Breaks it up into:
+  // one main post on top, and then rows of three posts at a time.
   ProfilePostBody({
     @required this.user,
     @required this.height,
@@ -344,35 +283,28 @@ class ProfilePostBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('resetting state');
-    return FutureBuilder(
-        future: handleRequest(context, getUsersPosts(user)),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.data.length == 0)
-              return Center(child: Text("Nothing to display"));
-            else {
-              List<Widget> profilePostsList =
-                  _getProfilePostsList(context, snapshot.data);
+    return Consumer<ProfilePageProvider>(builder: (context, provider, child) {
+      if (provider.postsList == null || provider.postsList.length == 0)
+        return Center(child: Text("Nothing to display"));
+      else {
+        List<Widget> profilePostsList =
+            _getProfilePostsList(context, provider.postsList);
 
-              return Padding(
-                padding: EdgeInsets.only(left: sidePadding, right: sidePadding),
-                child: SizedBox(
-                  height: height,
-                  child: new ListView.builder(
-                    padding: EdgeInsets.only(top: .01 * globals.size.height),
-                    itemCount: profilePostsList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return profilePostsList[index];
-                    },
-                  ),
-                ),
-              );
-            }
-          } else {
-            return Container();
-          }
-        });
+        return Padding(
+          padding: EdgeInsets.only(left: sidePadding, right: sidePadding),
+          child: SizedBox(
+            height: height,
+            child: new ListView.builder(
+              padding: EdgeInsets.only(top: .01 * globals.size.height),
+              itemCount: profilePostsList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return profilePostsList[index];
+              },
+            ),
+          ),
+        );
+      }
+    });
   }
 
   List<Widget> _getProfilePostsList(BuildContext context, List<Post> postList) {
@@ -478,15 +410,15 @@ class _ProfilePostWidgetState extends State<ProfilePostWidget>
                 builder: (context) =>
                     PostPage(isFullPost: true, post: widget.post))),
         onLongPress: () {
-          if (widget.post.creator.uid == globals.user.uid) {
+          if (widget.post.creator.uid == globals.uid) {
             showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   return ProfilePostAlertDialog(post: widget.post);
-                }).then((willResetState) {
-              if (willResetState != null && willResetState) {
-                Provider.of<ProfileProvider>(context, listen: false)
-                    .resetState();
+                }).then((willDelete) async {
+              if (willDelete != null && willDelete) {
+                await Provider.of<ProfilePageProvider>(context, listen: false)
+                    .delete(widget.post);
               }
             });
           }
@@ -524,17 +456,12 @@ class ProfilePostAlertDialog extends StatelessWidget {
                 GestureDetector(
                     child: WideButton(buttonName: "Delete"),
                     onTap: () => showDialog(
-                                context: context,
-                                builder: (BuildContext context) =>
-                                    AlertDialogContainer(
-                                        dialogText:
-                                            "Are you sure you want to delete this post? It will be permanently removed from the app."))
-                            .then((willDelete) async {
-                          if (willDelete != null && willDelete) {
-                            await handleRequest(context, deletePost(post));
-                            Navigator.pop(context, true);
-                          }
-                        }))
+                            context: context,
+                            builder: (BuildContext _) => AlertDialogContainer(
+                                dialogText:
+                                    "Are you sure you want to delete this post? It will be permanently removed from the app."))
+                        .then(
+                            (willDelete) => Navigator.pop(context, willDelete)))
               ],
             )));
   }

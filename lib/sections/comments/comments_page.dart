@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/API/methods/comments.dart';
 import 'package:test_flutter/widgets/back_arrow.dart';
-import 'package:video_player/video_player.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/generic_alert_dialog.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
+import '../../repositories/comments.dart';
 
 import '../post/post_widget.dart';
 
@@ -23,14 +21,20 @@ class CommentsPageProvider extends ChangeNotifier {
   CommentsPageProvider(
       {@required this.post,
       @required this.commentsList,
+      @required this.repository,
       @required this.parentComment});
 
   final Post post;
+  final CommentsSectionRepository repository;
   final List<Comment> commentsList;
   final Comment parentComment;
+
+  Future<Map> addComment(String comment) async {
+    return await repository.addComment(parentComment, comment);
+  }
 }
 
-class CommentsPage extends StatelessWidget {
+class CommentsPage extends StatefulWidget {
   // Determines the layout of the comments page. The comments page is a
   // semi-transparent column of 3 sections that is placed on top of the post.
   // These three sections are: header, body, and footer. The header displays
@@ -41,12 +45,19 @@ class CommentsPage extends StatelessWidget {
   CommentsPage(
       {@required this.post,
       @required this.parentComment,
+      @required this.repository,
       @required this.commentsList});
 
   final Post post;
   final Comment parentComment;
   final List<Comment> commentsList;
+  final CommentsSectionRepository repository;
 
+  @override
+  State<CommentsPage> createState() => _CommentsPageState();
+}
+
+class _CommentsPageState extends State<CommentsPage> {
   @override
   Widget build(BuildContext context) {
     double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
@@ -57,15 +68,15 @@ class CommentsPage extends StatelessWidget {
     double footerHeight = .14 * height;
 
     return Scaffold(
-      body: ChangeNotifierProvider(
-          create: (context) => CommentsPageProvider(
-              post: post,
-              commentsList: commentsList,
-              parentComment: parentComment),
-          child: Stack(
-            children: <Widget>[
+        body: ChangeNotifierProvider(
+            create: (context) => CommentsPageProvider(
+                post: widget.post,
+                commentsList: widget.commentsList,
+                repository: widget.repository,
+                parentComment: widget.parentComment),
+            child: Stack(children: <Widget>[
               PostWidget(
-                post: post,
+                post: widget.post,
                 height: height,
                 aspectRatio: height / width,
                 cornerRadiusFraction: 0,
@@ -86,18 +97,16 @@ class CommentsPage extends StatelessWidget {
                   ),
                   CommentsPageBody(
                     height: height - headerHeight - footerHeight,
-                    parentCommentOffset:
-                        (parentComment != null) ? parentComment.level + 1 : 0,
+                    parentCommentOffset: (widget.parentComment != null)
+                        ? widget.parentComment.level + 1
+                        : 0,
                   ),
                   CommentsPageFooter(
-                    videoPlayerController: null,
                     height: footerHeight,
                   )
                 ],
               ),
-            ],
-          )),
-    );
+            ])));
   }
 }
 
@@ -155,11 +164,20 @@ class CommentsPageBody extends StatelessWidget {
           children: [
             if (provider.parentComment != null)
               Container(
-                  child: CommentWidget(
-                    post: provider.post,
-                    comment: provider.parentComment,
-                    leftPadding: 0,
-                  ),
+                  child: FutureBuilder(
+                      future: globals.userRepository
+                          .get(provider.parentComment.uid),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData)
+                          return CommentWidget(
+                            post: provider.post,
+                            comment: provider.parentComment,
+                            commenter: snapshot.data,
+                            leftPadding: 0,
+                          );
+                        else
+                          return Container();
+                      }),
                   padding: EdgeInsets.only(bottom: .01 * globals.size.height),
                   decoration: BoxDecoration(
                       border: Border(
@@ -174,12 +192,21 @@ class CommentsPageBody extends StatelessWidget {
                     return Container(
                       margin:
                           EdgeInsets.only(bottom: .0059 * globals.size.height),
-                      child: CommentWidget(
-                          post: provider.post,
-                          comment: provider.commentsList[index],
-                          leftPadding: paddingPerLevel *
-                              (provider.commentsList[index].level -
-                                  parentCommentOffset)),
+                      child: FutureBuilder(
+                          future: globals.userRepository
+                              .get(provider.commentsList[index].uid),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData)
+                              return CommentWidget(
+                                  post: provider.post,
+                                  comment: provider.commentsList[index],
+                                  commenter: snapshot.data,
+                                  leftPadding: paddingPerLevel *
+                                      (provider.commentsList[index].level -
+                                          parentCommentOffset));
+                            else
+                              return Container();
+                          }),
                     );
                   }),
             ),
@@ -189,13 +216,15 @@ class CommentsPageBody extends StatelessWidget {
 }
 
 class CommentsPageFooter extends StatefulWidget {
+  // Contains a text field for typing a new comment and a button for uploading
+  // the comment. When the button is pressed, calls provider.uploadComment to
+  // upload the comment. When this process is complete, leaves this page.
+
   const CommentsPageFooter({
-    @required this.videoPlayerController,
     @required this.height,
     Key key,
   }) : super(key: key);
 
-  final VideoPlayerController videoPlayerController;
   final double height;
 
   @override
@@ -203,12 +232,14 @@ class CommentsPageFooter extends StatefulWidget {
 }
 
 class _CommentsPageFooterState extends State<CommentsPageFooter> {
-  // Contains a text field for typing a new comment and a button for uploading
-  // the comment. When the button is pressed, calls provider.uploadComment to
-  // upload the comment. When this process is complete, leaves this page.
-
   bool allowButtonPress = true;
-  final TextEditingController textController = new TextEditingController();
+  TextEditingController textController;
+
+  @override
+  void initState() {
+    textController = new TextEditingController();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -243,10 +274,7 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
                 setState(() {
                   allowButtonPress = false;
                 });
-                Map response = await handleRequest(
-                    context,
-                    postComment(provider.post, provider.parentComment,
-                        textController.text));
+                Map response = await provider.addComment(textController.text);
 
                 switch (response["denied"]) {
                   case "NSFW":

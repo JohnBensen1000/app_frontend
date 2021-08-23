@@ -224,14 +224,20 @@ class PreviewView extends StatelessWidget {
 
     return Center(
       child: Stack(alignment: Alignment.center, children: <Widget>[
-        Container(
-          height: height,
-          width: width,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(cornerRadius),
-            border: Border.all(width: 1.0, color: globals.user.profileColor),
-          ),
-        ),
+        FutureBuilder(
+            future: globals.userRepository.get(globals.uid),
+            builder: (context, snapshot) => Container(
+                  height: height,
+                  width: width,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(cornerRadius),
+                    border: Border.all(
+                        width: 1.0,
+                        color: snapshot.hasData
+                            ? snapshot.data.profileColor
+                            : Colors.grey[300]),
+                  ),
+                )),
         Container(
             height: height - 2,
             width: width - 2,
@@ -349,22 +355,22 @@ class PreviewOptions extends StatelessWidget {
 
   Future<Map> _uploadPost(
       PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(context,
-        postNewPost(provider.isImage, false, provider.file, provider.caption));
+    return await postNewPost(
+        provider.isImage, false, provider.file, provider.caption);
   }
 
   Future<Map> _uploadProfile(
       PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(context,
-        globals.postRepository.postProfile(provider.isImage, provider.file));
+    return await globals.profileRepository
+        .update(provider.isImage, provider.file);
+    // return await handleRequest(context,
+    //     globals.postRepository.postProfile(provider.isImage, provider.file));
   }
 
   Future<Map> _sendInChat(
       PreviewProvider provider, BuildContext context) async {
-    return await handleRequest(
-        context,
-        postChatPost(provider.isImage, provider.file, provider.chat.chatID,
-            provider.caption));
+    return await postChatPost(provider.isImage, provider.file,
+        provider.chat.chatID, provider.caption);
   }
 }
 

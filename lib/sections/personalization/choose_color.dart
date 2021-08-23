@@ -24,6 +24,13 @@ class ColorsProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<void> setColor(BuildContext context) async {
+    if (_chosenColorKey != null) {
+      await globals.userRepository.changeColor(_chosenColorKey);
+      Navigator.pop(context);
+    }
+  }
 }
 
 class ColorsPage extends StatelessWidget {
@@ -223,15 +230,7 @@ class ChooseColorFooter extends StatelessWidget {
                             child: Text("Set Color"),
                           ),
                         ),
-                        onTap: () async {
-                          if (provider.chosenColorKey != null) {
-                            await handleRequest(
-                                context, updateColor(provider.chosenColorKey));
-                            globals.user.profileColor =
-                                globals.colorsMap[provider.chosenColorKey];
-                            Navigator.pop(context);
-                          }
-                        }),
+                        onTap: () => provider.setColor(context)),
                   ),
                 ],
               ),

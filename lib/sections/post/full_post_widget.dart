@@ -58,7 +58,7 @@ class FullPostProvider extends ChangeNotifier {
   }
 }
 
-class FullPostWidget extends StatelessWidget {
+class FullPostWidget extends StatefulWidget {
   // Returns a column of the creator's profile, the post, and the comments
   // button. When the profile is pressed, takes user to that creator's profile
   // page. When the post is pressed and the post is not it's own page, then
@@ -68,58 +68,69 @@ class FullPostWidget extends StatelessWidget {
   FullPostWidget(
       {@required this.post,
       @required this.height,
+      this.playVideo = true,
       this.isFullPage = false,
       this.showComments = false,
       this.showCaption = false});
 
   final Post post;
   final double height;
+  final bool playVideo;
   final bool isFullPage;
   final bool showComments;
   final bool showCaption;
 
   @override
+  State<FullPostWidget> createState() => _FullPostWidgetState();
+}
+
+class _FullPostWidgetState extends State<FullPostWidget> {
+  @override
   Widget build(BuildContext context) {
-    double postWidgetHeight = .8 * height;
+    double postWidgetHeight = .8 * widget.height;
     double width = postWidgetHeight / globals.goldenRatio;
     return ChangeNotifierProvider(
-        create: (context) => FullPostProvider(isOpen: showComments),
+        create: (context) => FullPostProvider(isOpen: widget.showComments),
         child: Stack(alignment: Alignment.bottomCenter, children: [
           Container(
-            height: height,
+            height: widget.height,
             width: width,
             child: Column(
               children: [
                 GestureDetector(
                     child: Container(
-                        padding: EdgeInsets.symmetric(vertical: .01 * height),
+                        padding:
+                            EdgeInsets.symmetric(vertical: .01 * widget.height),
                         child: Profile(
-                            diameter: .08 * height, user: post.creator)),
+                            diameter: .08 * widget.height,
+                            user: widget.post.creator)),
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) =>
-                                ProfilePage(user: post.creator)))),
+                                ProfilePage(user: widget.post.creator)))),
                 GestureDetector(
                     child: PostWidget(
-                      post: post,
+                      post: widget.post,
                       height: postWidgetHeight,
                       aspectRatio: globals.goldenRatio,
-                      showCaption: showCaption,
+                      showCaption: widget.showCaption,
+                      playVideo: widget.playVideo,
                     ),
                     onTap: () {
-                      if (!isFullPage)
+                      if (!widget.isFullPage) {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) =>
-                                    PostPage(isFullPost: true, post: post)));
+                                builder: (context) => PostPage(
+                                    isFullPost: true, post: widget.post)));
+                      }
                     }),
                 CommentsButton(),
               ],
             ),
           ),
-          CommentsSnackBar(height: height, post: post),
+          CommentsSnackBar(height: widget.height, post: widget.post),
         ]));
   }
 }
@@ -176,13 +187,11 @@ class CommentsSnackBar extends StatefulWidget {
 }
 
 class _CommentsSnackBarState extends State<CommentsSnackBar> {
-  Widget comments;
   double snackbarHeight;
 
   @override
   void initState() {
     snackbarHeight = .7 * widget.height;
-    comments = Comments(height: snackbarHeight, post: widget.post);
     super.initState();
   }
 
@@ -211,7 +220,7 @@ class _CommentsSnackBarState extends State<CommentsSnackBar> {
                     decoration: BoxDecoration(
                         color: Colors.grey[300].withOpacity(.8),
                         borderRadius: BorderRadius.all(Radius.circular(20))),
-                    child: comments,
+                    child: Comments(height: snackbarHeight, post: widget.post),
                   ),
                   onVerticalDragUpdate: (DragUpdateDetails dragUpdates) =>
                       provider.yOffset += dragUpdates.delta.dy / snackbarHeight,

@@ -4,30 +4,30 @@ import '../../models/comment.dart';
 import '../../models/post.dart';
 import '../../globals.dart' as globals;
 
-Future<List<Comment>> getAllComments(Post post) async {
-  var response = await BaseAPI().get('v2/comments/${post.postID}',
-      queryParameters: {'uid': globals.user.uid});
+Future<List<Comment>> getAllComments(String postID) async {
+  var response = await BaseAPI()
+      .get('v2/comments/$postID', queryParameters: {'uid': globals.uid});
 
   List<Comment> commentsList = [];
 
+  if (response == null) return null;
+
   for (var commentJson in response["comments"]) {
     Comment comment = Comment.fromServer(commentJson);
-    await comment.initDone;
-
     commentsList.add(comment);
   }
   return commentsList;
 }
 
 Future<Map> postComment(
-    Post post, Comment parentComment, String commentText) async {
+    String postID, Comment parentComment, String commentText) async {
   String commentPath = (parentComment != null) ? parentComment.path : '';
 
   Map postBody = {
     "path": commentPath,
     "comment": commentText,
-    "uid": globals.user.uid
+    "uid": globals.uid
   };
 
-  return await BaseAPI().post('v2/comments/${post.postID}', postBody);
+  return await BaseAPI().post('v2/comments/$postID', postBody);
 }

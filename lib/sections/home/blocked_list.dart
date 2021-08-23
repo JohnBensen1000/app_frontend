@@ -11,29 +11,39 @@ import '../../widgets/back_arrow.dart';
 import '../profile_page/profile_page.dart';
 
 class BlockedListProvider extends ChangeNotifier {
-  // Contains a list of blocked users. Also contains a function used to unblock
-  // a user. This function sends a request to the server to unblock the user.
-  // If this request is successful, the user is removed from list of blocked
-  // users.
+  // Keeps track of all the creator that the user is blocking. When the user
+  // wants to unblock a user, the blocked repository is told to remove that user
+  // from the blocked list. If this is done successfully, the page is rebuilt to
+  // not include the recently unblocked creator.
 
-  List<User> blockedUsers;
-
-  BlockedListProvider({@required List<User> blockedUsers}) {
-    this.blockedUsers = blockedUsers;
+  BlockedListProvider() {
+    this._blockedUsers = globals.blockedRepository.blockedList;
+    _blockedListCallback();
   }
 
+  List<User> _blockedUsers;
+
+  List<User> get blockedUsers => _blockedUsers;
+
   Future<void> unBlockUser(BuildContext context, User user) async {
-    if (await handleRequest(context, unblockUser(user))) {
-      blockedUsers.remove(user);
+    if (await globals.blockedRepository.unblock(user)) {
+      _blockedUsers = globals.blockedRepository.blockedList;
       notifyListeners();
     }
+  }
+
+  Future<void> _blockedListCallback() async {
+    globals.blockedRepository.stream.listen((_) {
+      _blockedUsers = globals.blockedRepository.blockedList;
+      notifyListeners();
+    });
   }
 }
 
 class BlockedList extends StatelessWidget {
-  // Seperates the blocked list page into a header and a body. Gets a list of
-  // blocked users from the server and uses that list to initialize the
-  // provider. The page's body is the child to this provider.
+  // Broken up into 2 sections: a back arrow and a list of all blocked creators.
+  // This list of blocked creators is rebuilt every time the list of blocked
+  // creators changes.
 
   @override
   Widget build(BuildContext context) {
@@ -43,75 +53,38 @@ class BlockedList extends StatelessWidget {
     return Scaffold(
         body: Column(
       children: [
-        BlockedListHeader(height: headerHeight),
-        FutureBuilder(
-            future: getBlockedUsers(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                return ChangeNotifierProvider(
-                    create: (context) =>
-                        BlockedListProvider(blockedUsers: snapshot.data),
-                    child: BlockedListBody(height: bodyHeight));
-              } else
-                return Center(
-                  child: Text("Loading"),
-                );
-            })
+        Container(
+          alignment: Alignment.bottomCenter,
+          padding: EdgeInsets.only(
+              left: .051 * globals.size.width,
+              right: .051 * globals.size.width,
+              bottom: .0118 * globals.size.height),
+          height: headerHeight,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              GestureDetector(
+                  child: BackArrow(), onTap: () => Navigator.pop(context)),
+            ],
+          ),
+        ),
+        ChangeNotifierProvider(
+            create: (context) => BlockedListProvider(),
+            child: Consumer<BlockedListProvider>(
+                builder: (context, provider, child) => Container(
+                    width: double.infinity,
+                    height: bodyHeight,
+                    child: ListView.builder(
+                        padding:
+                            EdgeInsets.only(top: .012 * globals.size.height),
+                        itemCount: provider.blockedUsers.length,
+                        itemBuilder: (context, index) {
+                          return BlockedUserWidget(
+                            user: provider.blockedUsers[index],
+                          );
+                        }))))
       ],
     ));
-  }
-}
-
-class BlockedListHeader extends StatelessWidget {
-  // contains a button for returning to the previous page.
-
-  BlockedListHeader({@required this.height});
-
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.bottomCenter,
-      padding: EdgeInsets.only(
-          left: .051 * globals.size.width,
-          right: .051 * globals.size.width,
-          bottom: .0118 * globals.size.height),
-      height: height,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          GestureDetector(
-              child: BackArrow(), onTap: () => Navigator.pop(context)),
-        ],
-      ),
-    );
-  }
-}
-
-class BlockedListBody extends StatelessWidget {
-  // Returns a list view of all blocked users. This widget is rebuilt anytime
-  // the user unblocks another user.
-
-  BlockedListBody({@required this.height});
-
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<BlockedListProvider>(
-        builder: (context, provider, child) => Container(
-            width: double.infinity,
-            height: height,
-            child: ListView.builder(
-                padding: EdgeInsets.only(top: .012 * globals.size.height),
-                itemCount: provider.blockedUsers.length,
-                itemBuilder: (context, index) {
-                  return BlockedUserWidget(
-                    user: provider.blockedUsers[index],
-                  );
-                })));
   }
 }
 
