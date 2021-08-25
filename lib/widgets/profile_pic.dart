@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
 import '../sections/post/post_widget.dart';
@@ -10,7 +9,6 @@ import '../models/user.dart';
 import '../models/post.dart';
 import '../widgets/alert_dialog_container.dart';
 import '../API/methods/reports.dart';
-import '../API/methods/posts.dart';
 
 import '../globals.dart' as globals;
 
@@ -115,11 +113,17 @@ class _ProfilePicState extends State<ProfilePic> {
                           ? streamSnapshot.data
                           : profile,
                       height: widget.diameter,
+                      playWithVolume: false,
                       aspectRatio: 1)
                   : _profileBase();
             })
         : profile != null
-            ? PostWidget(post: profile, height: widget.diameter, aspectRatio: 1)
+            ? PostWidget(
+                post: profile,
+                height: widget.diameter,
+                aspectRatio: 1,
+                playWithVolume: false,
+              )
             : _profileBase();
   }
 

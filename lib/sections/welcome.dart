@@ -39,24 +39,24 @@ class _WelcomeState extends State<Welcome> {
                         globals.uid = snapshot.data.uid;
                         return HomePage();
                       } else {
-                        return Center(
+                        return LogInScreen();
+                      }
+                    } else {
+                      return Center(
+                        child: Container(
+                          height: .4 * MediaQuery.of(context).size.height,
+                          width: .4 * MediaQuery.of(context).size.height,
                           child: Container(
-                            height: .4 * MediaQuery.of(context).size.height,
-                            width: .4 * MediaQuery.of(context).size.height,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: const AssetImage(
-                                      'assets/images/Entropy.PNG'),
-                                  fit: BoxFit.cover,
-                                ),
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: const AssetImage(
+                                    'assets/images/Entropy.PNG'),
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
-                        );
-                      }
-                    } else {
-                      return Container();
+                        ),
+                      );
                     }
                   });
             } else {

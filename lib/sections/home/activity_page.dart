@@ -61,7 +61,12 @@ class ActivityProvider extends ChangeNotifier {
   Future<void> setIsUpdated() => globals.newActivityRepository.update();
 }
 
-class ActivityPage extends StatelessWidget {
+class ActivityPage extends StatefulWidget {
+  @override
+  State<ActivityPage> createState() => _ActivityPageState();
+}
+
+class _ActivityPageState extends State<ActivityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,7 +127,6 @@ class ActivityPage extends StatelessWidget {
                         }), builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             provider.setIsUpdated();
-
                             return Expanded(
                                 child: Container(
                               padding: EdgeInsets.symmetric(

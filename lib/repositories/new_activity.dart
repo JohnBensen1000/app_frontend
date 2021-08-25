@@ -4,7 +4,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:test_flutter/repositories/repository.dart';
 
 import '../../API/methods/users.dart';
-import '../../globals.dart' as globals;
 
 class NewActivityRepository extends Repository<bool> {
   NewActivityRepository() {
@@ -20,13 +19,16 @@ class NewActivityRepository extends Repository<bool> {
     if (response != null) {
       _newActivity = !response['isUpdated'];
       super.controller.sink.add(_newActivity);
+      print(" [x] sink updated");
     }
   }
 
   Future<void> _newActivityCallback() async {
     bool isUpdated = await getIfUserIsUpdated();
-    _newActivity = !isUpdated;
-    super.controller.sink.add(_newActivity);
+    if (isUpdated != null) {
+      _newActivity = !isUpdated;
+      super.controller.sink.add(_newActivity);
+    }
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.data.containsKey('newActivity')) {

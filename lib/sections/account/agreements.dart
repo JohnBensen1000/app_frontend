@@ -219,16 +219,10 @@ class PolicyAgreementPage extends StatelessWidget {
                               padding: EdgeInsets.only(
                                   bottom: .0237 * globals.size.height),
                               child: Container(
-                                width: .15 * globals.size.height,
-                                height: .15 * globals.size.height,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: const AssetImage(
-                                        'assets/images/entropy_small.png'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
+                                  width: .2 * globals.size.height,
+                                  height: .2 * globals.size.height,
+                                  child:
+                                      Image.asset('assets/images/Entropy.PNG')),
                             ),
                             Container(
                               width: .7 * globals.size.width,

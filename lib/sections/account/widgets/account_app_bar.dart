@@ -30,7 +30,7 @@ class AccountAppBar extends PreferredSize {
         Container(
             width: .18 * globals.size.height,
             height: .18 * globals.size.height,
-            child: Image.asset('assets/images/entropy_small.png')),
+            child: Image.asset('assets/images/Entropy_small.PNG')),
       ]),
     );
   }

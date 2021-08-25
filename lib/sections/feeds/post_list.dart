@@ -49,7 +49,6 @@ class PostListProvider extends ChangeNotifier {
 
   void moveUp() async {
     double userRating = stopWatch.elapsed.inMilliseconds.toDouble() / 1000.0;
-    print(" [x] User Rating: $userRating");
     await recordWatched(_repository.currentPost.postID, userRating);
 
     _repository.moveUp();
