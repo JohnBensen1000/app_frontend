@@ -11,7 +11,8 @@ import 'account/enter_account.dart';
 class Welcome extends StatefulWidget {
   // Checks to see if the current device is signed in on. If it is, then saves
   // the user data to globals.user and sends the user to the home screen.
-  // Otherwise sends the user to WelcomePage().
+  // Otherwise sends the user to WelcomePage(). Listens to account repository
+  // and rebuilds every time the user signs out.
   Welcome({
     Key key,
   }) : super(key: key);
@@ -21,13 +22,13 @@ class Welcome extends StatefulWidget {
 }
 
 class _WelcomeState extends State<Welcome> {
-  Future _registerNotifications;
-  Future _getAccountRepository;
+  Future _registerNotificationsFuture;
+  Future _accountUserFuture;
 
   @override
   void initState() {
-    _registerNotifications = registerNotifications();
-    _getAccountRepository = globals.accountRepository.getUser();
+    _registerNotificationsFuture = _registerNotifications();
+    _signOutCallback();
     super.initState();
   }
 
@@ -36,11 +37,11 @@ class _WelcomeState extends State<Welcome> {
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
       body: FutureBuilder(
-          future: _registerNotifications,
+          future: _registerNotificationsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return FutureBuilder(
-                  future: _getAccountRepository,
+                  future: _accountUserFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done) {
                       globals.size = globals.SizeConfig(context: context);
@@ -49,6 +50,7 @@ class _WelcomeState extends State<Welcome> {
                         globals.uid = snapshot.data.uid;
                         return HomePage();
                       } else {
+                        globals.uid = null;
                         return LogInScreen();
                       }
                     } else {
@@ -88,7 +90,7 @@ class _WelcomeState extends State<Welcome> {
     );
   }
 
-  Future<void> registerNotifications() async {
+  Future<void> _registerNotifications() async {
     await Firebase.initializeApp();
 
     FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -102,5 +104,14 @@ class _WelcomeState extends State<Welcome> {
         sound: true,
       );
     }
+  }
+
+  Future<void> _signOutCallback() async {
+    _accountUserFuture = globals.accountRepository.getUser();
+    globals.accountRepository.stream.listen((_) {
+      _accountUserFuture = globals.accountRepository.getUser();
+
+      setState(() {});
+    });
   }
 }

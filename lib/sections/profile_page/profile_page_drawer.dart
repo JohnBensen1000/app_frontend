@@ -77,13 +77,10 @@ class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
                                   "Are you sure you want to log out?")
                               .then((confirmLogOut) async {
                             if (confirmLogOut != null && confirmLogOut) {
-                              await handleRequest(
-                                  context, updateDeviceToken(null));
+                              await updateDeviceToken(null);
                               await globals.accountRepository.removeUid();
                               Navigator.popUntil(
                                   context, (route) => route.isFirst);
-
-                              runApp(MyApp());
                             }
                           });
                         }),
@@ -126,9 +123,9 @@ class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
           if (confirmDelete != null && confirmDelete) {
             await handleRequest(context, deleteAccount());
             await globals.accountRepository.removeUid();
-            Navigator.popUntil(context, (route) => route.isFirst);
+            // Navigator.popUntil(context, (route) => route.isFirst);
 
-            runApp(MyApp());
+            // runApp(MyApp());
           }
         });
     });

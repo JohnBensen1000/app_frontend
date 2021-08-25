@@ -19,7 +19,6 @@ class NewActivityRepository extends Repository<bool> {
     if (response != null) {
       _newActivity = !response['isUpdated'];
       super.controller.sink.add(_newActivity);
-      print(" [x] sink updated");
     }
   }
 

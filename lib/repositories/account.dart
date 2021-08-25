@@ -1,10 +1,11 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_flutter/API/handle_requests.dart';
+import 'package:test_flutter/repositories/repository.dart';
 
 import '../API/methods/users.dart';
 import '../models/user.dart';
 
-class AccountRepository {
+class AccountRepository extends Repository<String> {
   String uidKey = 'username';
 
   Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
@@ -35,5 +36,7 @@ class AccountRepository {
     SharedPreferences prefs = await prefsFuture;
 
     prefs.remove(uidKey);
+
+    super.controller.sink.add(null);
   }
 }

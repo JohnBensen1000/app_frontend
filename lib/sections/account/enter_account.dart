@@ -41,8 +41,8 @@ class LogInScreen extends StatelessWidget {
               ),
               Container(
                 child: Container(
-                    width: .3 * globals.size.height,
-                    height: .3 * globals.size.height,
+                    width: .35 * globals.size.height,
+                    height: .35 * globals.size.height,
                     child: Image.asset('assets/images/Entropy.PNG')),
               ),
               Column(
