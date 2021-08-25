@@ -21,16 +21,26 @@ class Welcome extends StatefulWidget {
 }
 
 class _WelcomeState extends State<Welcome> {
+  Future _registerNotifications;
+  Future _getAccountRepository;
+
+  @override
+  void initState() {
+    _registerNotifications = registerNotifications();
+    _getAccountRepository = globals.accountRepository.getUser();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
       body: FutureBuilder(
-          future: registerNotifications(),
+          future: _registerNotifications,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               return FutureBuilder(
-                  future: globals.accountRepository.getUser(),
+                  future: _getAccountRepository,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done) {
                       globals.size = globals.SizeConfig(context: context);

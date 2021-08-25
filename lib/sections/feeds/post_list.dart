@@ -181,7 +181,8 @@ class PostListPage extends StatefulWidget {
 
 class _PostListPageState extends State<PostListPage>
     with WidgetsBindingObserver {
-  int offset = 0;
+  int _offset = 0;
+  bool _allowSwiping = true;
 
   @override
   void initState() {
@@ -214,7 +215,7 @@ class _PostListPageState extends State<PostListPage>
         width: double.infinity,
         color: Colors.transparent,
         child: Transform.translate(
-          offset: Offset(0, offset.toDouble()),
+          offset: Offset(0, _offset.toDouble()),
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -230,17 +231,22 @@ class _PostListPageState extends State<PostListPage>
         ),
       ),
       onVerticalDragUpdate: (value) {
-        setState(() {
-          offset += value.delta.dy.toInt();
-        });
+        if (_allowSwiping) {
+          setState(() {
+            _offset += value.delta.dy.toInt();
+          });
+        }
       },
       onVerticalDragEnd: (value) async {
-        if (offset > .2 * widget.height && provider.previousPost != null) {
-          _swipeUp(provider);
-        } else if (offset < -.2 * widget.height && provider.nextPost != null) {
-          _swipeDown(provider);
-        } else {
-          await _swipeToPosition(0, (offset > 0) ? -1 : 1);
+        if (_allowSwiping) {
+          if (_offset > .2 * widget.height && provider.previousPost != null) {
+            _swipeUp(provider);
+          } else if (_offset < -.2 * widget.height &&
+              provider.nextPost != null) {
+            _swipeDown(provider);
+          } else {
+            await _swipeToPosition(0, (_offset > 0) ? -1 : 1);
+          }
         }
       },
       onLongPress: () async {
@@ -263,19 +269,25 @@ class _PostListPageState extends State<PostListPage>
   }
 
   void _swipeUp(PostListProvider provider) async {
+    setState(() {
+      _allowSwiping = false;
+    });
     await _swipeToPosition(widget.height, 1);
     provider.moveDown();
   }
 
   void _swipeDown(PostListProvider provider) async {
+    setState(() {
+      _allowSwiping = false;
+    });
     await _swipeToPosition(-widget.height, -1);
     provider.moveUp();
   }
 
   Future<void> _swipeToPosition(double position, int direction) async {
-    while ((position - offset) * direction > 0) {
+    while ((position - _offset) * direction > 0) {
       setState(() {
-        offset += 4 * direction;
+        _offset += 4 * direction;
       });
 
       await Future.delayed(Duration(milliseconds: 1));

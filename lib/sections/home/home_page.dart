@@ -369,7 +369,7 @@ class HomePageHeaderNavigator extends StatelessWidget {
   }
 }
 
-class HomePageBody extends StatelessWidget {
+class HomePageBody extends StatefulWidget {
   // Returns the three sections of the home page body. 2 of these sections are
   // off screen at any given time. When the user swipes horizontally, this
   // widget updates the provider.
@@ -378,30 +378,40 @@ class HomePageBody extends StatelessWidget {
   final double height;
 
   @override
-  Widget build(BuildContext context) {
-    Widget discover = Center(child: DiscoverPage(height: height));
-    Widget chats = Center(
-        child: Chats(
-      height: height,
-    ));
-    Widget following = Center(child: FollowingPage(height: height));
+  State<HomePageBody> createState() => _HomePageBodyState();
+}
 
+class _HomePageBodyState extends State<HomePageBody> {
+  Widget _discover, _chats, _following;
+  @override
+  void initState() {
+    _discover = Center(child: DiscoverPage(height: widget.height));
+    _chats = Center(
+        child: Chats(
+      height: widget.height,
+    ));
+    _following = Center(child: FollowingPage(height: widget.height));
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Consumer<HomePageProvider>(builder: (context, provider, child) {
       return GestureDetector(
         child: Container(
-          height: height,
+          height: widget.height,
           width: globals.size.width,
           color: Colors.transparent,
           child: Stack(children: [
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset - 1), 0),
-                child: discover),
+                child: _discover),
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset), 0),
-                child: chats),
+                child: _chats),
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset + 1), 0),
-                child: following),
+                child: _following),
           ]),
         ),
         onHorizontalDragUpdate: (value) =>
