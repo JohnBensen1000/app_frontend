@@ -64,6 +64,8 @@ class PostListProvider extends ChangeNotifier {
     globals.blockedRepository.block(currentPost.creator);
   }
 
+  void refreshPostList() => _repository.refreshPostList();
+
   void _refreshPostListCallback() {
     _repository.stream.listen((_) => notifyListeners());
   }
@@ -117,7 +119,7 @@ class _PostListState extends State<PostList>
                   }
                 });
           } else {
-            return _refreshButton();
+            return _refreshButton(provider);
           }
         }));
   }
@@ -132,7 +134,7 @@ class _PostListState extends State<PostList>
         : null;
   }
 
-  Widget _refreshButton() {
+  Widget _refreshButton(PostListProvider provider) {
     return Center(
       child: GestureDetector(
           child: Container(
@@ -144,7 +146,7 @@ class _PostListState extends State<PostList>
                       BorderRadius.all(Radius.circular(globals.size.height))),
               child: Center(child: Text("Refresh"))),
           onTap: () {
-            setState(() {});
+            provider.refreshPostList();
           }),
     );
   }

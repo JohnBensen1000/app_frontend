@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:ntp/ntp.dart';
 
+import '../../globals.dart' as globals;
+
 Future<String> uploadFile(File file, String directory, bool isImage) async {
   String fileExtension = (isImage) ? 'jpg' : 'mp4';
 
@@ -21,28 +23,30 @@ Future<String> uploadFile(File file, String directory, bool isImage) async {
 
 class BaseAPI {
   // var baseURL = '10.184.74.184:8000';
-  var baseURL = '192.168.1.200:8000';
+  // var baseURL = '192.168.1.200:8000';
   // var baseURL = "192.168.0.180:8000";
   // var baseURL = "192.168.0.12:8000";
-  // String baseURL = 'entropy-317014.uc.r.appspot.com';
+  String baseURL = 'entropy-317014.uc.r.appspot.com';
 
   Future<dynamic> get(String url,
       {Map<String, dynamic> queryParameters}) async {
-    return handleResponse(http.get(Uri.http(baseURL, url, queryParameters)));
+    return handleResponse(http.get(Uri.https(baseURL, url, queryParameters),
+        headers: {'uid': globals.uid}));
   }
 
   Future<dynamic> post(String url, Map postBody) async {
-    return handleResponse(
-        http.post(Uri.http(baseURL, url), body: json.encode(postBody)));
+    return handleResponse(http.post(Uri.https(baseURL, url),
+        body: json.encode(postBody), headers: {'uid': globals.uid}));
   }
 
   Future<dynamic> put(String url, Map postBody) async {
-    return handleResponse(
-        http.put(Uri.http(baseURL, url), body: json.encode(postBody)));
+    return handleResponse(http.put(Uri.https(baseURL, url),
+        body: json.encode(postBody), headers: {'uid': globals.uid}));
   }
 
   Future<dynamic> delete(String url) async {
-    return handleResponse(http.delete(Uri.http(baseURL, url)));
+    return handleResponse(
+        http.delete(Uri.https(baseURL, url), headers: {'uid': globals.uid}));
   }
 
   dynamic handleResponse(Future future) async {
@@ -51,10 +55,8 @@ class BaseAPI {
     try {
       response = await future;
     } on SocketException {
-      // throw NoInternetException();
       return null;
     } catch (e) {
-      // throw UnknownErrorException();
       return null;
     }
 

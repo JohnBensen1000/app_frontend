@@ -37,24 +37,6 @@ class PostWidget extends StatelessWidget {
     double cornerRadius = cornerRadiusFraction * height;
 
     return Stack(alignment: Alignment.center, children: [
-      StreamBuilder(
-          stream: globals.userRepository.stream,
-          builder: (context, snapshot) {
-            return FutureBuilder(
-                future: globals.userRepository.get(post.creatorUID),
-                builder: (context, snapshot) => Container(
-                    height: height,
-                    width: width,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(cornerRadius),
-                      border: Border.all(
-                          width: 1.0,
-                          color: (snapshot.hasData &&
-                                  post.creatorUID == globals.uid)
-                              ? snapshot.data.profileColor
-                              : Colors.transparent),
-                    )));
-          }),
       Stack(
         alignment: Alignment.bottomCenter,
         children: [
@@ -92,7 +74,28 @@ class PostWidget extends StatelessWidget {
           if (showCaption && post.caption != null && post.caption != "")
             PostCaption(text: post.caption)
         ],
-      )
+      ),
+      StreamBuilder(
+          stream: globals.userRepository.stream,
+          builder: (context, snapshot) {
+            return FutureBuilder(
+                future: globals.userRepository.get(
+                    post.creator != null ? post.creator.uid : post.creatorUID),
+                builder: (context, snapshot) {
+                  return Container(
+                      height: height,
+                      width: width,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(cornerRadius),
+                          border: Border.all(
+                              width: 1.0,
+                              color: (snapshot.hasData)
+                                  ? snapshot.data.profileColor
+                                  : post.creator != null
+                                      ? post.creator.profileColor
+                                      : Colors.transparent)));
+                });
+          }),
     ]);
   }
 }

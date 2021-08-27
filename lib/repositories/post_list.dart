@@ -45,6 +45,8 @@ class PostListRepository extends Repository<List<Post>> {
     super.controller.sink.add(_postsList);
   }
 
+  void refreshPostList() => _getPostList();
+
   void _getPostList() async {
     var response = await function();
 
@@ -58,6 +60,8 @@ class PostListRepository extends Repository<List<Post>> {
 
   void _blockedCreatorCallback() {
     globals.blockedRepository.stream.listen((List<User> blockedUsers) {
+      if (_postsList == null || _postsList.length == 0) return;
+
       for (User user in blockedUsers) {
         for (int i = _postsList.length - 1; i >= 0; i--) {
           if (_postsList[i].creator.uid == user.uid) {
