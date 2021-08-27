@@ -2,7 +2,10 @@ import 'user.dart';
 import 'chat.dart';
 import 'post.dart';
 
+import '../globals.dart' as globals;
+
 class Post {
+  String creatorUID;
   User creator;
   String postID;
   bool isImage;
@@ -29,5 +32,6 @@ class Post {
     this.downloadURL = chatItem.post["downloadURL"];
     this.caption =
         chatItem.post.containsKey("caption") ? chatItem.post["caption"] : "";
+    this.creatorUID = chatItem.uid;
   }
 }

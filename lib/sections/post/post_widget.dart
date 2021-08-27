@@ -41,7 +41,7 @@ class PostWidget extends StatelessWidget {
           stream: globals.userRepository.stream,
           builder: (context, snapshot) {
             return FutureBuilder(
-                future: globals.userRepository.get(post.creator.uid),
+                future: globals.userRepository.get(post.creatorUID),
                 builder: (context, snapshot) => Container(
                     height: height,
                     width: width,
@@ -50,9 +50,9 @@ class PostWidget extends StatelessWidget {
                       border: Border.all(
                           width: 1.0,
                           color: (snapshot.hasData &&
-                                  post.creator.uid == globals.uid)
+                                  post.creatorUID == globals.uid)
                               ? snapshot.data.profileColor
-                              : post.creator.profileColor),
+                              : Colors.transparent),
                     )));
           }),
       Stack(

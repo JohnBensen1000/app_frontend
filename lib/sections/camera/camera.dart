@@ -29,6 +29,7 @@ class CameraProvider extends ChangeNotifier {
   // flash mode the camera is currently in.
 
   CameraProvider({@required this.cameraUsage, this.chat}) {
+    _flashIndex = 0;
     _cameraIndex = 0;
     _isTimerOn = false;
 
@@ -79,9 +80,7 @@ class CameraProvider extends ChangeNotifier {
   }
 
   void toggleFlash() async {
-    CameraController controller = await cameraControllerFuture;
     _flashIndex = (_flashIndex + 1) % flashModes.length;
-    await controller.setFlashMode(flashModes[_flashIndex]);
     notifyListeners();
   }
 
@@ -102,9 +101,14 @@ class CameraProvider extends ChangeNotifier {
     // If the image has been taken with the user-facing camera, flips/rotates
     // the image so that its orientation is correct. Pushs the user to the
     // preview page after capturing the image.
+
+    CameraController controller = await cameraControllerFuture;
+
+    await controller.setFlashMode(flashModes[_flashIndex]);
+
     if (_isTimerOn) await _startTimer(context);
 
-    XFile file = await (await cameraControllerFuture).takePicture();
+    XFile file = await controller.takePicture();
     filePath = file.path;
 
     if (_cameraIndex == 1 && Platform.isIOS) {
