@@ -28,8 +28,8 @@ import '../feeds/discover.dart';
 
 enum PageLabel {
   discover,
-  friends,
   following,
+  friends,
 }
 
 class HomePageProvider extends ChangeNotifier {
@@ -38,7 +38,7 @@ class HomePageProvider extends ChangeNotifier {
   // the user stops scrolling, decides if the user scrolled far enough to move
   // to a new section of the home page body and acts accordingly.
 
-  PageLabel pageLabel = PageLabel.friends;
+  PageLabel pageLabel = PageLabel.following;
   double _offset = 0;
 
   double get offset {
@@ -49,34 +49,34 @@ class HomePageProvider extends ChangeNotifier {
     _offset = offsetVelocity;
 
     if (_offset < -.33)
-      this.pageLabel = PageLabel.following;
+      this.pageLabel = PageLabel.friends;
     else if (_offset > .33)
       this.pageLabel = PageLabel.discover;
     else
-      this.pageLabel = PageLabel.friends;
+      this.pageLabel = PageLabel.following;
 
     notifyListeners();
   }
 
   void handleHorizontalDragEnd() {
     if (_offset < -.33) {
-      setMainPage(PageLabel.following);
+      setMainPage(PageLabel.friends);
     } else if (_offset > .33) {
       setMainPage(PageLabel.discover);
     } else {
-      setMainPage(PageLabel.friends);
+      setMainPage(PageLabel.following);
     }
   }
 
   void setMainPage(PageLabel newPageLabel) {
     if (newPageLabel == PageLabel.following) {
-      _offset = -1.0;
+      _offset = 0.0;
       pageLabel = PageLabel.following;
     } else if (newPageLabel == PageLabel.discover) {
       _offset = 1.0;
       pageLabel = PageLabel.discover;
     } else {
-      _offset = 0.0;
+      _offset = -1.0;
       pageLabel = PageLabel.friends;
     }
     notifyListeners();
@@ -301,12 +301,12 @@ class HomePageHeaderNavigator extends StatelessWidget {
                 PageLabel.discover,
               ),
               _navigationButton(
-                "Friends",
-                PageLabel.friends,
-              ),
-              _navigationButton(
                 "Following",
                 PageLabel.following,
+              ),
+              _navigationButton(
+                "Friends",
+                PageLabel.friends,
               ),
             ],
           ),
@@ -383,6 +383,7 @@ class HomePageBody extends StatefulWidget {
 
 class _HomePageBodyState extends State<HomePageBody> {
   Widget _discover, _chats, _following;
+
   @override
   void initState() {
     _discover = Center(child: DiscoverPage(height: widget.height));
@@ -408,10 +409,10 @@ class _HomePageBodyState extends State<HomePageBody> {
                 child: _discover),
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset), 0),
-                child: _chats),
+                child: _following),
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset + 1), 0),
-                child: _following),
+                child: _chats),
           ]),
         ),
         onHorizontalDragUpdate: (value) =>
