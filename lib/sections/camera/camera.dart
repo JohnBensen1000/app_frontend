@@ -31,7 +31,6 @@ class CameraProvider extends ChangeNotifier {
   CameraProvider({@required this.cameraUsage, this.chat}) {
     _cameraIndex = 0;
     _isTimerOn = false;
-    _flashIndex = 0;
 
     isImage = true;
     showCapturedPost = false;
@@ -54,7 +53,7 @@ class CameraProvider extends ChangeNotifier {
   List<FlashMode> flashModes;
 
   File get file => File(filePath);
-  bool get isTimerOn => _isTimerOn;
+
   String get flashModeName {
     switch (_flashIndex) {
       case 0:
@@ -67,6 +66,8 @@ class CameraProvider extends ChangeNotifier {
         return "";
     }
   }
+
+  bool get isTimerOn => _isTimerOn;
 
   void toggleCamera() {
     // Changes the camera index and sets cameraControllerFuture to the correct

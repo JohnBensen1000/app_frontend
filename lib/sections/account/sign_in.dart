@@ -44,7 +44,7 @@ class _SignInState extends State<SignIn> {
         appBar: AccountAppBar(height: .25 * globals.size.height),
         body: Padding(
           padding: EdgeInsets.only(
-              top: .04 * globals.size.height, bottom: .1 * globals.size.height),
+              top: .01 * globals.size.height, bottom: .1 * globals.size.height),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
