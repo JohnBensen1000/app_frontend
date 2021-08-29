@@ -276,6 +276,9 @@ class _PostListPageState extends State<PostListPage>
     });
     await _swipeToPosition(widget.height, 1);
     provider.moveDown();
+    setState(() {
+      _allowSwiping = true;
+    });
   }
 
   void _swipeDown(PostListProvider provider) async {
@@ -284,6 +287,9 @@ class _PostListPageState extends State<PostListPage>
     });
     await _swipeToPosition(-widget.height, -1);
     provider.moveUp();
+    setState(() {
+      _allowSwiping = true;
+    });
   }
 
   Future<void> _swipeToPosition(double position, int direction) async {

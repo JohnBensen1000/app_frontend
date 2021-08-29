@@ -8,7 +8,7 @@ import '../../models/post.dart';
 import '../../globals.dart' as globals;
 import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_circle.dart';
-import '../../API/methods/users.dart';
+import '../../API/methods/followings.dart';
 
 import '../profile_page/profile_page.dart';
 import '../post/post_widget.dart';
@@ -49,7 +49,7 @@ class ActivityProvider extends ChangeNotifier {
     await snapshot.reference.delete();
   }
 
-  Future<void> dontFollowBack(snapshot) async {
+  Future<void> saveDontFollowBack(snapshot) async {
     User follower = User.fromJson(
       snapshot.data()['data']['follower'],
     );
@@ -315,7 +315,7 @@ class ActivityNewFollowerWidget extends StatelessWidget {
               GestureDetector(
                   child: _acceptDeclineButton(.06 * globals.size.height,
                       "Don't Follow Back", const Color(0xffff0000)),
-                  onTap: () => provider.dontFollowBack(snapshot)),
+                  onTap: () => provider.saveDontFollowBack(snapshot)),
             ],
           ),
         ),
