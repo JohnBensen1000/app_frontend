@@ -1,5 +1,6 @@
 import 'dart:core';
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,8 @@ class PostListProvider extends ChangeNotifier {
   Stopwatch stopWatch;
 
   bool get isListNotEmpty => _repository.isListNotEmpty;
+  bool get hasRecievedList => _repository.hasRecievedList;
+
   Post get previousPost => _repository.previousPost;
   Post get currentPost => _repository.currentPost;
   Post get nextPost => _repository.nextPost;
@@ -100,26 +103,30 @@ class _PostListState extends State<PostList>
               repository: widget.repository,
             ),
         child: Consumer<PostListProvider>(builder: (context, provider, child) {
-          if (provider.isListNotEmpty) {
-            return VisibilityDetector(
-                key: Key(provider.repositoryName),
-                child: PostListPage(
-                    previousPostView:
-                        _buildPostWidget(provider.previousPost, false),
-                    currentPostView:
-                        _buildPostWidget(provider.currentPost, true),
-                    nextPostView: _buildPostWidget(provider.nextPost, false),
-                    height: widget.height,
-                    key: UniqueKey()),
-                onVisibilityChanged: (VisibilityInfo info) {
-                  if (info.visibleFraction == 1.0) {
-                    provider.stopWatch.start();
-                  } else {
-                    provider.stopWatch.stop();
-                  }
-                });
+          if (provider.hasRecievedList) {
+            if (provider.isListNotEmpty) {
+              return VisibilityDetector(
+                  key: Key(provider.repositoryName),
+                  child: PostListPage(
+                      previousPostView:
+                          _buildPostWidget(provider.previousPost, false),
+                      currentPostView:
+                          _buildPostWidget(provider.currentPost, true),
+                      nextPostView: _buildPostWidget(provider.nextPost, false),
+                      height: widget.height,
+                      key: UniqueKey()),
+                  onVisibilityChanged: (VisibilityInfo info) {
+                    if (info.visibleFraction == 1.0) {
+                      provider.stopWatch.start();
+                    } else {
+                      provider.stopWatch.stop();
+                    }
+                  });
+            } else {
+              return _refreshButton(provider);
+            }
           } else {
-            return _refreshButton(provider);
+            return _progressCircle();
           }
         }));
   }
@@ -149,6 +156,20 @@ class _PostListState extends State<PostList>
             provider.refreshPostList();
           }),
     );
+  }
+
+  Widget _progressCircle() {
+    return FutureBuilder(
+        future: globals.userRepository.get(globals.uid),
+        builder: (context, snapshot) => CircularProgressIndicator(
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation(
+                snapshot.hasData
+                    ? snapshot.data.profileColor
+                    : Colors.grey[300],
+              ),
+              strokeWidth: 3,
+            ));
   }
 }
 
@@ -183,7 +204,7 @@ class PostListPage extends StatefulWidget {
 
 class _PostListPageState extends State<PostListPage>
     with WidgetsBindingObserver {
-  int _offset = 0;
+  double _offset = 0;
   bool _allowSwiping = true;
 
   @override
@@ -217,7 +238,7 @@ class _PostListPageState extends State<PostListPage>
         width: double.infinity,
         color: Colors.transparent,
         child: Transform.translate(
-          offset: Offset(0, _offset.toDouble()),
+          offset: Offset(0, _offset),
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -242,12 +263,13 @@ class _PostListPageState extends State<PostListPage>
       onVerticalDragEnd: (value) async {
         if (_allowSwiping) {
           if (_offset > .2 * widget.height && provider.previousPost != null) {
-            _swipeUp(provider);
+            _swipeUp(provider, value.primaryVelocity);
           } else if (_offset < -.2 * widget.height &&
               provider.nextPost != null) {
-            _swipeDown(provider);
+            _swipeDown(provider, value.primaryVelocity);
           } else {
-            await _swipeToPosition(0, (_offset > 0) ? -1 : 1);
+            await _swipeToPosition(
+                0, (_offset > 0) ? -1 : 1, value.primaryVelocity);
           }
         }
       },
@@ -270,32 +292,39 @@ class _PostListPageState extends State<PostListPage>
     );
   }
 
-  void _swipeUp(PostListProvider provider) async {
+  void _swipeUp(PostListProvider provider, double velocity) async {
     setState(() {
       _allowSwiping = false;
     });
-    await _swipeToPosition(widget.height, 1);
+    await _swipeToPosition(widget.height, 1, velocity);
     provider.moveDown();
     setState(() {
       _allowSwiping = true;
     });
   }
 
-  void _swipeDown(PostListProvider provider) async {
+  void _swipeDown(PostListProvider provider, double velocity) async {
     setState(() {
       _allowSwiping = false;
     });
-    await _swipeToPosition(-widget.height, -1);
+    await _swipeToPosition(-widget.height, -1, velocity);
     provider.moveUp();
     setState(() {
       _allowSwiping = true;
     });
   }
 
-  Future<void> _swipeToPosition(double position, int direction) async {
+  Future<void> _swipeToPosition(
+      double position, int direction, double startVelocity) async {
+    double maxVelocity = direction.toDouble() * 5000;
+    int t = 0;
+
     while ((position - _offset) * direction > 0) {
       setState(() {
-        _offset += 4 * direction;
+        _offset +=
+            (maxVelocity - (maxVelocity - startVelocity) * exp(.01 * -t)) /
+                1000;
+        t++;
       });
 
       await Future.delayed(Duration(milliseconds: 1));

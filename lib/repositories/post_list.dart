@@ -10,6 +10,7 @@ class PostListRepository extends Repository<List<Post>> {
   PostListRepository({@required this.function}) {
     _index = 0;
     _postsList = [];
+    _hasRecievedList = false;
     _getPostList();
     _blockedCreatorCallback();
   }
@@ -18,8 +19,10 @@ class PostListRepository extends Repository<List<Post>> {
 
   int _index;
   List<Post> _postsList;
+  bool _hasRecievedList;
 
   bool get isListNotEmpty => _postsList.isNotEmpty;
+  bool get hasRecievedList => _hasRecievedList;
 
   Post get previousPost => _index - 1 >= 0 ? _postsList[_index - 1] : null;
   Post get currentPost => _postsList[_index];
@@ -54,6 +57,7 @@ class PostListRepository extends Repository<List<Post>> {
 
     List<Post> newPosts = response;
     _postsList += newPosts;
+    _hasRecievedList = true;
 
     super.controller.sink.add(_postsList);
   }

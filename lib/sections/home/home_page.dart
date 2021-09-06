@@ -402,7 +402,7 @@ class _HomePageBodyState extends State<HomePageBody> {
         child: Container(
           height: widget.height,
           width: globals.size.width,
-          color: Colors.transparent,
+          color: Colors.white,
           child: Stack(children: [
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset - 1), 0),
