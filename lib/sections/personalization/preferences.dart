@@ -105,46 +105,43 @@ class PreferencesHeader extends StatelessWidget {
                 alignment: Alignment.topLeft,
                 child: GestureDetector(
                     child: BackArrow(), onTap: () => Navigator.pop(context))),
-            Stack(children: <Widget>[
-              Transform.translate(
-                offset: Offset(scaling * -0.2, scaling * 26.0),
-                child: SizedBox(
-                  width: scaling * 278.0,
-                  child: Text(
-                    'What Are You\n\n',
-                    style: TextStyle(
-                      fontFamily: 'Rockwell',
-                      fontSize: scaling * 35,
-                      color: const Color(0xff000000),
-                      letterSpacing: scaling * -0.84,
-                      height: scaling * 0.6285714285714286,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              Transform.translate(
-                offset: Offset(scaling * 22.0, scaling * 63.0),
-                child: SizedBox(
-                  width: scaling * 382.0,
-                  height: scaling * 63.0,
-                  child: SizedBox(
-                    width: scaling * 458.0,
+            Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Container(width: double.infinity),
+                  SizedBox(
+                    width: scaling * 278.0,
                     child: Text(
-                      'Interested In?',
+                      'What Are You\n\n',
                       style: TextStyle(
                         fontFamily: 'Rockwell',
-                        fontSize: scaling * 59,
+                        fontSize: scaling * 35,
                         color: const Color(0xff000000),
-                        letterSpacing: scaling * -1.416,
-                        height: scaling * 0.6440677966101694,
+                        letterSpacing: scaling * -0.84,
+                        height: scaling * 0.6285714285714286,
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-              )
-            ]),
+                  SizedBox(
+                    width: scaling * 382.0,
+                    height: scaling * 63.0,
+                    child: SizedBox(
+                      width: scaling * 458.0,
+                      child: Text(
+                        'Interested In?',
+                        style: TextStyle(
+                          fontFamily: 'Rockwell',
+                          fontSize: scaling * 59,
+                          color: const Color(0xff000000),
+                          letterSpacing: scaling * -1.416,
+                          height: scaling * 0.6440677966101694,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )
+                ]),
           ],
         ));
   }
@@ -239,7 +236,7 @@ class PreferencesWidget extends StatelessWidget {
         Provider.of<PreferencesProvider>(context, listen: false);
 
     double width = height * globals.goldenRatio;
-    double selectedSizeChange = .9;
+    double selectedSizeChange = .8;
 
     double newHeight = (isSelected) ? selectedSizeChange * height : height;
     double newWidth = (isSelected) ? selectedSizeChange * width : width;
@@ -254,41 +251,21 @@ class PreferencesWidget extends StatelessWidget {
               Container(
                 height: newHeight,
                 width: newWidth,
+                child: Center(
+                  child: getImageFromName(name),
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(newHeight / 3.5),
-                  color: Colors.white,
-                  border:
-                      Border.all(width: 1.0, color: const Color(0xff000000)),
                   boxShadow: [
                     if (isSelected)
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 1,
-                        blurRadius: 3,
+                        color: Colors.grey.withOpacity(0.7),
+                        spreadRadius: 4,
+                        blurRadius: 20,
                       ),
                   ],
                 ),
-                child: Center(
-                  child: Text(
-                    convertFromCamelCase(name),
-                    style: TextStyle(
-                      fontFamily: 'STIXVariants',
-                      fontSize: .35 * newHeight,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
               ),
-              if (isSelected)
-                Container(
-                    height: newHeight,
-                    width: newWidth,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(.1),
-                      borderRadius: BorderRadius.circular(newHeight / 3.5),
-                      border: Border.all(
-                          width: 1.0, color: const Color(0xff000000)),
-                    ))
             ],
           ),
           onTap: () => provider.changedSelectedStatus(name)),
@@ -305,6 +282,11 @@ class PreferencesWidget extends StatelessWidget {
         newName += name[i];
     }
     return newName;
+  }
+
+  Image getImageFromName(String name) {
+    String fileName = "assets/images/interests/" + name + ".png";
+    return Image.asset(fileName);
   }
 }
 

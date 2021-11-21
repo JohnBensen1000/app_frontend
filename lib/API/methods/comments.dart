@@ -1,7 +1,6 @@
 import '../baseAPI.dart';
 
 import '../../models/comment.dart';
-import '../../models/post.dart';
 import '../../globals.dart' as globals;
 
 Future<List<Comment>> getAllComments(String postID) async {
