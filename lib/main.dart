@@ -8,7 +8,10 @@ import 'globals.dart' as globals;
 RouteObserver<PageRoute<dynamic>> routeObserver =
     RouteObserver<PageRoute<dynamic>>();
 
-main() => runApp(MyApp());
+main() {
+  globals.isNewUser = false;
+  runApp(MyApp());
+}
 
 class MyApp extends StatefulWidget {
   @override

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'API/baseAPI.dart';
+import 'API/google_analytics.dart';
 
 import 'models/user.dart';
 
@@ -34,6 +35,7 @@ Map<String, Color> colorsMap = {
 };
 
 BaseAPI baseAPI = new BaseAPI();
+GoogleAnalyticsAPI googleAnalyticsAPI = new GoogleAnalyticsAPI();
 
 class SizeConfig {
   SizeConfig({@required BuildContext context}) {
@@ -59,3 +61,7 @@ UserRepository userRepository;
 PostListRepository recommendationPostsRepository;
 PostListRepository followingPostsRepository;
 // CommentsRepository commentsRepository;
+
+// Set to true if someone is in the process of creating an account,
+// set to false otherwise. Useful for google analytics.
+bool isNewUser;

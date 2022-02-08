@@ -28,6 +28,7 @@ class ColorsProvider extends ChangeNotifier {
   Future<void> setColor(BuildContext context) async {
     if (_chosenColorKey != null) {
       await globals.userRepository.changeColor(_chosenColorKey);
+      globals.googleAnalyticsAPI.logPickedColor();
       Navigator.pop(context);
     }
   }

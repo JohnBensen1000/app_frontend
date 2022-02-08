@@ -52,6 +52,11 @@ class LogInScreen extends StatelessWidget {
                         buttonName: "Create an account",
                       ),
                       onTap: () {
+                        globals.isNewUser = true;
+
+                        globals.googleAnalyticsAPI
+                            .logCreateAccountPageVisited();
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => SignUp()),
@@ -59,6 +64,7 @@ class LogInScreen extends StatelessWidget {
                       }),
                   GestureDetector(
                     onTap: () {
+                      globals.isNewUser = false;
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) => SignIn()));
                     },

@@ -318,6 +318,8 @@ class PreferenceFooter extends StatelessWidget {
               await handleRequest(
                   context, postUserPreferences(updatePreferences));
 
+              globals.googleAnalyticsAPI.logChoseInterests();
+
               Navigator.pop(context);
             }));
   }

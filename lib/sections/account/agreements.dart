@@ -76,11 +76,15 @@ class PolicyAgreementProvider extends ChangeNotifier {
       }
     }
     if (areAgreementsAccepted) {
+      globals.googleAnalyticsAPI.logAgreedToRules();
       if (await createAccount()) {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => HomePage()));
 
-        Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
+        // Once the user finishes setting up their account, then they are no
+        // longer considered a "new user"
+        Navigator.push(context, SlideRightRoute(page: PreferencesPage()))
+            .then((value) => globals.isNewUser = false);
         Navigator.push(context, SlideRightRoute(page: ColorsPage()));
         Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
       }
@@ -417,18 +421,29 @@ class TakeProfilePage extends StatelessWidget {
                       child: WideButton(
                         buttonName: "Take profile picture",
                       ),
-                      onTap: () => Navigator.push(
-                          context,
-                          SlideRightRoute(
-                              page: Camera(
-                            cameraUsage: CameraUsage.profile,
-                          ))).then((_) => Navigator.pop(context)),
+                      onTap: () {
+                        globals.googleAnalyticsAPI.logTakeProfilePageVisited();
+
+                        Navigator.push(
+                            context,
+                            SlideRightRoute(
+                                page: Camera(
+                              cameraUsage: CameraUsage.profile,
+                            ))).then((_) {
+                          globals.googleAnalyticsAPI.logPickColorPageVisited();
+
+                          Navigator.pop(context);
+                        });
+                      },
                     ),
                     GestureDetector(
                         child: WideButton(
                           buttonName: "Skip",
                         ),
-                        onTap: () => Navigator.pop(context)),
+                        onTap: () {
+                          globals.googleAnalyticsAPI.logPickColorPageVisited();
+                          Navigator.pop(context);
+                        }),
                   ],
                 ),
               )

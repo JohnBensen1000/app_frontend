@@ -52,7 +52,8 @@ class SignUpProvider extends ChangeNotifier {
       if (!(await _checkIfUserIdAvailable())) isNewAccountValid = false;
       if (!_checkIfPasswordStrongEnough()) isNewAccountValid = false;
     }
-    if (isNewAccountValid)
+    if (isNewAccountValid) {
+      globals.googleAnalyticsAPI.logCreatedAccount();
       Navigator.push(
           context,
           MaterialPageRoute(
@@ -62,7 +63,7 @@ class SignUpProvider extends ChangeNotifier {
                     username: username.textEditingController.text,
                     password: password.textEditingController.text,
                   )));
-    else
+    } else
       notifyListeners();
   }
 
