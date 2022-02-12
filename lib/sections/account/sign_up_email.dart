@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/sections/account/agreements.dart';
 import 'package:test_flutter/widgets/forward_arrow.dart';
 
@@ -14,7 +13,7 @@ import 'widgets/account_app_bar.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
-class SignUpProvider extends ChangeNotifier {
+class SignUpEmailProvider extends ChangeNotifier {
   // Contains state of entire sign up page. Contains InputField object for
   // every input field. Has functionality for checking if input data is
   // valid and creating a new account. If there are any errors with the input
@@ -25,7 +24,7 @@ class SignUpProvider extends ChangeNotifier {
   final InputField username;
   final InputField password;
 
-  SignUpProvider({
+  SignUpEmailProvider({
     @required this.name,
     @required this.email,
     @required this.username,
@@ -128,16 +127,16 @@ class SignUpProvider extends ChangeNotifier {
   }
 }
 
-class SignUp extends StatefulWidget {
+class SignUpEmail extends StatefulWidget {
   // Initializes SignUpProvider() with all the appropraite InputFields. Returns
   // a ListView.builder() with all the InputWidgets. Hides AccountSubmitButton()
   // when the user starts typing in one of the InputFieldWidgets().
 
   @override
-  _SignUpState createState() => _SignUpState();
+  _SignUpEmailState createState() => _SignUpEmailState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _SignUpEmailState extends State<SignUpEmail> {
   @override
   Widget build(BuildContext context) {
     double titleBarHeight = .25;
@@ -147,13 +146,14 @@ class _SignUpState extends State<SignUp> {
     double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return ChangeNotifierProvider(
-        create: (_) => SignUpProvider(
+        create: (_) => SignUpEmailProvider(
               name: InputField(hintText: "Your Name"),
               email: InputField(hintText: "E-mail"),
               username: InputField(hintText: "username"),
               password: InputField(hintText: "password", obscureText: true),
             ),
-        child: Consumer<SignUpProvider>(builder: (context, provider, child) {
+        child:
+            Consumer<SignUpEmailProvider>(builder: (context, provider, child) {
           return Scaffold(
             appBar: AccountAppBar(height: titleBarHeight * globals.size.height),
             body: Center(

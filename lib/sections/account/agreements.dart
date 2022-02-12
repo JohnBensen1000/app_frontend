@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -83,8 +82,7 @@ class PolicyAgreementProvider extends ChangeNotifier {
 
         // Once the user finishes setting up their account, then they are no
         // longer considered a "new user"
-        Navigator.push(context, SlideRightRoute(page: PreferencesPage()))
-            .then((value) => globals.isNewUser = false);
+        Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
         Navigator.push(context, SlideRightRoute(page: ColorsPage()));
         Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
       }
@@ -116,7 +114,7 @@ class PolicyAgreementProvider extends ChangeNotifier {
       'email': email,
     };
 
-    var response = await createNewAccount(newAccount);
+    var response = await postNewAccount(newAccount);
     if (response != null) {
       await FirebaseMessaging.instance.requestPermission();
 

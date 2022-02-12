@@ -2,7 +2,7 @@ import '../../models/user.dart';
 
 import '../../globals.dart' as globals;
 
-Future<Map> createNewAccount(Map postBody) async {
+Future<Map> postNewAccount(Map postBody) async {
   return await globals.baseAPI.post("v2/users", postBody);
 }
 

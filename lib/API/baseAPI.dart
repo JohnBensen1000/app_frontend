@@ -27,27 +27,29 @@ class BaseAPI {
   // var baseURL = "10.186.36.50:8000";
   // var baseURL = "192.168.0.180:8000";
   // var baseURL = "192.168.0.12:8000";
-  String baseURL = 'entropy-317014.uc.r.appspot.com';
+  // var baseURL = "10.186.36.126";
+  var baseURL = "10.186.41.170:8000";
+  // String baseURL = 'entropy-317014.uc.r.appspot.com';
 
   Future<dynamic> get(String url,
       {Map<String, dynamic> queryParameters}) async {
-    return handleResponse(http.get(Uri.https(baseURL, url, queryParameters),
+    return handleResponse(http.get(Uri.http(baseURL, url, queryParameters),
         headers: {'uid': globals.uid}));
   }
 
   Future<dynamic> post(String url, Map postBody) async {
-    return handleResponse(http.post(Uri.https(baseURL, url),
+    return handleResponse(http.post(Uri.http(baseURL, url),
         body: json.encode(postBody), headers: {'uid': globals.uid}));
   }
 
   Future<dynamic> put(String url, Map postBody) async {
-    return handleResponse(http.put(Uri.https(baseURL, url),
+    return handleResponse(http.put(Uri.http(baseURL, url),
         body: json.encode(postBody), headers: {'uid': globals.uid}));
   }
 
   Future<dynamic> delete(String url) async {
     return handleResponse(
-        http.delete(Uri.https(baseURL, url), headers: {'uid': globals.uid}));
+        http.delete(Uri.http(baseURL, url), headers: {'uid': globals.uid}));
   }
 
   dynamic handleResponse(Future future) async {
@@ -108,3 +110,6 @@ class UnknownErrorException extends AppException {
   UnknownErrorException([String message])
       : super(message, "UnknownErrorException: ");
 }
+
+// L0MyZOGazAdZ9Lx2VXOhRMFQXIg2
+// L0MyZOGazAdZ9Lx2VXOhRMFQXIg29

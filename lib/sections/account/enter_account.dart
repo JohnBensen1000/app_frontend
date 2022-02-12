@@ -1,11 +1,9 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/wide_button.dart';
 
-import 'sign_in.dart';
-import 'sign_up.dart';
+import 'sign_up_methods.dart';
 
 class LogInScreen extends StatelessWidget {
   LogInScreen({
@@ -52,35 +50,15 @@ class LogInScreen extends StatelessWidget {
                         buttonName: "Create an account",
                       ),
                       onTap: () {
-                        globals.isNewUser = true;
-
                         globals.googleAnalyticsAPI
                             .logCreateAccountPageVisited();
 
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => SignUp()),
+                          MaterialPageRoute(
+                              builder: (context) => SignUpMethodsPage()),
                         );
                       }),
-                  GestureDetector(
-                    onTap: () {
-                      globals.isNewUser = false;
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => SignIn()));
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(.005 * globals.size.height),
-                      child: Text(
-                        'Already have an account? ',
-                        style: TextStyle(
-                          fontFamily: 'Devanagari Sangam MN',
-                          fontSize: .016 * globals.size.height,
-                          color: const Color(0xff000000),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
                 ],
               )
             ],

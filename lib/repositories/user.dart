@@ -1,12 +1,16 @@
 import 'dart:async';
 
-import 'package:test_flutter/sections/personalization/change_username.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import "../../models/user.dart";
 import "../../API/methods/users.dart";
 import '../../globals.dart' as globals;
+import '../../API/methods/users.dart';
 
 import 'repository.dart';
+
+firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
 class UserRepository extends Repository<User> {
   Map<String, Future<User>> _users = {};
