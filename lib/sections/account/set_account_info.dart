@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/sections/account/agreements.dart';
-import 'package:test_flutter/widgets/forward_arrow.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
@@ -8,7 +7,7 @@ import '../../models/user.dart';
 import '../../API/methods/users.dart';
 
 import 'widgets/input_field.dart';
-import 'widgets/account_app_bar.dart';
+import 'widgets/account_input_page.dart';
 
 import '../personalization/choose_color.dart';
 import '../home/home_page.dart';
@@ -42,6 +41,8 @@ class SetAccountInfoProvider extends ChangeNotifier {
   AccountInfoInput _submitUsername;
 
   SetAccountInfoProvider({@required this.context, @required this.uid}) {
+    globals.isNewUser = true;
+
     _accountInfoIndex = 0;
     _submitUserId = AccountInfoInput(
         pageName: "What's Your Username?",
@@ -69,6 +70,13 @@ class SetAccountInfoProvider extends ChangeNotifier {
     for (User user in users) {
       if (user.userID == userId) {
         _submitUserId.inputField.errorText = "Username already taken";
+
+        // When the user taps on the input field, clears the error message.
+        _submitUserId.inputField.textEditingController.addListener(() {
+          _submitUserId.inputField.errorText = "";
+          notifyListeners();
+        });
+        notifyListeners();
         return;
       }
     }
@@ -83,8 +91,11 @@ class SetAccountInfoProvider extends ChangeNotifier {
   }
 
   Future<void> _goToNextPage() async {
+    // If the user is finished setting up their account, creates the user
+    // account in the database and asks the user to personalize their account.
     if (_accountInfoIndex + 1 == _accountInfoInputs.length) {
       await globals.accountRepository.createAccount(uid, _userId, _username);
+      await globals.accountRepository.signIn(uid);
 
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
@@ -101,7 +112,8 @@ class SetAccountInfoProvider extends ChangeNotifier {
 
 class SetAccountInfoPage extends StatefulWidget {
   /// Allows user to submit account information. Only asks for one thing at a
-  /// time.
+  /// time. When the user submits an input for one field, refreshes the page
+  /// so the user can submit another input.
 
   final String uid;
 
@@ -113,50 +125,27 @@ class SetAccountInfoPage extends StatefulWidget {
 
 class _SetAccountInfoPageState extends State<SetAccountInfoPage> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    double titleBarHeight = .25;
-    double forwardButtonHeight = .15;
-
-    bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
-    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-
-    return Scaffold(
-        appBar: AccountAppBar(height: titleBarHeight * globals.size.height),
-        body: Center(
-            child: ChangeNotifierProvider(
-          create: (context) =>
-              SetAccountInfoProvider(uid: widget.uid, context: context),
-          child: Consumer<SetAccountInfoProvider>(
-            builder: (context, provider, child) => Column(
-              children: <Widget>[
-                Container(
-                    padding: EdgeInsets.only(
-                      top: .01 * globals.size.height,
-                    ),
-                    height: (keyboardActivated)
-                        ? (1 - titleBarHeight) * globals.size.height -
-                            keyboardHeight
-                        : (1 - titleBarHeight - forwardButtonHeight) *
-                            globals.size.height,
-                    child: Column(
-                      children: [
-                        Container(
-                            child: Text(provider.accountInfoInput.pageName,
-                                style: TextStyle(fontSize: 24))),
-                        InputFieldWidget(
-                            inputField: provider.accountInfoInput.inputField),
-                      ],
-                    )),
-                if (keyboardActivated == false)
+    return ChangeNotifierProvider(
+        create: (context) =>
+            SetAccountInfoProvider(uid: widget.uid, context: context),
+        child: Consumer<SetAccountInfoProvider>(
+          builder: (context, provider, child) => AccountInputPage(
+              child: Column(
+                children: [
                   Container(
-                    height: forwardButtonHeight * globals.size.height,
-                    alignment: Alignment.topCenter,
-                    child: GestureDetector(
-                        child: ForwardArrow(), onTap: () => provider.onTap()),
-                  )
-              ],
-            ),
-          ),
-        )));
+                      child: Text(provider.accountInfoInput.pageName,
+                          style: TextStyle(fontSize: 24))),
+                  InputFieldWidget(
+                      inputField: provider.accountInfoInput.inputField),
+                ],
+              ),
+              onTap: provider.onTap),
+        ));
   }
 }

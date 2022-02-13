@@ -6,6 +6,7 @@ import '../../globals.dart' as globals;
 import '../../widgets/wide_button.dart';
 
 import 'widgets/account_app_bar.dart';
+import 'widgets/account_input_page.dart';
 
 import "sign_up_phone.dart";
 
@@ -17,29 +18,23 @@ class SignUpMethodsPage extends StatelessWidget {
    */
   @override
   Widget build(BuildContext context) {
-    double titleBarHeight = .25;
-
-    return Scaffold(
-        appBar: AccountAppBar(height: titleBarHeight * globals.size.height),
-        body: Container(
-          padding: EdgeInsets.only(top: .05 * globals.size.height),
-          child: Center(
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                GestureDetector(
-                    child: WideButton(buttonName: "Email"),
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SignUpEmail()))),
-                GestureDetector(
-                    child: WideButton(buttonName: "Phone Number"),
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SignUpPhonePage())))
-              ])),
-        ));
+    return AccountInputPage(
+        child: Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+              GestureDetector(
+                  child: WideButton(buttonName: "Email"),
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SignUpEmail()))),
+              GestureDetector(
+                  child: WideButton(buttonName: "Phone Number"),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => SignUpPhonePage())))
+            ])),
+        onTap: null,
+        activateKeyboard: false);
   }
 }

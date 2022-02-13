@@ -50,7 +50,6 @@ class _WelcomeState extends State<Welcome> {
                         globals.uid = snapshot.data.uid;
                         return HomePage();
                       } else {
-                        globals.uid = null;
                         return LogInScreen();
                       }
                     } else {

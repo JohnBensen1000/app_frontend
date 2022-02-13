@@ -1,15 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../globals.dart' as globals;
 
-import '../../API/methods/users.dart';
-
 import 'widgets/input_field.dart';
-import 'widgets/account_app_bar.dart';
 import 'set_account_info.dart';
 import '../home/home_page.dart';
+import 'widgets/account_input_page.dart';
+import '../../API/methods/users.dart';
+import '../../API/baseAPI.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
@@ -40,39 +39,8 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
 
   @override
   Widget build(BuildContext context) {
-    double titleBarHeight = .25;
-    double forwardButtonHeight = .15;
-
-    bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
-    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-
-    return Scaffold(
-      appBar: AccountAppBar(height: titleBarHeight * globals.size.height),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            Container(
-                padding: EdgeInsets.only(
-                  top: .01 * globals.size.height,
-                ),
-                height: (keyboardActivated)
-                    ? (1 - titleBarHeight) * globals.size.height -
-                        keyboardHeight
-                    : (1 - titleBarHeight - forwardButtonHeight) *
-                        globals.size.height,
-                child: InputFieldWidget(inputField: _inputField)),
-            if (keyboardActivated == false)
-              Container(
-                height: forwardButtonHeight * globals.size.height,
-                alignment: Alignment.topCenter,
-                child: GestureDetector(
-                    child: ForwardArrow(),
-                    onTap: () async => await _verifyPhone(context)),
-              )
-          ],
-        ),
-      ),
-    );
+    return AccountInputPage(
+        child: InputFieldWidget(inputField: _inputField), onTap: _verifyPhone);
   }
 
   Future<void> _inputTextListener() async {
@@ -103,7 +71,7 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
             TextSelection.fromPosition(TextPosition(offset: inputText.length)));
   }
 
-  Future<void> _verifyPhone(BuildContext context) async {
+  Future<void> _verifyPhone() async {
     String phoneNumber = _inputField.textEditingController.text;
     RegExp regExp = RegExp(
         r"^(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$");
@@ -111,6 +79,12 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
       _inputField.errorText = "this phone number is not valid";
       return false;
     }
+
+    await _sendVerificationCode();
+  }
+
+  Future<void> _sendVerificationCode() async {
+    String phoneNumber = _inputField.textEditingController.text;
 
     await auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
@@ -156,81 +130,78 @@ class SignUpPhoneVerifyPage extends StatefulWidget {
 
 class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
   InputField _inputField;
+  bool _didAttemptToSubmit;
 
   @override
   void initState() {
+    _didAttemptToSubmit = false;
     _inputField = new InputField(hintText: "code");
+    _inputField.textEditingController.addListener(() => _inputTextListener());
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    double titleBarHeight = .25;
-    double forwardButtonHeight = .15;
-
-    bool keyboardActivated = (MediaQuery.of(context).viewInsets.bottom != 0.0);
-    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-
-    return Scaffold(
-      appBar: AccountAppBar(height: titleBarHeight * globals.size.height),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            Container(
-                padding: EdgeInsets.only(
-                  top: .01 * globals.size.height,
-                ),
-                height: (keyboardActivated)
-                    ? (1 - titleBarHeight) * globals.size.height -
-                        keyboardHeight
-                    : (1 - titleBarHeight - forwardButtonHeight) *
-                        globals.size.height,
-                child: InputFieldWidget(inputField: _inputField)),
-            if (keyboardActivated == false)
-              Container(
-                height: forwardButtonHeight * globals.size.height,
-                alignment: Alignment.topCenter,
-                child: GestureDetector(
-                    child: ForwardArrow(),
-                    onTap: () async => await _verifySmsCode(context)),
-              )
-          ],
-        ),
-      ),
-    );
+    return AccountInputPage(
+        child: InputFieldWidget(inputField: _inputField),
+        onTap: _verifySmsCode);
   }
 
-  Future<void> _verifySmsCode(BuildContext context) async {
+  Future<void> _inputTextListener() async {
+    if (_didAttemptToSubmit) {
+      _inputField.textEditingController.text = "";
+      _inputField.errorText = "";
+      setState(() {});
+      _didAttemptToSubmit = false;
+    }
+  }
+
+  Future<void> _verifySmsCode() async {
+    // Checks if the verification code that the user has inputted is correct.
+    // If it is, sends the user to the next page. If it's not, then displays
+    // the appropriate error message.
     String smsCode = _inputField.textEditingController.text;
 
     firebase_auth.PhoneAuthCredential credential =
         firebase_auth.PhoneAuthProvider.credential(
             verificationId: widget.verificationId, smsCode: smsCode);
 
-    firebase_auth.UserCredential userCredential =
-        await auth.signInWithCredential(credential);
+    firebase_auth.UserCredential userCredential;
+    try {
+      userCredential = await auth.signInWithCredential(credential);
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      _didAttemptToSubmit = true;
+      _displayVerificationError(e.code);
+      return;
+    }
 
     String uid = userCredential.user.uid;
 
-    // Server fails when uid doesn't match user account.
-    globals.isNewUser = true;
+    // THIS IS A HACK. To check if the user has an account set up in the
+    // database, checks if an error occurs when looking for this account. If
+    // ServerFailedException occurs, then the user's account doesn't exist and
+    // the user is asked to set up their account.
     try {
-      if ((await getUserFromUID(uid)) != null) {
-        globals.isNewUser = false;
-      }
-    } catch (e) {}
-
-    if (globals.isNewUser) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  SetAccountInfoPage(uid: userCredential.user.uid)));
-    } else {
-      globals.accountRepository.signIn(uid);
+      await getUserFromUID(uid);
+      await globals.accountRepository.signIn(uid);
 
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
+    } on ServerFailedException catch (e) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => SetAccountInfoPage(uid: uid)));
     }
+  }
+
+  void _displayVerificationError(String errorCode) {
+    switch (errorCode) {
+      case "invalid-verification-code":
+        _inputField.errorText = "incorrect code";
+        break;
+    }
+    setState(() {});
   }
 }

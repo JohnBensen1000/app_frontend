@@ -19,29 +19,15 @@ class AccountRepository extends Repository<String> {
   Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
 
   Future<bool> createAccount(String uid, String userId, String username) async {
-    print(" [DEBUG] creating account");
-
     Map newAccount = {
       'uid': uid,
       'userID': userId,
       'username': username,
       'email': "",
     };
-    print(" [DEBUG] Posting new account");
     var response = await postNewAccount(newAccount);
-    print(" [DEBUG] response recieved: $response");
     if (response != null) {
-      print(" [DEBUG] response is not null");
       globals.isNewUser = false;
-
-      globals.uid = uid;
-
-      await FirebaseMessaging.instance.requestPermission();
-      await updateDeviceToken(await FirebaseMessaging.instance.getToken());
-
-      print(" [DEBUG] updated device token");
-
-      await globals.accountRepository.setUid(uid: uid);
       return true;
     }
     return false;
@@ -54,10 +40,9 @@ class AccountRepository extends Repository<String> {
       await FirebaseMessaging.instance.requestPermission();
 
     globals.uid = uid;
-
-    updateDeviceToken(await FirebaseMessaging.instance.getToken());
-
     await globals.accountRepository.setUid(uid: uid);
+
+    await updateDeviceToken(await FirebaseMessaging.instance.getToken());
 
     return true;
   }

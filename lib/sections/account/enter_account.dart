@@ -27,7 +27,7 @@ class LogInScreen extends StatelessWidget {
               Container(
                 child: SizedBox(
                   child: Text(
-                    'Lets Get You Started',
+                    'Welcome To Entropy!',
                     style: TextStyle(
                       fontFamily: 'Rockwell',
                       fontSize: .075 * globals.size.width,
@@ -39,20 +39,17 @@ class LogInScreen extends StatelessWidget {
               ),
               Container(
                 child: Container(
-                    width: .35 * globals.size.height,
-                    height: .35 * globals.size.height,
+                    width: .28 * globals.size.height,
+                    height: .28 * globals.size.height,
                     child: Image.asset('assets/images/Entropy.PNG')),
               ),
               Column(
                 children: [
                   GestureDetector(
                       child: WideButton(
-                        buttonName: "Create an account",
+                        buttonName: "Enter Account",
                       ),
                       onTap: () {
-                        globals.googleAnalyticsAPI
-                            .logCreateAccountPageVisited();
-
                         Navigator.push(
                           context,
                           MaterialPageRoute(
