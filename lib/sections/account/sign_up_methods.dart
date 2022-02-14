@@ -8,12 +8,13 @@ import '../../API/baseAPI.dart';
 import 'widgets/account_input_page.dart';
 import '../home/home_page.dart';
 import 'set_account_info.dart';
+import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/wide_button.dart';
-
-import 'widgets/account_app_bar.dart';
-import 'widgets/account_input_page.dart';
 
 import "sign_up_phone.dart";
 
@@ -50,7 +51,11 @@ class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
               if (Platform.operatingSystem == "ios")
                 GestureDetector(
                     child: WideButton(buttonName: "Google"),
-                    onTap: () => _signInWithGoogle())
+                    onTap: () => _signInWithGoogle()),
+              if (Platform.operatingSystem == "ios")
+                GestureDetector(
+                    child: WideButton(buttonName: "Apple"),
+                    onTap: () => _signInWithApple())
             ])),
         onTap: null,
         activateKeyboard: false);
@@ -72,6 +77,44 @@ class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
         .user;
 
     _enterAccount(firebaseUser.uid);
+  }
+
+  Future<void> _signInWithApple() async {
+    final rawNonce = _appleSignInGenerateNonce();
+    final nonce = _appleSignInSha256ToString(rawNonce);
+
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: nonce,
+    );
+
+    final oauthCredential = firebase_auth.OAuthProvider("apple.com").credential(
+      idToken: appleCredential.identityToken,
+      rawNonce: rawNonce,
+    );
+
+    var firebaseUser = (await firebase_auth.FirebaseAuth.instance
+            .signInWithCredential(oauthCredential))
+        .user;
+
+    _enterAccount(firebaseUser.uid);
+  }
+
+  String _appleSignInGenerateNonce([int length = 32]) {
+    final charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
+  }
+
+  String _appleSignInSha256ToString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   Future<void> _enterAccount(String uid) async {
