@@ -20,12 +20,29 @@ class CommentsSectionRepository extends Repository<List<Comment>> {
     Map response = await postComment(postID, parentComment, comment);
     if (response == null || response.containsKey("denied")) return response;
 
-    _getCommentsList();
+    _insertNewComment(response, parentComment);
     return {};
   }
 
   void _getCommentsList() async {
     _commentsList = await getAllComments(postID);
+    super.controller.sink.add(_commentsList);
+  }
+
+  void _insertNewComment(Map commentJson, Comment parentComment) {
+    Comment newComment = Comment.fromResponse(commentJson, parentComment);
+    if (parentComment == null) {
+      _commentsList = [newComment] + _commentsList;
+    } else {
+      for (int i = 0; i < _commentsList.length; i++) {
+        if (_commentsList[i] == parentComment) {
+          _commentsList = _commentsList.sublist(0, i + 1) +
+              [newComment] +
+              _commentsList.sublist(i + 1, _commentsList.length);
+          break;
+        }
+      }
+    }
     super.controller.sink.add(_commentsList);
   }
 }

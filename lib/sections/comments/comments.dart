@@ -1,18 +1,11 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 import 'package:test_flutter/repositories/comments.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/methods/comments.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
-import '../../widgets/loading_icon.dart';
-
-import '../post/full_post_widget.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'widgets/comment_widget.dart';

@@ -14,8 +14,6 @@ class Comment {
   int level;
   int numSubComments;
 
-  Future initFuture;
-
   Comment.fromServer(Map commentJson) {
     // Used to construct comments from a json that was recieved from the server.
     // level and numSubComments should be calculated before calling this method.
@@ -27,7 +25,22 @@ class Comment {
     this.uid = commentJson['uid'];
   }
 
-  Future get initDone => initFuture;
+  Comment.fromResponse(Map commentJson, Comment parentComment) {
+    // When the user posts a new comment, this constructor creates the comment
+    // from the server's response.
+
+    this.commentText = commentJson["comment"];
+    this.datePosted = commentJson["datePosted"].toString();
+    this.path = commentJson["path"];
+    this.numSubComments = 0;
+    this.uid = commentJson['uid'];
+
+    if (parentComment != null) {
+      this.level = parentComment.level + 1;
+    } else {
+      this.level = 0;
+    }
+  }
 
   Map toJson() {
     return {
