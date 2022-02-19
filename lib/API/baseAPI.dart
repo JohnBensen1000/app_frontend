@@ -23,12 +23,14 @@ Future<String> uploadFile(File file, String directory, bool isImage) async {
 
 class BaseAPI {
   // var baseURL = '10.184.74.184:8000';
-  var baseURL = '192.168.1.200:8000';
+  // var baseURL = '10.186.34.249:8000';
   // var baseURL = "10.186.36.50:8000";
   // var baseURL = "192.168.0.180:8000";
   // var baseURL = "192.168.0.12:8000";
   // var baseURL = "10.186.36.126";
   // var baseURL = "10.186.41.170:8000";
+  var baseURL = "192.168.1.200:8000";
+  // var baseURL = "10.186.43.82:8000";
   // String baseURL = 'entropy-317014.uc.r.appspot.com';
 
   Future<dynamic> get(String url,

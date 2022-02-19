@@ -13,139 +13,113 @@ import '../personalization/choose_color.dart';
 import '../home/home_page.dart';
 import '../personalization/preferences.dart';
 
-class AccountInfoInput {
-  final String pageName;
-  final InputField inputField;
-  final Function onSubmit;
-
-  AccountInfoInput(
-      {@required this.pageName,
-      @required this.inputField,
-      @required this.onSubmit});
-}
-
-class SetAccountInfoProvider extends ChangeNotifier {
-  /// Used to gather and submit user information when the user wants to create
-  /// an account.
-
-  final BuildContext context;
+class SignUpNamePage extends StatefulWidget {
   final String uid;
 
-  String _userId;
-  String _username;
-
-  List<AccountInfoInput> _accountInfoInputs;
-  int _accountInfoIndex;
-
-  AccountInfoInput _submitUserId;
-  AccountInfoInput _submitUsername;
-
-  SetAccountInfoProvider({@required this.context, @required this.uid}) {
-    globals.isNewUser = true;
-
-    _accountInfoIndex = 0;
-    _submitUserId = AccountInfoInput(
-        pageName: "What's Your Username?",
-        inputField: InputField(hintText: "Username"),
-        onSubmit: _saveUserName);
-    _submitUsername = AccountInfoInput(
-        pageName: "What's Your Name?",
-        inputField: InputField(hintText: "Name"),
-        onSubmit: _saveName);
-
-    _accountInfoInputs = [_submitUserId, _submitUsername];
-  }
-
-  AccountInfoInput get accountInfoInput =>
-      _accountInfoInputs[_accountInfoIndex];
-
-  Future<void> onTap() async {
-    String input = accountInfoInput.inputField.textEditingController.text;
-    await accountInfoInput.onSubmit(input);
-  }
-
-  Future<void> _saveUserName(String userId) async {
-    List<User> users = await getUsersFromSearchString((userId));
-
-    for (User user in users) {
-      if (user.userID == userId) {
-        _submitUserId.inputField.errorText = "Username already taken";
-
-        // When the user taps on the input field, clears the error message.
-        _submitUserId.inputField.textEditingController.addListener(() {
-          _submitUserId.inputField.errorText = "";
-          notifyListeners();
-        });
-        notifyListeners();
-        return;
-      }
-    }
-
-    _userId = userId;
-    await _goToNextPage();
-  }
-
-  Future<void> _saveName(String username) async {
-    _username = username;
-    await _goToNextPage();
-  }
-
-  Future<void> _goToNextPage() async {
-    // If the user is finished setting up their account, creates the user
-    // account in the database and asks the user to personalize their account.
-    if (_accountInfoIndex + 1 == _accountInfoInputs.length) {
-      await globals.accountRepository.createAccount(uid, _userId, _username);
-      await globals.accountRepository.signIn(uid);
-
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HomePage()));
-
-      Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
-      Navigator.push(context, SlideRightRoute(page: ColorsPage()));
-      Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
-    } else {
-      _accountInfoIndex++;
-    }
-    notifyListeners();
-  }
-}
-
-class SetAccountInfoPage extends StatefulWidget {
-  /// Allows user to submit account information. Only asks for one thing at a
-  /// time. When the user submits an input for one field, refreshes the page
-  /// so the user can submit another input.
-
-  final String uid;
-
-  SetAccountInfoPage({@required this.uid});
+  SignUpNamePage({@required this.uid});
 
   @override
-  _SetAccountInfoPageState createState() => _SetAccountInfoPageState();
+  State<SignUpNamePage> createState() => _SignUpNamePageState();
 }
 
-class _SetAccountInfoPageState extends State<SetAccountInfoPage> {
+class _SignUpNamePageState extends State<SignUpNamePage> {
+  InputField _inputField;
+
   @override
   void initState() {
+    _inputField = InputField(hintText: "username");
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) =>
-            SetAccountInfoProvider(uid: widget.uid, context: context),
-        child: Consumer<SetAccountInfoProvider>(
-          builder: (context, provider, child) => AccountInputPage(
-              child: Column(
-                children: [
-                  Container(
-                      child: Text(provider.accountInfoInput.pageName,
-                          style: TextStyle(fontSize: 24))),
-                  InputFieldWidget(
-                      inputField: provider.accountInfoInput.inputField),
-                ],
-              ),
-              onTap: provider.onTap),
-        ));
+    return WillPopScope(
+        onWillPop: () async {
+          return true;
+        },
+        child: AccountInputPageWrapper(
+            key: UniqueKey(),
+            headerText: "What's\nYour\nName?",
+            child: InputFieldWidget(inputField: _inputField),
+            onTap: _askForName));
+  }
+
+  Future<void> _askForName() async {
+    String username = _inputField.textEditingController.text;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => SignUpUsername(
+                  uid: widget.uid,
+                  username: username,
+                ))).then((value) {
+      setState(() {});
+    });
+  }
+}
+
+class SignUpUsername extends StatefulWidget {
+  final String uid;
+  final String username;
+
+  SignUpUsername({@required this.uid, @required this.username});
+
+  @override
+  State<SignUpUsername> createState() => _SignUpUsernameState();
+}
+
+class _SignUpUsernameState extends State<SignUpUsername> {
+  InputField _inputField;
+  bool _hasUserIdFailed;
+
+  @override
+  void initState() {
+    _hasUserIdFailed = false;
+    _inputField = InputField(hintText: "username");
+    _inputField.textEditingController.addListener(() => _keyboardListener());
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AccountInputPageWrapper(
+        key: UniqueKey(),
+        headerText: "What's\nYour\nUsername?",
+        child: InputFieldWidget(inputField: _inputField),
+        onTap: _createAccount);
+  }
+
+  void _keyboardListener() {
+    if (_hasUserIdFailed) {
+      _inputField.errorText = "";
+      _hasUserIdFailed = false;
+    }
+  }
+
+  Future<void> _createAccount() async {
+    String userId = _inputField.textEditingController.text;
+
+    List<User> users = await getUsersFromSearchString(userId);
+    for (User user in users) {
+      if (user.userID == userId) {
+        _inputField.errorText = "Username not available";
+        _hasUserIdFailed = true;
+        setState(() {});
+
+        return;
+      }
+    }
+
+    await globals.accountRepository
+        .createAccount(widget.uid, userId, widget.username);
+    await globals.accountRepository.signIn(widget.uid);
+
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => HomePage()));
+
+    Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
+    Navigator.push(context, SlideRightRoute(page: ColorsPage()));
+    Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
   }
 }

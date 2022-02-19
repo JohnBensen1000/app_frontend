@@ -12,6 +12,10 @@ Future<List<User>> getUsersFromSearchString(String searchString) async {
   var response =
       await globals.baseAPI.get("v2/users", queryParameters: queryParameters);
 
+  if (response == null) {
+    return null;
+  }
+
   return [
     for (var userJson in response["creatorsList"]) User.fromJson(userJson)
   ];

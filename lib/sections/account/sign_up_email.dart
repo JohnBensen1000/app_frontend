@@ -26,28 +26,44 @@ class SignUpEmail extends StatefulWidget {
 
 class _SignUpEmailState extends State<SignUpEmail> {
   InputField _inputField;
+  bool _hasEmailValidationFailed;
 
   @override
   void initState() {
     _inputField = InputField(hintText: "email");
+    _hasEmailValidationFailed = false;
+    _inputField.textEditingController.addListener(() => _keyboardListener());
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AccountInputPage(
-        child: InputFieldWidget(inputField: _inputField), onTap: _submitEmail);
+    return AccountInputPageWrapper(
+        key: UniqueKey(),
+        headerText: "Enter Email",
+        child: InputFieldWidget(inputField: _inputField),
+        onTap: _submitEmail);
+  }
+
+  void _keyboardListener() {
+    if (_hasEmailValidationFailed) {
+      _inputField.errorText = "";
+      _hasEmailValidationFailed = false;
+    }
   }
 
   Future<void> _submitEmail() async {
+    print("SUBMITTING");
     bool isEmailValid = RegExp(
             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(_inputField.textEditingController.text);
 
     if (!isEmailValid) {
-      setState(() {
-        _inputField.errorText = "not a valid email";
-      });
+      _inputField.errorText = "not a valid email";
+      _hasEmailValidationFailed = true;
+      setState(() {});
+
       return;
     }
 
@@ -60,7 +76,9 @@ class _SignUpEmailState extends State<SignUpEmail> {
         MaterialPageRoute(
             builder: (context) => SignUpPassword(
                 email: _inputField.textEditingController.text,
-                isNewAccount: isEmailAvailable)));
+                isNewAccount: isEmailAvailable))).then((value) {
+      setState(() {});
+    });
   }
 }
 
@@ -98,12 +116,12 @@ class _SignUpPasswordState extends State<SignUpPassword> {
 
   @override
   Widget build(BuildContext context) {
-    return AccountInputPage(
+    return AccountInputPageWrapper(
+        key: UniqueKey(),
+        headerText: widget.isNewAccount == true
+            ? "Create\nPassword"
+            : "Enter\nPassword",
         child: Column(children: [
-          if (widget.isNewAccount == true)
-            Container(
-                child: Text("Please select a password",
-                    style: TextStyle(fontSize: 24))),
           InputFieldWidget(
             inputField: _inputField,
           ),
@@ -121,7 +139,6 @@ class _SignUpPasswordState extends State<SignUpPassword> {
     if (_didAttemptToSubmit) {
       _inputField.textEditingController.text = "";
       _inputField.errorText = "";
-      setState(() {});
       _didAttemptToSubmit = false;
     }
   }
@@ -151,7 +168,7 @@ class _SignUpPasswordState extends State<SignUpPassword> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => SetAccountInfoPage(uid: firebaseUser.uid)));
+              builder: (context) => SignUpNamePage(uid: firebaseUser.uid)));
     } on firebase_auth.FirebaseAuthException catch (error) {
       _displayErrorMessages(error.code);
     }
@@ -162,6 +179,7 @@ class _SignUpPasswordState extends State<SignUpPassword> {
     // the given password to see if it's the correct password. if it is, sends
     // the user to the next page (which page that is is determined by
     // _sendToNextPage()).
+
     String email = widget.email;
     String password = _inputField.textEditingController.text;
     firebase_auth.User firebaseUser;
@@ -189,10 +207,8 @@ class _SignUpPasswordState extends State<SignUpPassword> {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
     } on ServerFailedException catch (e) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => SetAccountInfoPage(uid: uid)));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => SignUpNamePage(uid: uid)));
     }
   }
 

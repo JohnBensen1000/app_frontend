@@ -32,16 +32,19 @@ class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
   @override
   Widget build(BuildContext context) {
     return AccountInputPage(
-        child: Center(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
+      headerText: "Welcome to\nEntropy\nLet's get you\nStarted",
+      child: Container(
+        padding: EdgeInsets.only(top: .02 * globals.size.height),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
               GestureDetector(
-                  child: WideButton(buttonName: "Email"),
+                  // child: WideButton(buttonName: "Email"),
+                  child: _signUpMethodButton("Sign in with Email"),
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (context) => SignUpEmail()))),
               GestureDetector(
-                  child: WideButton(buttonName: "Phone Number"),
+                  child: _signUpMethodButton("Sign in with Phone"),
                   onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -50,15 +53,42 @@ class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
               // showing this to ios for now
               if (Platform.operatingSystem == "ios")
                 GestureDetector(
-                    child: WideButton(buttonName: "Google"),
+                    child: _signUpMethodButton("Sign in with Google"),
                     onTap: () => _signInWithGoogle()),
               if (Platform.operatingSystem == "ios")
                 GestureDetector(
-                    child: WideButton(buttonName: "Apple"),
+                    child: _signUpMethodButton("Sign in with Apple"),
                     onTap: () => _signInWithApple())
-            ])),
-        onTap: null,
-        activateKeyboard: false);
+            ]),
+      ),
+      onTap: null,
+    );
+  }
+
+  Widget _signUpMethodButton(String buttonName) {
+    return Container(
+      width: .85 * globals.size.width,
+      height: .05 * globals.size.height,
+      margin: EdgeInsets.only(
+          top: .01 * globals.size.height, bottom: .01 * globals.size.height),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(21.0),
+        color: const Color(0xffffffff),
+        border: Border.all(width: 1.0, color: const Color(0xff707070)),
+      ),
+      child: Center(
+        child: Text(
+          buttonName,
+          style: TextStyle(
+            fontFamily: 'PingFang HK',
+            fontSize: 25,
+            color: const Color(0xff727272),
+            fontWeight: FontWeight.w300,
+          ),
+          textAlign: TextAlign.left,
+        ),
+      ),
+    );
   }
 
   Future<void> _signInWithGoogle() async {
@@ -129,10 +159,8 @@ class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
     } on ServerFailedException catch (e) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => SetAccountInfoPage(uid: uid)));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => SignUpNamePage(uid: uid)));
     }
   }
 }

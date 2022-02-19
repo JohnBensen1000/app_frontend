@@ -6,7 +6,7 @@ import '../globals.dart' as globals;
 
 import 'home/home_page.dart';
 
-import 'account/enter_account.dart';
+import 'account/sign_up_methods.dart';
 
 class Welcome extends StatefulWidget {
   // Checks to see if the current device is signed in on. If it is, then saves
@@ -50,7 +50,7 @@ class _WelcomeState extends State<Welcome> {
                         globals.uid = snapshot.data.uid;
                         return HomePage();
                       } else {
-                        return LogInScreen();
+                        return SignUpMethodsPage();
                       }
                     } else {
                       return Center(

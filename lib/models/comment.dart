@@ -17,6 +17,7 @@ class Comment {
   Comment.fromServer(Map commentJson) {
     // Used to construct comments from a json that was recieved from the server.
     // level and numSubComments should be calculated before calling this method.
+
     this.commentText = commentJson["comment"];
     this.datePosted = commentJson["datePosted"].toString();
     this.path = commentJson["path"];

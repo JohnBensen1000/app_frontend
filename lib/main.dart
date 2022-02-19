@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:test_flutter/WelcometoEntropyv23.dart';
 
 import 'sections/welcome.dart';
+import 'WelcometoEntropyv213.dart';
 
 import 'globals.dart' as globals;
 
@@ -67,6 +69,7 @@ class _LifeCycleState extends State<LifeCycle> with WidgetsBindingObserver {
     // return MaterialApp();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      // home: WelcometoEntropyv23(),
       home: Welcome(),
       navigatorObservers: <NavigatorObserver>[routeObserver],
     );

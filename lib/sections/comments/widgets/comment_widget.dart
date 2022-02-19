@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 import 'package:test_flutter/widgets/report_button.dart';
-import 'package:provider/provider.dart';
 
 import '../../../widgets/profile_pic.dart';
-import '../../../widgets/alert_dialog_container.dart';
 import '../../../models/comment.dart';
 import '../../../models/user.dart';
 import '../../../models/post.dart';
-import '../../../API/methods/users.dart';
-import '../../../API/methods/comments.dart';
+import '../../../widgets/alert_dialog_container.dart';
 import '../../../globals.dart' as globals;
-
-import '../comments_page.dart';
-import '../comments.dart';
 
 class CommentWidget extends StatefulWidget {
   // Displays a comment, the comment's owner's profile and username.  When this
@@ -50,7 +44,7 @@ class _CommentWidgetState extends State<CommentWidget>
 
     return GestureDetector(
         child: Container(
-            color: Colors.transparent,
+            color: Colors.red,
             alignment: Alignment.centerRight,
             margin: EdgeInsets.all(margin),
             padding: EdgeInsets.only(left: widget.leftPadding),
@@ -78,7 +72,7 @@ class _CommentWidgetState extends State<CommentWidget>
                       child: RichText(
                           text: new TextSpan(
                               style: new TextStyle(
-                                  fontSize: .0154 * globals.size.height,
+                                  fontSize: .018 * globals.size.height,
                                   color: Colors.black),
                               children: <TextSpan>[
                             TextSpan(
@@ -89,7 +83,7 @@ class _CommentWidgetState extends State<CommentWidget>
                 ],
               ),
             )),
-        onLongPress: () async {
+        onLongPress: () {
           if (widget.commenter.uid != globals.uid) {
             showDialog(
                 context: context,
@@ -106,6 +100,12 @@ class _CommentWidgetState extends State<CommentWidget>
                   break;
               }
             });
+          } else {
+            showDialog(
+                context: context,
+                builder: (context) => AlertDialogContainer(
+                      dialogText: "Would you like to delete this comment?",
+                    )).then((_deleteComment) => print(_deleteComment));
           }
         });
   }
@@ -115,10 +115,6 @@ class _CommentWidgetState extends State<CommentWidget>
     // creator. If the comment widget is found in the comment snackbar, then the
     // provider is told to reset state. If The comment is found in the comments
     // page, then pops the page.
-    // THIS IS A HACK: checks to see where the comment is by putting the call to
-    // the provider in a try-except. If there is no exception, the the comment
-    // is in the snackbar. If there is an exception, then the comment is in the
-    // comments page.
 
     await showDialog(
         context: context,

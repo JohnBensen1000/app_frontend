@@ -26,9 +26,11 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
   InputField _inputField;
   bool _didUserStartTyping;
   String _prevString;
+  bool _hasAttemptedToSubmit;
 
   @override
   void initState() {
+    _hasAttemptedToSubmit = false;
     _prevString = "";
     _didUserStartTyping = false;
     _inputField = new InputField(hintText: "phone");
@@ -39,15 +41,22 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
 
   @override
   Widget build(BuildContext context) {
-    return AccountInputPage(
-        child: InputFieldWidget(inputField: _inputField), onTap: _verifyPhone);
+    return AccountInputPageWrapper(
+        key: UniqueKey(),
+        headerText: "Enter Your\nPhone\nNumber",
+        child: InputFieldWidget(inputField: _inputField),
+        onTap: _verifyPhone);
   }
 
   Future<void> _inputTextListener() async {
+    if (_hasAttemptedToSubmit) {
+      _inputField.errorText = "";
+      _hasAttemptedToSubmit = false;
+      return;
+    }
     if (!_didUserStartTyping) {
       _updateInputText("+1 ");
       _didUserStartTyping = true;
-
       return;
     }
     String inputText = _inputField.textEditingController.value.text;
@@ -77,7 +86,9 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
         r"^(\+\d{1,2}\s?)?1?\-?\.?\s?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$");
     if (!regExp.hasMatch(phoneNumber)) {
       _inputField.errorText = "this phone number is not valid";
-      return false;
+      _hasAttemptedToSubmit = true;
+      setState(() {});
+      return;
     }
 
     await _sendVerificationCode();
@@ -97,10 +108,13 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
       },
       codeSent: (String verificationId, int resendToken) {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    SignUpPhoneVerifyPage(verificationId: verificationId)));
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        SignUpPhoneVerifyPage(verificationId: verificationId)))
+            .then((value) {
+          setState(() {});
+        });
         return true;
       },
       codeAutoRetrievalTimeout: (String verificationId) {
@@ -135,7 +149,8 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
   @override
   void initState() {
     _didAttemptToSubmit = false;
-    _inputField = new InputField(hintText: "code");
+    _inputField = new InputField(hintText: "");
+    _inputField.textEditingController.text = "------";
     _inputField.textEditingController.addListener(() => _inputTextListener());
 
     super.initState();
@@ -143,18 +158,40 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AccountInputPage(
-        child: InputFieldWidget(inputField: _inputField),
+    return AccountInputPageWrapper(
+        key: UniqueKey(),
+        headerText: "Enter\nSix Digit\nVerification\nCode",
+        child: InputFieldWidget(inputField: _inputField, child: Container()),
         onTap: _verifySmsCode);
   }
 
   Future<void> _inputTextListener() async {
     if (_didAttemptToSubmit) {
-      _inputField.textEditingController.text = "";
+      _inputField.text = "";
       _inputField.errorText = "";
-      setState(() {});
       _didAttemptToSubmit = false;
+    } else {
+      _updateVerificationCodeWidget();
     }
+  }
+
+  void _updateVerificationCodeWidget() {
+    String text = _inputField.text;
+    int offset = 0;
+    for (int i = 0; i < text.length; i++) {
+      if (text[i] != "-") {
+        offset += 1;
+      } else {
+        break;
+      }
+    }
+    for (int i = offset; i < 6; i++) {
+      text += "-";
+    }
+
+    _inputField.textEditingController.value = TextEditingValue(
+        text: text.substring(0, 6),
+        selection: TextSelection.fromPosition(TextPosition(offset: offset)));
   }
 
   Future<void> _verifySmsCode() async {
@@ -172,6 +209,7 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
       userCredential = await auth.signInWithCredential(credential);
     } on firebase_auth.FirebaseAuthException catch (e) {
       _didAttemptToSubmit = true;
+
       _displayVerificationError(e.code);
       return;
     }
@@ -189,10 +227,8 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
     } on ServerFailedException catch (e) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => SetAccountInfoPage(uid: uid)));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => SignUpNamePage(uid: uid)));
     }
   }
 
