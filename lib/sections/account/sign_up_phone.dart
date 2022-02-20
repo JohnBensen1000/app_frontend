@@ -101,10 +101,7 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
       phoneNumber: phoneNumber,
       verificationCompleted: (firebase_auth.PhoneAuthCredential credential) {},
       verificationFailed: (firebase_auth.FirebaseAuthException e) {
-        print(e);
-        setState(() {
-          _inputField.errorText = "an error has occurred";
-        });
+        _displayError(e.code);
         return false;
       },
       codeSent: (String verificationId, int resendToken) {
@@ -125,6 +122,18 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
         return false;
       },
     );
+  }
+
+  void _displayError(String errorMessage) {
+    switch (errorMessage) {
+      case "too-many-requests":
+        _inputField.errorText = "too many attempts";
+        break;
+      default:
+        _inputField.errorText = "an error has occured";
+        break;
+    }
+    setState(() {});
   }
 }
 
@@ -271,6 +280,9 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
     switch (errorCode) {
       case "invalid-verification-code":
         _inputField.errorText = "wrong verification code";
+        break;
+      default:
+        _inputField.errorText = "an error has occured";
         break;
     }
     setState(() {});

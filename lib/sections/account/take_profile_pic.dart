@@ -75,7 +75,7 @@ class _TakeProfilePageState extends State<TakeProfilePage> {
                   height: .35 * globals.size.height,
                   alignment: Alignment.center,
                   child: FutureBuilder(
-                      future: globals.userRepository.get(globals.uid),
+                      future: getUserFromUID(globals.uid),
                       builder: (context, snapshot) {
                         if (snapshot.data != null) {
                           return ProfilePic(

@@ -65,3 +65,12 @@ PostListRepository followingPostsRepository;
 // Set to true if someone is in the process of creating an account,
 // set to false otherwise. Useful for google analytics.
 bool isNewUser;
+
+void setUpRepositorys() {
+  blockedRepository = new BlockedRepository();
+  profileRepository = new ProfileRepository();
+  userRepository = new UserRepository();
+  followingRepository = new FollowingRepository();
+  newActivityRepository = new NewActivityRepository();
+  chatsRepository = new ChatsRepository();
+}

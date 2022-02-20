@@ -114,6 +114,8 @@ class _SignUpUsernameState extends State<SignUpUsername> {
         .createAccount(widget.uid, userId, widget.username);
     await globals.accountRepository.signIn(widget.uid);
 
+    globals.setUpRepositorys();
+
     Navigator.push(
         context,
         MaterialPageRoute(

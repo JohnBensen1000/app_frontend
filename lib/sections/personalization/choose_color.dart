@@ -34,12 +34,14 @@ class ColorsProvider extends ChangeNotifier {
 
   Future<void> setColor(BuildContext context) async {
     if (_chosenColorKey != null) {
+      await globals.userRepository.changeColor(_chosenColorKey);
+
       if (isPartOfSignUpProcess) {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => TakeProfilePage()));
       } else {
         globals.googleAnalyticsAPI.logPickedColor();
-        await globals.userRepository.changeColor(_chosenColorKey);
+
         Navigator.pop(context);
       }
     }

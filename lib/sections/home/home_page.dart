@@ -98,12 +98,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
-    globals.blockedRepository = new BlockedRepository();
-    globals.profileRepository = new ProfileRepository();
-    globals.userRepository = new UserRepository();
-    globals.followingRepository = new FollowingRepository();
-    globals.newActivityRepository = new NewActivityRepository();
-    globals.chatsRepository = new ChatsRepository();
+    globals.setUpRepositorys();
     globals.recommendationPostsRepository =
         new PostListRepository(function: getRecommendations);
     globals.followingPostsRepository =
