@@ -7,10 +7,17 @@ import 'package:test_flutter/API/handle_requests.dart';
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';
 import '../../widgets/back_arrow.dart';
+import '../account/widgets/account_input_page.dart';
+
+import '../account/take_profile_pic.dart';
 
 class ColorsProvider extends ChangeNotifier {
   // Keeps track of the chosen color. If the user selects a color that is
   // currently chosen, then sets chosen color to null.
+
+  final bool isPartOfSignUpProcess;
+
+  ColorsProvider({@required this.isPartOfSignUpProcess});
 
   String _chosenColorKey;
 
@@ -27,9 +34,14 @@ class ColorsProvider extends ChangeNotifier {
 
   Future<void> setColor(BuildContext context) async {
     if (_chosenColorKey != null) {
-      await globals.userRepository.changeColor(_chosenColorKey);
-      globals.googleAnalyticsAPI.logPickedColor();
-      Navigator.pop(context);
+      if (isPartOfSignUpProcess) {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => TakeProfilePage()));
+      } else {
+        globals.googleAnalyticsAPI.logPickedColor();
+        await globals.userRepository.changeColor(_chosenColorKey);
+        Navigator.pop(context);
+      }
     }
   }
 }
@@ -41,72 +53,43 @@ class ColorsPage extends StatelessWidget {
   // choose from. The footer contains a button that lets the user save the
   // chosen color as their profile color.
 
+  final bool isPartOfSignUpProcess;
+
+  ColorsPage({this.isPartOfSignUpProcess = false});
+
   @override
   Widget build(BuildContext context) {
-    double headerHeight = .2 * globals.size.height;
-    double footerHeight = .35 * globals.size.height;
-    double bodyHeight =
-        MediaQuery.of(context).size.height - headerHeight - footerHeight;
+    double headerHeight = .23;
+    double footerHeight = .37;
+    double bodyHeight = MediaQuery.of(context).size.height -
+        (headerHeight + footerHeight + .01) * globals.size.height;
 
     return ChangeNotifierProvider(
-        create: (context) => ColorsProvider(),
-        child: Scaffold(
-            body: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: double.infinity,
-            ),
-            ChooseColorHeader(height: headerHeight),
-            ChooseColorBody(height: bodyHeight),
-            ChooseColorFooter(
-              height: footerHeight,
-            ),
-          ],
-        )));
-  }
-}
-
-class ChooseColorHeader extends StatelessWidget {
-  const ChooseColorHeader({
-    @required this.height,
-    Key key,
-  }) : super(key: key);
-
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      child:
-          Column(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container(
-              padding: EdgeInsets.only(
-                  top: .04 * globals.size.height,
-                  left: .09 * globals.size.width),
-              child: GestureDetector(
-                child: BackArrow(),
-                onTap: () => Navigator.pop(context),
+        create: (context) =>
+            ColorsProvider(isPartOfSignUpProcess: isPartOfSignUpProcess),
+        child: WillPopScope(
+            onWillPop: () async {
+              return true;
+            },
+            child: AccountInputPageWrapper(
+              showBackArrow: isPartOfSignUpProcess ? false : true,
+              headerText: "Pick\nYour Style",
+              onTap: null,
+              height: headerHeight,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: double.infinity,
+                  ),
+                  ChooseColorBody(height: bodyHeight),
+                  ChooseColorFooter(
+                    height: footerHeight,
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-        Text(
-          'Pick your style',
-          style: TextStyle(
-            fontFamily: 'Helvetica Neue',
-            fontSize: .058 * globals.size.height,
-            color: const Color(0xff000000),
-          ),
-          textAlign: TextAlign.left,
-        ),
-      ]),
-    );
+            )));
   }
 }
 
@@ -157,28 +140,37 @@ class ChooseColorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double deltaHeight = .15 * height;
-
     return Consumer<ColorsProvider>(
       builder: (context, provider, child) {
         bool isChosen = provider.chosenColorKey == colorKey;
-        double adjustedHeight = (isChosen) ? height - deltaHeight : height;
-        double adjustedMargin = (isChosen) ? 5 + .5 * deltaHeight : 5;
 
         return GestureDetector(
             child: Container(
-              margin: EdgeInsets.all(adjustedMargin),
-              width: adjustedHeight,
-              height: adjustedHeight,
+              margin: EdgeInsets.all(5),
+              width: height,
+              height: height,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(.25 * adjustedHeight),
+                borderRadius: BorderRadius.circular(globals.size.height),
                 color: color,
-                border: Border.all(width: 1.0, color: const Color(0xff707070)),
+                border: Border.all(
+                    width: isChosen ? 10.0 : 0.0, color: darken(color, 10)),
               ),
             ),
             onTap: () => provider.chosenColorKey = colorKey);
       },
     );
+  }
+
+  Color darken(Color c, [int fraction = 10]) {
+    int diff = [c.red, c.blue, c.green].reduce(max) -
+        [c.red, c.blue, c.green].reduce(min);
+    int multiplier = 255 - (diff / fraction).round();
+
+    return Color.fromARGB(
+        c.alpha,
+        (multiplier * (c.red * c.red) / (255 * 255)).round(),
+        (multiplier * (c.green * c.green) / (255 * 255)).round(),
+        (multiplier * (c.blue * c.blue) / (255 * 255)).round());
   }
 }
 
@@ -194,8 +186,7 @@ class ChooseColorFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ColorsProvider>(
         builder: (context, provider, child) => Container(
-              padding: EdgeInsets.only(bottom: .05 * globals.size.height),
-              height: height,
+              height: height * globals.size.height,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -206,7 +197,7 @@ class ChooseColorFooter extends StatelessWidget {
                       'The color you select will be used throughout your entire profile.',
                       style: TextStyle(
                         fontFamily: 'Helvetica Neue',
-                        fontSize: .018 * globals.size.height,
+                        fontSize: .021 * globals.size.height,
                         color: const Color(0xff000000),
                       ),
                       textAlign: TextAlign.center,
@@ -216,8 +207,8 @@ class ChooseColorFooter extends StatelessWidget {
                     padding: EdgeInsets.only(top: .05 * globals.size.height),
                     child: GestureDetector(
                         child: Container(
-                          height: .04 * globals.size.height,
-                          width: .28 * globals.size.width,
+                          height: .045 * globals.size.height,
+                          width: .32 * globals.size.width,
                           decoration: BoxDecoration(
                               border: Border.all(
                                   color: (provider.chosenColorKey != null)
@@ -228,7 +219,14 @@ class ChooseColorFooter extends StatelessWidget {
                               borderRadius: BorderRadius.all(
                                   Radius.circular(globals.size.height))),
                           child: Center(
-                            child: Text("Set Color"),
+                            child: Text(
+                              "Set Color",
+                              style: TextStyle(
+                                fontFamily: 'Helvetica Neue',
+                                fontSize: .021 * globals.size.height,
+                                color: const Color(0xff000000),
+                              ),
+                            ),
                           ),
                         ),
                         onTap: () => provider.setColor(context)),

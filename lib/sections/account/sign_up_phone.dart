@@ -101,6 +101,7 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
       phoneNumber: phoneNumber,
       verificationCompleted: (firebase_auth.PhoneAuthCredential credential) {},
       verificationFailed: (firebase_auth.FirebaseAuthException e) {
+        print(e);
         setState(() {
           _inputField.errorText = "an error has occurred";
         });
@@ -108,11 +109,11 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
       },
       codeSent: (String verificationId, int resendToken) {
         Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        SignUpPhoneVerifyPage(verificationId: verificationId)))
-            .then((value) {
+            context,
+            MaterialPageRoute(
+                builder: (context) => SignUpPhoneVerifyPage(
+                    phoneNumber: phoneNumber,
+                    verificationId: verificationId))).then((value) {
           setState(() {});
         });
         return true;
@@ -135,8 +136,10 @@ class SignUpPhoneVerifyPage extends StatefulWidget {
     sends the user to set their account info. 
    */
   final String verificationId;
+  final String phoneNumber;
 
-  SignUpPhoneVerifyPage({@required this.verificationId});
+  SignUpPhoneVerifyPage(
+      {@required this.verificationId, @required this.phoneNumber});
 
   @override
   _SignUpPhoneVerifyPageState createState() => _SignUpPhoneVerifyPageState();
@@ -150,7 +153,7 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
   void initState() {
     _didAttemptToSubmit = false;
     _inputField = new InputField(hintText: "");
-    _inputField.textEditingController.text = "------";
+    // _inputField.textEditingController.text = "------";
     _inputField.textEditingController.addListener(() => _inputTextListener());
 
     super.initState();
@@ -161,7 +164,18 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
     return AccountInputPageWrapper(
         key: UniqueKey(),
         headerText: "Enter\nSix Digit\nVerification\nCode",
-        child: InputFieldWidget(inputField: _inputField, child: Container()),
+        child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+          InputFieldWidget(inputField: _inputField, child: Container()),
+          GestureDetector(
+              child: Text(
+                "resend code",
+                style: TextStyle(
+                  fontSize: .02 * globals.size.height,
+                  color: Colors.grey,
+                ),
+              ),
+              onTap: () => _resendCode())
+        ]),
         onTap: _verifySmsCode);
   }
 
@@ -175,8 +189,29 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
     }
   }
 
+  Future<bool> _resendCode() async {
+    await auth.verifyPhoneNumber(
+      phoneNumber: widget.phoneNumber,
+      verificationCompleted: (firebase_auth.PhoneAuthCredential credential) {},
+      verificationFailed: (firebase_auth.FirebaseAuthException e) {
+        print(e);
+        return false;
+      },
+      codeSent: (String verificationId, int resendToken) {
+        return true;
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        setState(() {
+          _inputField.errorText = "a timeout has been reached";
+        });
+        return false;
+      },
+    );
+  }
+
   void _updateVerificationCodeWidget() {
     String text = _inputField.text;
+
     int offset = 0;
     for (int i = 0; i < text.length; i++) {
       if (text[i] != "-") {
@@ -185,13 +220,14 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
         break;
       }
     }
-    for (int i = offset; i < 6; i++) {
-      text += "-";
+    if (text.length > 0) {
+      for (int i = offset; i < 6; i++) {
+        text += "-";
+      }
+      _inputField.textEditingController.value = TextEditingValue(
+          text: text.substring(0, 6),
+          selection: TextSelection.fromPosition(TextPosition(offset: offset)));
     }
-
-    _inputField.textEditingController.value = TextEditingValue(
-        text: text.substring(0, 6),
-        selection: TextSelection.fromPosition(TextPosition(offset: offset)));
   }
 
   Future<void> _verifySmsCode() async {
@@ -209,7 +245,6 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
       userCredential = await auth.signInWithCredential(credential);
     } on firebase_auth.FirebaseAuthException catch (e) {
       _didAttemptToSubmit = true;
-
       _displayVerificationError(e.code);
       return;
     }
@@ -235,7 +270,7 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
   void _displayVerificationError(String errorCode) {
     switch (errorCode) {
       case "invalid-verification-code":
-        _inputField.errorText = "incorrect code";
+        _inputField.errorText = "wrong verification code";
         break;
     }
     setState(() {});

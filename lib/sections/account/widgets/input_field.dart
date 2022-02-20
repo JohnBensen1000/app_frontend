@@ -69,71 +69,77 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.child == null) {
-      return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              width: .789 * globals.size.width,
-              height: .0545 * globals.size.height,
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom:
-                      BorderSide(width: 1.0, color: const Color(0xff707070)),
-                ),
+    return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+      if (widget.child == null)
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+          Container(
+            width: .789 * globals.size.width,
+            height: .0545 * globals.size.height,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(width: 1.0, color: const Color(0xff707070)),
               ),
-              child: Transform.translate(
-                offset: Offset(0, .015 * globals.size.height),
-                child: TextFormField(
-                  textAlignVertical: TextAlignVertical.center,
-                  controller: widget.inputField.textEditingController,
-                  textAlign: TextAlign.left,
-                  obscureText: widget.inputField.obscureText,
-                  decoration: InputDecoration(
-                    hintText: widget.inputField.hintText,
-                    hintStyle: TextStyle(
-                        fontFamily: 'Devanagari Sangam MN',
-                        color: Colors.grey[300],
-                        fontSize: .033 * globals.size.height),
-                    border: InputBorder.none,
-                  ),
-                  style: TextStyle(
-                    fontFamily: 'Devanagari Sangam MN',
-                    fontSize: .027 * globals.size.height,
-                    color: const Color(0xc1000000),
-                  ),
+            ),
+            child: Transform.translate(
+              offset: Offset(0, .015 * globals.size.height),
+              child: TextFormField(
+                textAlignVertical: TextAlignVertical.center,
+                controller: widget.inputField.textEditingController,
+                textAlign: TextAlign.left,
+                obscureText: widget.inputField.obscureText,
+                decoration: InputDecoration(
+                  hintText: widget.inputField.hintText,
+                  hintStyle: TextStyle(
+                      fontFamily: 'Devanagari Sangam MN',
+                      color: Colors.grey[300],
+                      fontSize: .033 * globals.size.height),
+                  border: InputBorder.none,
+                ),
+                style: TextStyle(
+                  fontFamily: 'Devanagari Sangam MN',
+                  fontSize: .027 * globals.size.height,
+                  color: const Color(0xc1000000),
                 ),
               ),
             ),
-            Container(
-                padding: EdgeInsets.only(top: .01 * globals.size.height),
-                child: Text(
-                  widget.inputField.errorText,
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                      color: Colors.red, fontSize: .018 * globals.size.height),
-                ))
-          ]);
-    } else {
-      return TextFormField(
-        // cursorHeight: 0,
-        // cursorWidth: 0,
-        cursorHeight: .06 * globals.size.height,
-        textAlignVertical: TextAlignVertical.center,
-        controller: widget.inputField.textEditingController,
-        textAlign: TextAlign.center,
-        obscureText: widget.inputField.obscureText,
-        decoration: InputDecoration(
-          border: InputBorder.none,
+          ),
+        ])
+      else
+        TextFormField(
+          // cursorHeight: 0,
+          // cursorWidth: 0,
+          cursorHeight: .06 * globals.size.height,
+          textAlignVertical: TextAlignVertical.center,
+          controller: widget.inputField.textEditingController,
+          textAlign: TextAlign.center,
+          obscureText: widget.inputField.obscureText,
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: "------",
+            hintStyle: TextStyle(
+              letterSpacing: .016 * globals.size.height,
+              fontFamily: 'Devanagari Sangam MN',
+              fontSize: .07 * globals.size.height,
+              color: const Color(0xc1000000),
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+          style: TextStyle(
+            letterSpacing: .016 * globals.size.height,
+            fontFamily: 'Devanagari Sangam MN',
+            fontSize: .07 * globals.size.height,
+            color: const Color(0xc1000000),
+            fontFeatures: [FontFeature.tabularFigures()],
+          ),
         ),
-        style: TextStyle(
-          letterSpacing: .016 * globals.size.height,
-          fontFamily: 'Devanagari Sangam MN',
-          fontSize: .07 * globals.size.height,
-          color: const Color(0xc1000000),
-          fontFeatures: [FontFeature.tabularFigures()],
-        ),
-      );
-    }
+      Container(
+          padding: EdgeInsets.only(top: .01 * globals.size.height),
+          child: Text(
+            widget.inputField.errorText,
+            textAlign: TextAlign.left,
+            style: TextStyle(
+                color: Colors.red, fontSize: .018 * globals.size.height),
+          ))
+    ]);
   }
 }

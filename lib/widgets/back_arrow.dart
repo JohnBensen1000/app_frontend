@@ -7,7 +7,7 @@ class BackArrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double size = 3;
+    double size = 2.5;
 
     return Container(
       color: Colors.transparent,

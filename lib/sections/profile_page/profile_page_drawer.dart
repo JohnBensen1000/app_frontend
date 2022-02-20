@@ -12,6 +12,7 @@ import '../camera/camera.dart';
 
 import '../personalization/choose_color.dart';
 import '../personalization/change_username.dart';
+import '../personalization/terms_and_services.dart';
 import '../personalization/preferences.dart';
 
 // import 'blocked_list.dart';
@@ -66,6 +67,12 @@ class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => ChangeUsernamePage()))),
+                    GenericTextButton(
+                        buttonName: "Terms & Services",
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => TermsAndServicesPage()))),
                   ],
                 ),
                 Column(

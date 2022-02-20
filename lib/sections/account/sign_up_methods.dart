@@ -31,7 +31,8 @@ class SignUpMethodsPage extends StatefulWidget {
 class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
   @override
   Widget build(BuildContext context) {
-    return AccountInputPage(
+    return AccountInputPageWrapper(
+      showBackArrow: false,
       headerText: "Welcome to\nEntropy\nLet's get you\nStarted",
       child: Container(
         padding: EdgeInsets.only(top: .02 * globals.size.height),
@@ -94,43 +95,50 @@ class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
   Future<void> _signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await GoogleSignIn().signIn();
 
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser?.authentication;
+    if (googleUser != null) {
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-    final credential = firebase_auth.GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
+      final credential = firebase_auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-    var firebaseUser = (await firebase_auth.FirebaseAuth.instance
-            .signInWithCredential(credential))
-        .user;
+      var firebaseUser = (await firebase_auth.FirebaseAuth.instance
+              .signInWithCredential(credential))
+          .user;
 
-    _enterAccount(firebaseUser.uid);
+      _enterAccount(firebaseUser.uid);
+    }
   }
 
   Future<void> _signInWithApple() async {
     final rawNonce = _appleSignInGenerateNonce();
     final nonce = _appleSignInSha256ToString(rawNonce);
 
-    final appleCredential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-      nonce: nonce,
-    );
+    try {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
 
-    final oauthCredential = firebase_auth.OAuthProvider("apple.com").credential(
-      idToken: appleCredential.identityToken,
-      rawNonce: rawNonce,
-    );
+      final oauthCredential =
+          firebase_auth.OAuthProvider("apple.com").credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
 
-    var firebaseUser = (await firebase_auth.FirebaseAuth.instance
-            .signInWithCredential(oauthCredential))
-        .user;
+      var firebaseUser = (await firebase_auth.FirebaseAuth.instance
+              .signInWithCredential(oauthCredential))
+          .user;
 
-    _enterAccount(firebaseUser.uid);
+      _enterAccount(firebaseUser.uid);
+    } on SignInWithAppleAuthorizationException catch (e) {
+      print(e);
+    }
   }
 
   String _appleSignInGenerateNonce([int length = 32]) {

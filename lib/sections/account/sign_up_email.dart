@@ -148,6 +148,7 @@ class _SignUpPasswordState extends State<SignUpPassword> {
     if (widget.isNewAccount) {
       await _signUp();
     } else {
+      print("signing in");
       await _signIn();
     }
   }
@@ -201,12 +202,14 @@ class _SignUpPasswordState extends State<SignUpPassword> {
     // ServerFailedException occurs, then the user's account doesn't exist and
     // the user is asked to set up their account.
     try {
+      print(uid);
       await getUserFromUID(uid);
       await globals.accountRepository.signIn(uid);
 
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
     } on ServerFailedException catch (e) {
+      print(e);
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => SignUpNamePage(uid: uid)));
     }

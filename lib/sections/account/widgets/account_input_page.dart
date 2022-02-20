@@ -3,17 +3,22 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../../globals.dart' as globals;
+import '../../../widgets/back_arrow.dart';
 
 class AccountInputPageWrapper extends StatefulWidget {
   final Widget child;
   final Function onTap;
   final String headerText;
+  final double height;
+  final bool showBackArrow;
 
   AccountInputPageWrapper({
     Key key,
     @required this.child,
     @required this.onTap,
     @required this.headerText,
+    this.height = .35,
+    this.showBackArrow = true,
   }) : super(key: key);
 
   @override
@@ -42,7 +47,11 @@ class _AccountInputPageWrapperState extends State<AccountInputPageWrapper> {
           }
         },
         child: AccountInputPage(
-            headerText: widget.headerText, child: widget.child, onTap: _onTap));
+            showBackArrow: widget.showBackArrow,
+            height: widget.height,
+            headerText: widget.headerText,
+            child: widget.child,
+            onTap: _onTap));
   }
 
   Future<void> _onTap() async {
@@ -57,11 +66,15 @@ class AccountInputPage extends StatelessWidget {
   final Widget child;
   final Function onTap;
   final String headerText;
+  final double height;
+  final bool showBackArrow;
 
   AccountInputPage({
     @required this.child,
     @required this.onTap,
     @required this.headerText,
+    @required this.height,
+    @required this.showBackArrow,
   });
   final KeyboardVisibilityController keyboardController =
       KeyboardVisibilityController();
@@ -70,9 +83,6 @@ class AccountInputPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double titleBarHeight = .34;
-    double forwardButtonHeight = .15;
-
     double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     bool isKeyboardActivated =
         (MediaQuery.of(context).viewInsets.bottom != 0.0);
@@ -85,28 +95,47 @@ class AccountInputPage extends StatelessWidget {
       children: [
         Column(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
           Container(
-            height: titleBarHeight * globals.size.height,
-            child: Container(
-              padding: EdgeInsets.only(
-                left: .08 * globals.size.width,
-                top: .08 * globals.size.height,
-              ),
-              width: double.infinity,
-              child: Text.rich(
-                TextSpan(
-                  style: TextStyle(
-                    fontFamily: 'Helvetica Neue',
-                    fontSize: 42,
-                    color: const Color(0xff000000),
+            padding: EdgeInsets.only(
+              left: .08 * globals.size.width,
+            ),
+            height: height * globals.size.height,
+            child: Column(
+              children: [
+                if (showBackArrow)
+                  Container(
+                      width: double.infinity,
+                      alignment: Alignment.bottomLeft,
+                      height: .08 * globals.size.height,
+                      child: GestureDetector(
+                          child: BackArrow(),
+                          onTap: () => Navigator.pop(context)))
+                else
+                  Container(
+                    width: double.infinity,
+                    height: .08 * globals.size.height,
                   ),
-                  children: [
+                Container(
+                  padding: EdgeInsets.only(
+                    top: .02 * globals.size.height,
+                  ),
+                  width: double.infinity,
+                  child: Text.rich(
                     TextSpan(
-                      text: headerText,
+                      style: TextStyle(
+                        fontFamily: 'Helvetica Neue',
+                        fontSize: 42,
+                        color: const Color(0xff000000),
+                      ),
+                      children: [
+                        TextSpan(
+                          text: headerText,
+                        ),
+                      ],
                     ),
-                  ],
+                    textAlign: TextAlign.left,
+                  ),
                 ),
-                textAlign: TextAlign.left,
-              ),
+              ],
             ),
           ),
           Container(
@@ -114,9 +143,8 @@ class AccountInputPage extends StatelessWidget {
                 top: .01 * globals.size.height,
               ),
               height: (isKeyboardActivated)
-                  ? (1 - titleBarHeight) * globals.size.height - keyboardHeight
-                  : (1 - titleBarHeight - forwardButtonHeight) *
-                      globals.size.height,
+                  ? (1 - height) * globals.size.height - keyboardHeight
+                  : (1 - height) * globals.size.height,
               child: child),
         ]),
         Transform.translate(

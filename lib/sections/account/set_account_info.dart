@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/sections/account/agreements.dart';
-import 'package:provider/provider.dart';
+import 'package:test_flutter/sections/account/take_profile_pic.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
@@ -11,7 +10,6 @@ import 'widgets/account_input_page.dart';
 
 import '../personalization/choose_color.dart';
 import '../home/home_page.dart';
-import '../personalization/preferences.dart';
 
 class SignUpNamePage extends StatefulWidget {
   final String uid;
@@ -38,6 +36,7 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
           return true;
         },
         child: AccountInputPageWrapper(
+            showBackArrow: false,
             key: UniqueKey(),
             headerText: "What's\nYour\nName?",
             child: InputFieldWidget(inputField: _inputField),
@@ -116,10 +115,10 @@ class _SignUpUsernameState extends State<SignUpUsername> {
     await globals.accountRepository.signIn(widget.uid);
 
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => HomePage()));
-
-    Navigator.push(context, SlideRightRoute(page: PreferencesPage()));
-    Navigator.push(context, SlideRightRoute(page: ColorsPage()));
-    Navigator.push(context, SlideRightRoute(page: TakeProfilePage()));
+        context,
+        MaterialPageRoute(
+            builder: (context) => ColorsPage(
+                  isPartOfSignUpProcess: true,
+                )));
   }
 }
