@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:test_flutter/API/methods/blocked.dart';
-import 'package:test_flutter/repositories/repository.dart';
-
+import 'repository.dart';
+import '../API/methods/blocked.dart';
 import '../../models/user.dart';
 
 class BlockedRepository extends Repository<List<User>> {

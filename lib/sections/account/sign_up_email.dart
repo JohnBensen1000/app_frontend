@@ -40,6 +40,7 @@ class _SignUpEmailState extends State<SignUpEmail> {
   @override
   Widget build(BuildContext context) {
     return AccountInputPageWrapper(
+        pageNum: 1,
         key: UniqueKey(),
         headerText: "Enter Email",
         child: InputFieldWidget(inputField: _inputField),
@@ -117,6 +118,7 @@ class _SignUpPasswordState extends State<SignUpPassword> {
   @override
   Widget build(BuildContext context) {
     return AccountInputPageWrapper(
+        pageNum: 2,
         key: UniqueKey(),
         headerText: widget.isNewAccount == true
             ? "Create\nPassword"

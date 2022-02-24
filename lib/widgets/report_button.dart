@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/API/methods/blocked.dart';
 
-import '../../API/handle_requests.dart';
-import '../../API/methods/posts.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
-import '../../models/user.dart';
-import '../../API/methods/comments.dart';
-import '../../API/methods/reports.dart';
 import '../globals.dart' as globals;
 
 class ReportButton extends StatelessWidget {

@@ -1,19 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:test_flutter/widgets/profile_pic.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/methods/users.dart';
-import '../../widgets/wide_button.dart';
-import '../account/widgets/account_input_page.dart';
-
-import '../personalization/choose_color.dart';
-import '../personalization/preferences.dart';
-import '../home/home_page.dart';
-import '../camera/camera.dart';
+import '../../widgets/bubbles_page.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 
@@ -58,7 +48,7 @@ class _TermsAndServicesPageState extends State<TermsAndServicesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AccountInputPageWrapper(
+    return BubblesPage(
         height: .3,
         child: Container(
             child: Column(
@@ -67,7 +57,6 @@ class _TermsAndServicesPageState extends State<TermsAndServicesPage> {
                   AgreementLink(policyAgreement: policyAgreement))
               .toList(),
         )),
-        onTap: null,
         headerText: "Terms &\nServices");
   }
 }

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:test_flutter/repositories/repository.dart';
 
+import 'repository.dart';
 import '../../API/methods/users.dart';
 
 class NewActivityRepository extends Repository<bool> {

@@ -1,15 +1,13 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_flutter/repositories/repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
+import 'repository.dart';
 import '../API/methods/users.dart';
 import '../models/user.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';
-
-import 'repository.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 

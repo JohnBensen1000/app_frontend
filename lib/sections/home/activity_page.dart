@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/widgets/profile_pic.dart';
 
 import '../../models/user.dart';
 import '../../models/post.dart';
@@ -9,6 +8,7 @@ import '../../globals.dart' as globals;
 import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_circle.dart';
 import '../../API/methods/followings.dart';
+import '../../widgets/profile_pic.dart';
 
 import '../profile_page/profile_page.dart';
 import '../post/post_widget.dart';

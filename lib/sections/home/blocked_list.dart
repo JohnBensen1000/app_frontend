@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/methods/blocked.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../widgets/profile_pic.dart';
-import '../../API/handle_requests.dart';
 import '../../widgets/back_arrow.dart';
 
 import '../profile_page/profile_page.dart';

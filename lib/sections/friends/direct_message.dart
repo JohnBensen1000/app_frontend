@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/widgets/generic_alert_dialog.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';

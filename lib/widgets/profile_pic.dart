@@ -1,7 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:test_flutter/widgets/generic_alert_dialog.dart';
+
+import 'generic_alert_dialog.dart';
 
 import '../sections/post/post_widget.dart';
 

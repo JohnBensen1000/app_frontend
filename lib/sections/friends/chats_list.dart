@@ -1,12 +1,7 @@
-import 'dart:collection';
-
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/handle_requests.dart';
-import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
 import '../../widgets/profile_pic.dart';
 

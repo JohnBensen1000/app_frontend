@@ -1,8 +1,8 @@
-import 'package:test_flutter/API/methods/comments.dart';
 import 'package:flutter/material.dart';
 
 import '../models/comment.dart';
 import '../models/post.dart';
+import '../API/methods/comments.dart';
 
 import 'repository.dart';
 

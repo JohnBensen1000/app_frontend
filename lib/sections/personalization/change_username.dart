@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/API/methods/users.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/back_arrow.dart';
 import '../../widgets/profile_pic.dart';
-import '../../models/user.dart';
 
 class ChangeUsernamePage extends StatelessWidget {
   // This page is dedicated to letting the user change their username. It

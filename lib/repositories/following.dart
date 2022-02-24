@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:test_flutter/API/methods/followings.dart';
-
 import '../../models/user.dart';
 import '../../globals.dart' as globals;
-
+import '../API/methods/followings.dart';
 import 'repository.dart';
 
 class FollowingRepository extends Repository<Map<String, bool>> {

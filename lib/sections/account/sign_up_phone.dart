@@ -42,6 +42,7 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
   @override
   Widget build(BuildContext context) {
     return AccountInputPageWrapper(
+        pageNum: 1,
         key: UniqueKey(),
         headerText: "Enter Your\nPhone\nNumber",
         child: InputFieldWidget(inputField: _inputField),
@@ -171,6 +172,7 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
   @override
   Widget build(BuildContext context) {
     return AccountInputPageWrapper(
+        pageNum: 2,
         key: UniqueKey(),
         headerText: "Enter\nSix Digit\nVerification\nCode",
         child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [

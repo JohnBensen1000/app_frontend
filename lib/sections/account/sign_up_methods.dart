@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:test_flutter/sections/account/sign_up_email.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io' show Platform;
 import '../../API/methods/users.dart';
@@ -12,9 +11,10 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../globals.dart' as globals;
-import '../../widgets/wide_button.dart';
+import 'sign_up_email.dart';
 
 import "sign_up_phone.dart";
 
@@ -32,42 +32,46 @@ class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
   @override
   Widget build(BuildContext context) {
     return AccountInputPageWrapper(
+      pageNum: 0,
       showBackArrow: false,
       headerText: "Welcome to\nEntropy\nLet's get you\nStarted",
       child: Container(
         padding: EdgeInsets.only(top: .02 * globals.size.height),
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              GestureDetector(
-                  // child: WideButton(buttonName: "Email"),
-                  child: _signUpMethodButton("Sign in with Email"),
-                  onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SignUpEmail()))),
-              GestureDetector(
-                  child: _signUpMethodButton("Sign in with Phone"),
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => SignUpPhonePage()))),
-              // Android needs extra work to set up sign-in with Google, so only
-              // showing this to ios for now
-              if (Platform.operatingSystem == "ios")
-                GestureDetector(
-                    child: _signUpMethodButton("Sign in with Google"),
-                    onTap: () => _signInWithGoogle()),
-              if (Platform.operatingSystem == "ios")
-                GestureDetector(
-                    child: _signUpMethodButton("Sign in with Apple"),
-                    onTap: () => _signInWithApple())
-            ]),
+        child: Column(mainAxisAlignment: MainAxisAlignment.start, children: <
+            Widget>[
+          GestureDetector(
+              // child: WideButton(buttonName: "Email"),
+              child: _signUpMethodButton(
+                  "Sign in with Email", "assets/images/email.svg", .04),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SignUpEmail()))),
+          GestureDetector(
+              child: _signUpMethodButton(
+                  "Sign in with Phone", "assets/images/phone.svg", .045),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SignUpPhonePage()))),
+          // Android needs extra work to set up sign-in with Google, so only
+          // showing this to ios for now
+          if (Platform.operatingSystem == "ios")
+            GestureDetector(
+                child: _signUpMethodButton(
+                    "Sign in with Google", "assets/images/google.svg", .028),
+                onTap: () => _signInWithGoogle()),
+          if (Platform.operatingSystem == "ios")
+            GestureDetector(
+                child: _signUpMethodButton(
+                    "Sign in with Apple", "assets/images/apple.svg", .03),
+                onTap: () => _signInWithApple())
+        ]),
       ),
       onTap: null,
     );
   }
 
-  Widget _signUpMethodButton(String buttonName) {
+  Widget _signUpMethodButton(String buttonName, String assetPath, double size) {
     return Container(
+      padding: EdgeInsets.only(
+          left: .03 * globals.size.width, right: .03 * globals.size.width),
       width: .85 * globals.size.width,
       height: .05 * globals.size.height,
       margin: EdgeInsets.only(
@@ -77,17 +81,32 @@ class _SignUpMethodsPageState extends State<SignUpMethodsPage> {
         color: const Color(0xffffffff),
         border: Border.all(width: 1.0, color: const Color(0xff707070)),
       ),
-      child: Center(
-        child: Text(
-          buttonName,
-          style: TextStyle(
-            fontFamily: 'PingFang HK',
-            fontSize: 25,
-            color: const Color(0xff727272),
-            fontWeight: FontWeight.w300,
+      child: Stack(
+        children: [
+          Container(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                width: .05 * globals.size.height,
+                child: Container(
+                    width: size * globals.size.height,
+                    height: size * globals.size.height,
+                    alignment: Alignment.center,
+                    child: SvgPicture.asset(assetPath)),
+              )),
+          Container(
+            alignment: Alignment.center,
+            child: Text(
+              buttonName,
+              style: TextStyle(
+                fontFamily: 'PingFang HK',
+                fontSize: 25,
+                color: const Color(0xff727272),
+                fontWeight: FontWeight.w300,
+              ),
+              textAlign: TextAlign.left,
+            ),
           ),
-          textAlign: TextAlign.left,
-        ),
+        ],
       ),
     );
   }

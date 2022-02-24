@@ -3,16 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:test_flutter/API/methods/feeds.dart';
-import 'package:test_flutter/repositories/post_list.dart';
-import 'package:test_flutter/sections/feeds/following.dart';
 
-import '../../repositories/blocked.dart';
-import '../../repositories/chats.dart';
-import '../../repositories/following.dart';
-import '../../repositories/new_activity.dart';
-import '../../repositories/profile.dart';
-import '../../repositories/user.dart';
+import '../../API/methods/feeds.dart';
+import '../../repositories/post_list.dart';
+import '../feeds/following.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
@@ -109,7 +103,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = .18 * globals.size.height;
+    double headerHeight = .16 * globals.size.height;
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
     return WillPopScope(
@@ -177,12 +171,12 @@ class HomePageHeaderButtons extends StatelessWidget {
         ),
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              _openDrawerButton(context),
+              // _openDrawerButton(context),
               GestureDetector(
                   child: Container(
-                      height: .065 * globals.size.height,
+                      height: .05 * globals.size.height,
                       child: Image.asset('assets/images/Entropy.PNG')),
                   onTap: () async {
                     User user = await globals.userRepository.get(globals.uid);
@@ -193,8 +187,7 @@ class HomePageHeaderButtons extends StatelessWidget {
                   }),
               Container(
                 height: .06 * globals.size.height,
-                width: buttonsWidth,
-                child: Column(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     GestureDetector(
@@ -216,7 +209,18 @@ class HomePageHeaderButtons extends StatelessWidget {
                                   cameraUsage: CameraUsage.post,
                                 )),
                       ),
-                    )
+                    ),
+                    GestureDetector(
+                        child: _iconContainer(
+                          null,
+                        ),
+                        onTap: null),
+                    
+                      
+                        
+                      
+                     
+            
                   ],
                 ),
               )
@@ -259,14 +263,21 @@ class HomePageHeaderButtons extends StatelessWidget {
 
   Widget _iconContainer(Image image) {
     return Container(
-      width: .12 * globals.size.width,
-      height: .0273 * globals.size.height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(globals.size.height),
-        color: const Color(0xffffffff),
-        border: Border.all(width: 1.0, color: const Color(0xff000000)),
+      padding: EdgeInsets.only(
+          left: .01 * globals.size.width,
+          right: .01 * globals.size.width,
+          top: .01 * globals.size.height,
+          bottom: .01 * globals.size.height),
+      child: Container(
+        width: .12 * globals.size.width,
+        height: .038 * globals.size.height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(.011 * globals.size.height),
+          color: const Color(0xffffffff),
+          border: Border.all(width: 1.0, color: const Color(0xff000000)),
+        ),
+        child: image != null ? image : Container(),
       ),
-      child: image,
     );
   }
 }
@@ -282,56 +293,58 @@ class HomePageHeaderNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     HomePageProvider provider = Provider.of<HomePageProvider>(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: <Widget>[
-        Container(
-          width: .58 * globals.size.width,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              _navigationButton(
-                "Discover",
-                PageLabel.discover,
-              ),
-              _navigationButton(
-                "Following",
-                PageLabel.following,
-              ),
-              _navigationButton(
-                "Friends",
-                PageLabel.friends,
-              ),
-            ],
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: .58 * globals.size.width,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                _navigationButton(
+                  "Discover",
+                  PageLabel.discover,
+                ),
+                _navigationButton(
+                  "Following",
+                  PageLabel.following,
+                ),
+                _navigationButton(
+                  "Friends",
+                  PageLabel.friends,
+                ),
+              ],
+            ),
           ),
-        ),
-        Container(
-          child: Transform.translate(
-            offset: Offset(0, -.0118 * globals.size.height),
-            child: Container(
-              width: .55 * globals.size.width,
-              height: .00829 * globals.size.height,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(globals.size.height),
-                color: const Color(0xffffffff),
-                border: Border.all(width: 1.0, color: const Color(0xff707070)),
-              ),
-              child: Transform.translate(
-                offset: Offset(
-                    max(-1.0, min(-provider.offset, 1.0)) *
-                        .225 *
-                        (globals.size.width - 12),
-                    0),
-                child: SvgPicture.string(
-                  _svg_cayeaa,
-                  allowDrawingOutsideViewBox: true,
+          Container(
+            child: Transform.translate(
+              offset: Offset(0, -.0118 * globals.size.height),
+              child: Container(
+                width: .55 * globals.size.width,
+                height: .00829 * globals.size.height,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(globals.size.height),
+                  color: const Color(0xffffffff),
+                  border:
+                      Border.all(width: 1.0, color: const Color(0xff707070)),
+                ),
+                child: Transform.translate(
+                  offset: Offset(
+                      max(-1.0, min(-provider.offset, 1.0)) *
+                          .225 *
+                          (globals.size.width - 12),
+                      0),
+                  child: SvgPicture.string(
+                    _svg_cayeaa,
+                    allowDrawingOutsideViewBox: true,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

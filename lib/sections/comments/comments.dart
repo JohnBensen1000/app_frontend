@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/repositories/comments.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
 import '../../models/comment.dart';
+import '../../repositories/comments.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'widgets/comment_widget.dart';

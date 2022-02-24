@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/sections/account/take_profile_pic.dart';
 
+import '../../sections/account/take_profile_pic.dart';
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../API/methods/users.dart';
@@ -36,6 +36,7 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
           return true;
         },
         child: AccountInputPageWrapper(
+            pageNum: 3,
             showBackArrow: false,
             key: UniqueKey(),
             headerText: "What's\nYour\nName?",
@@ -83,6 +84,7 @@ class _SignUpUsernameState extends State<SignUpUsername> {
   @override
   Widget build(BuildContext context) {
     return AccountInputPageWrapper(
+        pageNum: 4,
         key: UniqueKey(),
         headerText: "What's\nYour\nUsername?",
         child: InputFieldWidget(inputField: _inputField),

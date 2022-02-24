@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/API/methods/users.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/profile_pic.dart';
-import '../../main.dart';
 import '../../widgets/alert_dialog_container.dart';
-import 'package:test_flutter/widgets/generic_text_button.dart';
+import '../../API/handle_requests.dart';
+import '../../API/methods/users.dart';
+import '../../widgets/generic_text_button.dart';
 
 import '../camera/camera.dart';
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/widgets/back_arrow.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/generic_alert_dialog.dart';
@@ -13,6 +12,7 @@ import '../post/post_widget.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'widgets/comment_widget.dart';
+import '../../widgets/back_arrow.dart';
 
 class CommentsPageProvider extends ChangeNotifier {
   // Contains state of entire page. Contains function for uploading a new

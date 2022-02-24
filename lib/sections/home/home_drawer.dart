@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/widgets/profile_pic.dart';
-import 'package:test_flutter/widgets/generic_text_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
 
 import '../../widgets/alert_circle.dart';
 import '../../models/user.dart';
+import '../../widgets/profile_pic.dart';
+import '../../widgets/generic_text_button.dart';
 
 import '../profile_page/profile_page.dart';
 

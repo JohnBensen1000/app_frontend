@@ -4,14 +4,14 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/methods/reports.dart';
-import 'package:test_flutter/API/methods/watched.dart';
-import 'package:test_flutter/repositories/post_list.dart';
-import 'package:test_flutter/widgets/report_button.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
+import '../../API/methods/reports.dart';
+import '../../API/methods/watched.dart';
+import '../../repositories/post_list.dart';
+import '../../widgets/report_button.dart';
 
 import '../post/full_post_widget.dart';
 
@@ -206,6 +206,7 @@ class _PostListPageState extends State<PostListPage>
     with WidgetsBindingObserver {
   double _offset = 0;
   bool _allowSwiping = true;
+  bool _stopSwiping = false;
 
   @override
   void initState() {
@@ -255,21 +256,33 @@ class _PostListPageState extends State<PostListPage>
       ),
       onVerticalDragUpdate: (value) {
         if (_allowSwiping) {
+          _stopSwiping = true;
           setState(() {
-            _offset += value.delta.dy.toInt();
+            if ((_offset + value.delta.dy.toInt()).abs() < widget.height) {
+              _offset += value.delta.dy.toInt();
+            } else {
+              _offset =
+                  (value.delta.dy.toInt() < 0) ? -widget.height : widget.height;
+            }
           });
         }
       },
       onVerticalDragEnd: (value) async {
         if (_allowSwiping) {
-          if (_offset > .2 * widget.height && provider.previousPost != null) {
-            _swipeUp(provider, value.primaryVelocity);
-          } else if (_offset < -.2 * widget.height &&
+          _stopSwiping = false;
+          double _velocity = value.primaryVelocity;
+          double _cutoff = .08 * widget.height;
+
+          if (_offset < -_cutoff &&
+              _velocity <= 0 &&
               provider.nextPost != null) {
-            _swipeDown(provider, value.primaryVelocity);
+            await _swipeDown(provider, _velocity);
+          } else if (_offset > _cutoff &&
+              _velocity >= 0 &&
+              provider.previousPost != null) {
+            await _swipeUp(provider, _velocity);
           } else {
-            await _swipeToPosition(
-                0, (_offset > 0) ? -1 : 1, value.primaryVelocity);
+            await _swipeBack(provider, _velocity);
           }
         }
       },
@@ -292,26 +305,24 @@ class _PostListPageState extends State<PostListPage>
     );
   }
 
-  void _swipeUp(PostListProvider provider, double velocity) async {
-    setState(() {
-      _allowSwiping = false;
-    });
+  Future<void> _swipeUp(PostListProvider provider, double velocity) async {
     await _swipeToPosition(widget.height, 1, velocity);
-    provider.moveDown();
-    setState(() {
-      _allowSwiping = true;
-    });
+    if (_stopSwiping == false) {
+      provider.moveDown();
+      _allowSwiping = false;
+    }
   }
 
-  void _swipeDown(PostListProvider provider, double velocity) async {
-    setState(() {
-      _allowSwiping = false;
-    });
+  Future<void> _swipeDown(PostListProvider provider, double velocity) async {
     await _swipeToPosition(-widget.height, -1, velocity);
-    provider.moveUp();
-    setState(() {
-      _allowSwiping = true;
-    });
+    if (_stopSwiping == false) {
+      provider.moveUp();
+      _allowSwiping = false;
+    }
+  }
+
+  Future<void> _swipeBack(PostListProvider provider, double velocity) async {
+    await _swipeToPosition(0, (_offset > 0) ? -1 : 1, velocity);
   }
 
   Future<void> _swipeToPosition(
@@ -319,7 +330,7 @@ class _PostListPageState extends State<PostListPage>
     double maxVelocity = direction.toDouble() * 5000;
     int t = 0;
 
-    while ((position - _offset) * direction > 0) {
+    while (_stopSwiping == false && (position - _offset) * direction > 0) {
       setState(() {
         _offset +=
             (maxVelocity - (maxVelocity - startVelocity) * exp(.01 * -t)) /

@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:test_flutter/widgets/profile_pic.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';
 import '../../widgets/wide_button.dart';
+import '../../widgets/profile_pic.dart';
 
-import '../personalization/choose_color.dart';
-import '../personalization/preferences.dart';
 import '../home/home_page.dart';
 import '../camera/camera.dart';
 
-import 'widgets/account_submit_button.dart';
 import 'widgets/account_input_page.dart';
 
 class SlideRightRoute extends PageRouteBuilder {
@@ -63,6 +56,7 @@ class _TakeProfilePageState extends State<TakeProfilePage> {
           return true;
         },
         child: AccountInputPageWrapper(
+          pageNum: 5,
           showBackArrow: false,
           headerText: "Take\nYour Profile\nPicture",
           onTap: null,

@@ -2,9 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 
-import '../../API/methods/feeds.dart';
 import '../../globals.dart' as globals;
 
 import 'post_list.dart';

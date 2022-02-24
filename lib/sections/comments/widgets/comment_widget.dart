@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/widgets/generic_alert_dialog.dart';
-import 'package:test_flutter/widgets/report_button.dart';
 
 import '../../../widgets/profile_pic.dart';
 import '../../../models/comment.dart';
 import '../../../models/user.dart';
 import '../../../models/post.dart';
 import '../../../widgets/alert_dialog_container.dart';
+import '../../../widgets/generic_alert_dialog.dart';
+import '../../../widgets/report_button.dart';
+
 import '../../../globals.dart' as globals;
 
 class CommentWidget extends StatefulWidget {

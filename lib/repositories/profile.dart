@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:test_flutter/API/methods/posts.dart';
-
 import '../../models/user.dart';
 import '../../models/post.dart';
 import '../../globals.dart' as globals;
+import '../API/methods/posts.dart';
 
 import 'repository.dart';
 

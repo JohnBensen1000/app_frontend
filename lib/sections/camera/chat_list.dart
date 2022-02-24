@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
+import '../../API/handle_requests.dart';
 
 import '../../widgets/loading_icon.dart';
 import '../../widgets/generic_alert_dialog.dart';

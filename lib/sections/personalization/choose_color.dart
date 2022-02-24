@@ -2,12 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
 
 import '../../globals.dart' as globals;
-import '../../API/methods/users.dart';
-import '../../widgets/back_arrow.dart';
-import '../account/widgets/account_input_page.dart';
+import '../../widgets/bubbles_page.dart';
 
 import '../account/take_profile_pic.dart';
 
@@ -73,10 +70,9 @@ class ColorsPage extends StatelessWidget {
             onWillPop: () async {
               return true;
             },
-            child: AccountInputPageWrapper(
+            child: BubblesPage(
               showBackArrow: isPartOfSignUpProcess ? false : true,
               headerText: "Pick\nYour Style",
-              onTap: null,
               height: headerHeight,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,

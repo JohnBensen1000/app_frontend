@@ -4,8 +4,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/sections/camera/widgets/button.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -15,12 +13,14 @@ import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/generic_alert_dialog.dart';
+import '../../API/handle_requests.dart';
 
 import '../../widgets/loading_icon.dart';
 import '../../widgets/post_caption.dart';
 
 import 'camera.dart';
 import 'chat_list.dart';
+import 'widgets/button.dart';
 
 class PreviewProvider extends ChangeNotifier {
   // Contains all data for the preview page. Has two booleans: isAddingCaption

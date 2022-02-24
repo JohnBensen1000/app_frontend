@@ -4,12 +4,12 @@ import 'dart:math';
 import 'dart:collection';
 
 import 'package:provider/provider.dart';
-import 'package:test_flutter/API/handle_requests.dart';
-import 'package:test_flutter/widgets/forward_arrow.dart';
 
 import '../../globals.dart' as globals;
 import '../../API/methods/preferences.dart';
 import '../../widgets/back_arrow.dart';
+import '../../API/handle_requests.dart';
+import '../../widgets/forward_arrow.dart';
 
 class PreferencesProvider extends ChangeNotifier {
   // From a list of preferences field names, creates a Map to keep track of
