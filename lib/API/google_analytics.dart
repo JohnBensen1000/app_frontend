@@ -7,25 +7,18 @@ class GoogleAnalyticsAPI {
   Future<String> firebaseTokenFuture = FirebaseMessaging.instance.getToken();
 
   Future<void> logEvent(String name, [Map<String, Object> parameters]) async {
-    print(" [DEBUG] Event $name, Is new user: ${globals.isNewUser}");
-
-    if (globals.isNewUser) {
-      name = "new_user_" + name;
-    }
+    name = "v1_5_3_new_user_" + name;
+    print(" [DEBUG] Logging Event: $name");
 
     FirebaseAnalytics().logEvent(name: name, parameters: parameters);
   }
 
-  Future<void> logCreateAccountPageVisited() async {
-    await logEvent("create_account_page_visited");
+  Future<void> logCreatedFirebaseAccount() async {
+    await logEvent("created_firebase_account");
   }
 
   Future<void> logCreatedAccount() async {
     await logEvent("created_account");
-  }
-
-  Future<void> logAgreedToRules() async {
-    await logEvent("agreed_to_rules");
   }
 
   Future<void> logTakeProfilePageVisited() async {
@@ -38,9 +31,5 @@ class GoogleAnalyticsAPI {
 
   Future<void> logPickedColor() async {
     await logEvent("picked_color");
-  }
-
-  Future<void> logChoseInterests() async {
-    await logEvent("chose_interests");
   }
 }

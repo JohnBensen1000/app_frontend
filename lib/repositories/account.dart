@@ -25,7 +25,6 @@ class AccountRepository extends Repository<String> {
     };
     var response = await postNewAccount(newAccount);
     if (response != null) {
-      globals.isNewUser = false;
       return true;
     }
     return false;

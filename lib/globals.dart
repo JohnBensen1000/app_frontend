@@ -62,9 +62,9 @@ PostListRepository recommendationPostsRepository;
 PostListRepository followingPostsRepository;
 // CommentsRepository commentsRepository;
 
-// Set to true if someone is in the process of creating an account,
-// set to false otherwise. Useful for google analytics.
-bool isNewUser;
+// // Set to true if someone is in the process of creating an account,
+// // set to false otherwise. Useful for google analytics.
+// bool isNewUser;
 
 void setUpRepositorys() {
   blockedRepository = new BlockedRepository();

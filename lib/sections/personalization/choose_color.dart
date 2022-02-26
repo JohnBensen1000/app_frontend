@@ -34,11 +34,11 @@ class ColorsProvider extends ChangeNotifier {
       await globals.userRepository.changeColor(_chosenColorKey);
 
       if (isPartOfSignUpProcess) {
+        globals.googleAnalyticsAPI.logPickedColor();
+
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => TakeProfilePage()));
       } else {
-        globals.googleAnalyticsAPI.logPickedColor();
-
         Navigator.pop(context);
       }
     }

@@ -45,7 +45,6 @@ class _CommentWidgetState extends State<CommentWidget>
 
     return GestureDetector(
         child: Container(
-            color: Colors.red,
             alignment: Alignment.centerRight,
             margin: EdgeInsets.all(margin),
             padding: EdgeInsets.only(left: widget.leftPadding),

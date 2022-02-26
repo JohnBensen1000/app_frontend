@@ -90,6 +90,9 @@ class _TakeProfilePageState extends State<TakeProfilePage> {
                     ),
                   ),
                   onTap: () {
+                    if (!_hasTakenProfile) {
+                      globals.googleAnalyticsAPI.logTakeProfilePageVisited();
+                    }
                     globals.googleAnalyticsAPI.logTakeProfilePageVisited();
 
                     Navigator.push(
@@ -98,7 +101,6 @@ class _TakeProfilePageState extends State<TakeProfilePage> {
                             page: Camera(
                           cameraUsage: CameraUsage.profile,
                         ))).then((_) {
-                      globals.googleAnalyticsAPI.logPickColorPageVisited();
                       _hasTakenProfile = true;
                       setState(() {});
                     });
@@ -109,7 +111,6 @@ class _TakeProfilePageState extends State<TakeProfilePage> {
                       buttonName: !_hasTakenProfile ? "Skip" : "Continue",
                     ),
                     onTap: () {
-                      globals.googleAnalyticsAPI.logPickColorPageVisited();
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) => HomePage()));
                     }),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../sections/account/take_profile_pic.dart';
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../API/methods/users.dart';
@@ -9,7 +8,6 @@ import 'widgets/input_field.dart';
 import 'widgets/account_input_page.dart';
 
 import '../personalization/choose_color.dart';
-import '../home/home_page.dart';
 
 class SignUpNamePage extends StatefulWidget {
   final String uid;
@@ -25,6 +23,7 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
 
   @override
   void initState() {
+    globals.googleAnalyticsAPI.logCreatedFirebaseAccount();
     _inputField = InputField(hintText: "username");
     super.initState();
   }
@@ -117,6 +116,8 @@ class _SignUpUsernameState extends State<SignUpUsername> {
     await globals.accountRepository.signIn(widget.uid);
 
     globals.setUpRepositorys();
+    globals.googleAnalyticsAPI.logCreatedAccount();
+    globals.googleAnalyticsAPI.logPickColorPageVisited();
 
     Navigator.push(
         context,

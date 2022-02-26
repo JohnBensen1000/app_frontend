@@ -9,7 +9,6 @@ RouteObserver<PageRoute<dynamic>> routeObserver =
     RouteObserver<PageRoute<dynamic>>();
 
 main() {
-  globals.isNewUser = false;
   runApp(MyApp());
 }
 

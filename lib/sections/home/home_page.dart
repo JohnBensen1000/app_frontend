@@ -142,9 +142,9 @@ class HomePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: Colors.white,
       padding: EdgeInsets.only(top: .05 * globals.size.height),
       height: height,
-      color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -171,12 +171,16 @@ class HomePageHeaderButtons extends StatelessWidget {
         ),
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              // _openDrawerButton(context),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _openDrawerButton(context),
+                ],
+              ),
               GestureDetector(
                   child: Container(
-                      height: .05 * globals.size.height,
+                      height: .06 * globals.size.height,
                       child: Image.asset('assets/images/Entropy.PNG')),
                   onTap: () async {
                     User user = await globals.userRepository.get(globals.uid);
@@ -187,7 +191,8 @@ class HomePageHeaderButtons extends StatelessWidget {
                   }),
               Container(
                 height: .06 * globals.size.height,
-                child: Row(
+                width: buttonsWidth,
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     GestureDetector(
@@ -209,18 +214,7 @@ class HomePageHeaderButtons extends StatelessWidget {
                                   cameraUsage: CameraUsage.post,
                                 )),
                       ),
-                    ),
-                    GestureDetector(
-                        child: _iconContainer(
-                          null,
-                        ),
-                        onTap: null),
-                    
-                      
-                        
-                      
-                     
-            
+                    )
                   ],
                 ),
               )
@@ -263,21 +257,14 @@ class HomePageHeaderButtons extends StatelessWidget {
 
   Widget _iconContainer(Image image) {
     return Container(
-      padding: EdgeInsets.only(
-          left: .01 * globals.size.width,
-          right: .01 * globals.size.width,
-          top: .01 * globals.size.height,
-          bottom: .01 * globals.size.height),
-      child: Container(
-        width: .12 * globals.size.width,
-        height: .038 * globals.size.height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(.011 * globals.size.height),
-          color: const Color(0xffffffff),
-          border: Border.all(width: 1.0, color: const Color(0xff000000)),
-        ),
-        child: image != null ? image : Container(),
+      width: .12 * globals.size.width,
+      height: .0273 * globals.size.height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(globals.size.height),
+        color: const Color(0xffffffff),
+        border: Border.all(width: 1.0, color: const Color(0xff000000)),
       ),
+      child: image,
     );
   }
 }
