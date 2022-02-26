@@ -14,6 +14,8 @@ import '../personalization/change_username.dart';
 import '../personalization/terms_and_services.dart';
 import '../personalization/preferences.dart';
 
+import '../../main.dart';
+
 // import 'blocked_list.dart';
 
 class ProfilePageDrawer extends StatefulWidget {
@@ -129,9 +131,9 @@ class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
           if (confirmDelete != null && confirmDelete) {
             await handleRequest(context, deleteAccount());
             await globals.accountRepository.removeUid();
-            // Navigator.popUntil(context, (route) => route.isFirst);
+            Navigator.popUntil(context, (route) => route.isFirst);
 
-            // runApp(MyApp());
+            runApp(MyApp());
           }
         });
     });

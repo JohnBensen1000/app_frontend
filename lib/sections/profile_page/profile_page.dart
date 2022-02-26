@@ -28,6 +28,7 @@ class ProfilePageProvider extends ChangeNotifier {
   // page whenever the user changes any of their settings.
 
   ProfilePageProvider({@required this.user}) {
+    print(user.uid);
     _allowFollowingChange = true;
     _getUsersPosts();
     _callbacks();

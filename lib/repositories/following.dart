@@ -39,8 +39,9 @@ class FollowingRepository extends Repository<Map<String, bool>> {
 
     List<String> followingUids = await getFollowings();
     if (followingUids != null) {
-      for (String followingUid in followingUids)
+      for (String followingUid in followingUids) {
         _followingMap[followingUid] = true;
+      }
     }
     super.controller.sink.add(_followingMap);
   }
