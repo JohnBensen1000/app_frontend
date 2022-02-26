@@ -16,6 +16,9 @@ class UserRepository extends Repository<User> {
   Map<String, Future<User>> _users = {};
 
   Future<User> get(String uid) async {
+    if (uid == null) {
+      return null;
+    }
     if (!_users.containsKey(uid)) {
       _users[uid] = getUserFromUID(uid);
     }

@@ -1,4 +1,6 @@
+import 'package:Entropy/sections/comments/comments.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../widgets/profile_pic.dart';
 import '../../../models/comment.dart';
@@ -45,6 +47,7 @@ class _CommentWidgetState extends State<CommentWidget>
 
     return GestureDetector(
         child: Container(
+            color: Colors.transparent,
             alignment: Alignment.centerRight,
             margin: EdgeInsets.all(margin),
             padding: EdgeInsets.only(left: widget.leftPadding),
@@ -57,8 +60,9 @@ class _CommentWidgetState extends State<CommentWidget>
                         vertical: 0, horizontal: profilePicPadding),
                     child: Column(
                       children: [
-                        ProfilePic(
-                            diameter: profilePicSize, user: widget.commenter)
+                        if (widget.commenter != null)
+                          ProfilePic(
+                              diameter: profilePicSize, user: widget.commenter)
                       ],
                     ),
                   ),
@@ -76,7 +80,8 @@ class _CommentWidgetState extends State<CommentWidget>
                                   color: Colors.black),
                               children: <TextSpan>[
                             TextSpan(
-                                text: "${widget.commenter.username} ",
+                                text:
+                                    "${widget.commenter != null ? widget.commenter.username : ""} ",
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                             TextSpan(text: widget.comment.commentText)
                           ]))),
@@ -84,6 +89,9 @@ class _CommentWidgetState extends State<CommentWidget>
               ),
             )),
         onLongPress: () {
+          if (widget.commenter == null) {
+            return;
+          }
           if (widget.commenter.uid != globals.uid) {
             showDialog(
                 context: context,
@@ -105,7 +113,13 @@ class _CommentWidgetState extends State<CommentWidget>
                 context: context,
                 builder: (context) => AlertDialogContainer(
                       dialogText: "Would you like to delete this comment?",
-                    )).then((_deleteComment) => print(_deleteComment));
+                    )).then((_deleteComment) async {
+              if (_deleteComment) {
+                await Provider.of<CommentsProvider>(context, listen: false)
+                    .repository
+                    .removeComment(widget.post.postID, widget.comment);
+              }
+            });
           }
         });
   }

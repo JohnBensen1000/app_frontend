@@ -30,3 +30,9 @@ Future<Map> postComment(
 
   return await BaseAPI().post('v2/comments/$postID', postBody);
 }
+
+Future<Map> deleteComment(String postID, String commentPath) async {
+  Map postBody = {"path": commentPath, "uid": globals.uid};
+
+  return await BaseAPI().delete('v2/comments/$postID', postBody);
+}

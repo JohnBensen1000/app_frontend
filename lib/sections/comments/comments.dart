@@ -113,24 +113,24 @@ class CommentsSection extends StatelessWidget {
                   return FutureBuilder(
                       future: getUserFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.hasData)
-                          return Container(
-                            margin: EdgeInsets.only(
-                                bottom: .0059 * globals.size.height),
-                            child: Column(
-                              children: <Widget>[
-                                CommentWidget(
-                                    post: provider.post,
-                                    comment: comment,
-                                    commenter: snapshot.data,
-                                    leftPadding: leftPadding),
-                                Container(
-                                  padding: EdgeInsets.only(
-                                      left: .0513 * globals.size.width +
-                                          leftPadding),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
+                        return Container(
+                          margin: EdgeInsets.only(
+                              bottom: .0059 * globals.size.height),
+                          child: Column(
+                            children: <Widget>[
+                              CommentWidget(
+                                  post: provider.post,
+                                  comment: comment,
+                                  commenter: snapshot.data,
+                                  leftPadding: leftPadding),
+                              Container(
+                                padding: EdgeInsets.only(
+                                    left: .0513 * globals.size.width +
+                                        leftPadding),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    if (comment.uid != null)
                                       Container(
                                         padding: EdgeInsets.only(
                                             right: .0513 * globals.size.width),
@@ -154,15 +154,16 @@ class CommentsSection extends StatelessWidget {
                                                         parentComment: comment,
                                                       ))),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          );
-                        else
-                          return Container();
+                                      )
+                                    else
+                                      Container(
+                                          height: .015 * globals.size.height),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        );
                       });
                 })),
       ),

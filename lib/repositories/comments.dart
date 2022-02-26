@@ -24,6 +24,13 @@ class CommentsSectionRepository extends Repository<List<Comment>> {
     return {};
   }
 
+  Future<void> removeComment(String postID, Comment comment) async {
+    await deleteComment(postID, comment.path);
+    comment.uid = null;
+    comment.commentText = "[deleted]";
+    super.controller.sink.add(_commentsList);
+  }
+
   void _getCommentsList() async {
     _commentsList = await getAllComments(postID);
     super.controller.sink.add(_commentsList);

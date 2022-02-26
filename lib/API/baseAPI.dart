@@ -52,9 +52,9 @@ class BaseAPI {
         body: json.encode(postBody), headers: {'uid': globals.uid}));
   }
 
-  Future<dynamic> delete(String url) async {
-    return handleResponse(
-        http.delete(Uri.http(baseURL, url), headers: {'uid': globals.uid}));
+  Future<dynamic> delete(String url, [Map postBody]) async {
+    return handleResponse(http.delete(Uri.http(baseURL, url),
+        body: json.encode(postBody), headers: {'uid': globals.uid}));
   }
 
   dynamic handleResponse(Future future) async {
