@@ -110,6 +110,10 @@ class CommentsSection extends StatelessWidget {
                   Future getUserFuture =
                       globals.userRepository.get(comment.uid);
 
+                  if (comment.uid == null) {
+                    return Container();
+                  }
+
                   return FutureBuilder(
                       future: getUserFuture,
                       builder: (context, snapshot) {

@@ -26,8 +26,24 @@ class CommentsSectionRepository extends Repository<List<Comment>> {
 
   Future<void> removeComment(String postID, Comment comment) async {
     await deleteComment(postID, comment.path);
-    comment.uid = null;
-    comment.commentText = "[deleted]";
+
+    List<Comment> _newCommentsList = [];
+
+    bool _isChildOrParent = false;
+    int _commentLevel = comment.level;
+    for (int i = 0; i < _commentsList.length; i++) {
+      if (_commentsList[i] == comment) {
+        _isChildOrParent = true;
+      } else if (_commentsList[i].level <= _commentLevel) {
+        _isChildOrParent = false;
+      }
+
+      if (_isChildOrParent == false) {
+        _newCommentsList.add(_commentsList[i]);
+      }
+    }
+    _commentsList = _newCommentsList;
+
     super.controller.sink.add(_commentsList);
   }
 
