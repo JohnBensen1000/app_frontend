@@ -68,17 +68,23 @@ class FullPostWidget extends StatefulWidget {
   FullPostWidget(
       {@required this.post,
       @required this.height,
+      this.aspectRatio = globals.goldenRatio,
       this.playVideo = true,
       this.isFullPage = false,
       this.showComments = false,
+      this.verticalOffset = 0,
+      this.commentsHeightFraction = .7,
       this.showCaption = false});
 
+  final double aspectRatio;
   final Post post;
   final double height;
   final bool playVideo;
   final bool isFullPage;
   final bool showComments;
   final bool showCaption;
+  final double verticalOffset;
+  final double commentsHeightFraction;
 
   @override
   State<FullPostWidget> createState() => _FullPostWidgetState();
@@ -88,7 +94,7 @@ class _FullPostWidgetState extends State<FullPostWidget> {
   @override
   Widget build(BuildContext context) {
     double postWidgetHeight = .8 * widget.height;
-    double width = postWidgetHeight / globals.goldenRatio;
+    double width = postWidgetHeight / widget.aspectRatio;
     return ChangeNotifierProvider(
         create: (context) => FullPostProvider(isOpen: widget.showComments),
         child: Stack(alignment: Alignment.bottomCenter, children: [
@@ -113,7 +119,7 @@ class _FullPostWidgetState extends State<FullPostWidget> {
                     child: PostWidget(
                       post: widget.post,
                       height: postWidgetHeight,
-                      aspectRatio: globals.goldenRatio,
+                      aspectRatio: widget.aspectRatio,
                       showCaption: widget.showCaption,
                       playVideo: widget.playVideo,
                     ),
@@ -130,7 +136,11 @@ class _FullPostWidgetState extends State<FullPostWidget> {
               ],
             ),
           ),
-          CommentsSnackBar(height: widget.height, post: widget.post),
+          CommentsSnackBar(
+              height: widget.height,
+              post: widget.post,
+              commentsHeightFraction: widget.commentsHeightFraction,
+              verticalOffset: widget.verticalOffset),
         ]));
   }
 }
@@ -177,10 +187,16 @@ class CommentsSnackBar extends StatefulWidget {
   // When the comments section is opened, this widget returns a stack of a
   // transparent button that closes the comments section and the comments
   // section.
-  CommentsSnackBar({@required this.height, @required this.post});
+  CommentsSnackBar(
+      {@required this.height,
+      @required this.post,
+      @required this.commentsHeightFraction,
+      @required this.verticalOffset});
 
   final double height;
   final Post post;
+  final double commentsHeightFraction;
+  final double verticalOffset;
 
   @override
   _CommentsSnackBarState createState() => _CommentsSnackBarState();
@@ -191,7 +207,7 @@ class _CommentsSnackBarState extends State<CommentsSnackBar> {
 
   @override
   void initState() {
-    snackbarHeight = .7 * widget.height;
+    snackbarHeight = widget.commentsHeightFraction * widget.height;
     super.initState();
   }
 
@@ -212,13 +228,21 @@ class _CommentsSnackBarState extends State<CommentsSnackBar> {
                 onTap: () => provider.closeComments(),
               ),
               Transform.translate(
-                offset: Offset(0, provider.yOffset * snackbarHeight),
+                offset: Offset(0,
+                    provider.yOffset * snackbarHeight + widget.verticalOffset),
                 child: GestureDetector(
                   child: Container(
                     width: globals.size.width,
                     height: snackbarHeight + .03 * globals.size.height,
                     decoration: BoxDecoration(
-                        color: Colors.grey[300].withOpacity(.8),
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: <Color>[
+                            Colors.grey[300].withOpacity(1.0),
+                            Colors.grey[200].withOpacity(.8),
+                          ],
+                        ),
                         borderRadius: BorderRadius.all(Radius.circular(20))),
                     child: Comments(height: snackbarHeight, post: widget.post),
                   ),

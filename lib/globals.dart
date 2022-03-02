@@ -20,7 +20,7 @@ import 'repositories/post_list.dart';
 // User user;
 String uid;
 
-double goldenRatio = 1.61803398875;
+const double goldenRatio = 1.61803398875;
 double cornerRadiusRatio = 1 / 19; // Fraction of height that corner radius is
 
 String chatCollection = "CHATS";

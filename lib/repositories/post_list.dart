@@ -28,6 +28,8 @@ class PostListRepository extends Repository<List<Post>> {
   Post get currentPost => _postsList[_index];
   Post get nextPost =>
       _index + 1 < _postsList.length ? _postsList[_index + 1] : null;
+  Post get nextNextPost =>
+      _index + 2 < _postsList.length ? _postsList[_index + 2] : null;
 
   void moveUp() {
     if (_index < _postsList.length - 1) _index++;

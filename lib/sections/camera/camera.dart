@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:image/image.dart' as image;
 import 'package:permission_handler/permission_handler.dart';
@@ -11,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../globals.dart' as globals;
 import '../../models/chat.dart';
 import '../../widgets/back_arrow.dart';
+import '../../widgets/reactive_button.dart';
 
 import 'preview.dart';
 
@@ -55,20 +57,8 @@ class CameraProvider extends ChangeNotifier {
 
   File get file => File(filePath);
 
-  String get flashModeName {
-    switch (_flashIndex) {
-      case 0:
-        return "Auto";
-      case 1:
-        return "On";
-      case 2:
-        return "Off";
-      default:
-        return "";
-    }
-  }
-
   bool get isTimerOn => _isTimerOn;
+  int get flashIndex => _flashIndex;
 
   void toggleCamera() {
     // Changes the camera index and sets cameraControllerFuture to the correct
@@ -80,7 +70,8 @@ class CameraProvider extends ChangeNotifier {
   }
 
   void toggleFlash() async {
-    _flashIndex = (_flashIndex + 1) % flashModes.length;
+    // After user initially taps on flash, only toggles between on/off
+    _flashIndex = (_flashIndex + 1) % 3;
     notifyListeners();
   }
 
@@ -267,11 +258,7 @@ class _CameraPageState extends State<CameraPage> {
                               onTap: () => Navigator.pop(context)),
                           Column(
                             children: [
-                              GestureDetector(
-                                  child: _button(
-                                      "Flash:\n" + provider.flashModeName,
-                                      Colors.grey[400]),
-                                  onTap: () => provider.toggleFlash()),
+                              ReactiveButton(child: _flashButton()),
                             ],
                           )
                         ],
@@ -285,36 +272,34 @@ class _CameraPageState extends State<CameraPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              alignment: Alignment.bottomLeft,
-                              child: Container(
-                                  width: .26 * globals.size.width,
-                                  child: Center(
-                                    child: GestureDetector(
-                                        child: _button(
-                                            "Flip Camera", Colors.grey[400]),
-                                        onTap: () => provider.toggleCamera()),
-                                  )),
-                            ),
+                                width: .26 * globals.size.width,
+                                child: Center(
+                                  child: ReactiveButton(
+                                      child: SvgPicture.asset(
+                                        "assets/images/flip_camera.svg",
+                                        height: .07 * globals.size.height,
+                                      ),
+                                      onTap: provider.toggleCamera),
+                                )),
                             Container(
                                 padding: EdgeInsets.symmetric(
                                     horizontal: .02 * globals.size.width),
                                 child: PostButton(
                                     diameter: .12 * globals.size.height)),
                             Container(
-                              alignment: Alignment.bottomLeft,
-                              child: Container(
-                                width: .26 * globals.size.width,
-                                child: Center(
-                                  child: GestureDetector(
-                                      child: _button(
-                                          provider.isTimerOn
-                                              ? "Timer On"
-                                              : "Timer Off",
-                                          provider.isTimerOn
-                                              ? Colors.white
-                                              : Colors.grey[400]),
-                                      onTap: () => provider.toggleTimer()),
-                                ),
+                              width: .26 * globals.size.width,
+                              child: Center(
+                                child: ReactiveButton(
+                                    child: provider.isTimerOn
+                                        ? SvgPicture.asset(
+                                            "assets/images/timer_icon.svg",
+                                            height: .07 * globals.size.height,
+                                          )
+                                        : SvgPicture.asset(
+                                            "assets/images/timer_icon_off.svg",
+                                            height: .07 * globals.size.height,
+                                          ),
+                                    onTap: provider.toggleTimer),
                               ),
                             )
                           ],
@@ -340,21 +325,48 @@ class _CameraPageState extends State<CameraPage> {
             ));
   }
 
-  Widget _button(String buttonName, Color color) {
-    return Container(
-      width: .22 * globals.size.width,
-      height: .054 * globals.size.height,
-      padding: EdgeInsets.all(.001 * globals.size.height),
-      decoration: new BoxDecoration(
-        borderRadius:
-            BorderRadius.all(Radius.circular(.02 * globals.size.height)),
-        color: color.withOpacity(.8),
-      ),
-      child: Center(
-          child: Text(buttonName,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: .0213 * globals.size.height))),
-    );
+  Widget _flashButton() {
+    CameraProvider provider =
+        Provider.of<CameraProvider>(context, listen: false);
+
+    Widget child;
+    switch (Provider.of<CameraProvider>(context, listen: false).flashIndex) {
+      case 0:
+        child = Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            Container(
+              child: SvgPicture.asset(
+                "assets/images/flash_on.svg",
+                height: .07 * globals.size.height,
+              ),
+            ),
+            Container(
+                padding: EdgeInsets.all(.002 * globals.size.height),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(
+                      Radius.circular(.005 * globals.size.height)),
+                  color: Colors.white,
+                ),
+                child: Text("auto",
+                    style: TextStyle(fontSize: .015 * globals.size.height)))
+          ],
+        );
+        break;
+      case 1:
+        child = SvgPicture.asset(
+          "assets/images/flash_on.svg",
+          height: .07 * globals.size.height,
+        );
+        break;
+      case 2:
+        child = SvgPicture.asset(
+          "assets/images/flash_off.svg",
+          height: .07 * globals.size.height,
+        );
+    }
+
+    return ReactiveButton(child: child, onTap: () => provider.toggleFlash());
   }
 }
 
@@ -416,6 +428,7 @@ class PostButton extends StatefulWidget {
 
 class _PostButtonState extends State<PostButton> {
   bool isRecording = false;
+  double scaler = 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -426,58 +439,74 @@ class _PostButtonState extends State<PostButton> {
       child: Stack(
         children: <Widget>[
           Container(
+              height: widget.diameter + widget.strokeWidth,
+              width: widget.diameter + widget.strokeWidth,
               child: FutureBuilder(
-            future: globals.userRepository.get(globals.uid),
-            builder: (context, snapshot) => GestureDetector(
-                child: (isRecording)
-                    ? StreamBuilder(
-                        stream: PostButtonVideoTimer().stream,
-                        builder: (context, timerSnapshot) {
-                          return Stack(alignment: Alignment.center, children: [
-                            _postButtonCircle(widget.diameter),
-                            SizedBox(
-                              child: CircularProgressIndicator(
-                                strokeWidth: widget.strokeWidth,
-                                value: timerSnapshot.data,
-                                valueColor: new AlwaysStoppedAnimation<Color>(
-                                    snapshot.hasData
-                                        ? snapshot.data.profileColor
-                                        : Colors.white),
-                              ),
-                              height: widget.diameter + widget.strokeWidth,
-                              width: widget.diameter + widget.strokeWidth,
-                            ),
-                          ]);
-                        },
-                      )
-                    : _postButtonCircle(widget.diameter),
-                onTap: () async {
-                  await provider.takeImage(context);
-                },
-                onLongPress: () async {
-                  await provider.startRecording();
-                  setState(() {
-                    isRecording = true;
-                  });
-                },
-                onLongPressEnd: (_) async {
-                  await provider.stopRecording(context);
-                  setState(() {
-                    isRecording = false;
-                  });
-                }),
-          ))
+                  future: globals.userRepository.get(globals.uid),
+                  builder: (context, snapshot) => ReactiveButton(
+                        child: (isRecording)
+                            ? StreamBuilder(
+                                stream: PostButtonVideoTimer().stream,
+                                builder: (context, timerSnapshot) {
+                                  return Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        _postButtonCircle(widget.diameter),
+                                        SizedBox(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: widget.strokeWidth,
+                                            value: timerSnapshot.data,
+                                            valueColor:
+                                                new AlwaysStoppedAnimation<
+                                                    Color>(snapshot
+                                                        .hasData
+                                                    ? snapshot.data.profileColor
+                                                    : Colors.white),
+                                          ),
+                                          height: scaler * widget.diameter +
+                                              widget.strokeWidth,
+                                          width: scaler * widget.diameter +
+                                              widget.strokeWidth,
+                                        ),
+                                      ]);
+                                },
+                              )
+                            : _postButtonCircle(widget.diameter),
+                        onTap: _takeImage,
+                        onLongPress: _startRecording,
+                        onLongPressEnd: _stopRecording,
+                      )))
         ],
       ),
     );
+  }
+
+  Future<void> _takeImage() async {
+    await Provider.of<CameraProvider>(context, listen: false)
+        .takeImage(context);
+  }
+
+  Future<void> _startRecording() async {
+    setState(() {
+      isRecording = true;
+    });
+    await Provider.of<CameraProvider>(context, listen: false).startRecording();
+  }
+
+  Future<void> _stopRecording() async {
+    setState(() {
+      isRecording = false;
+    });
+    await Provider.of<CameraProvider>(context, listen: false)
+        .stopRecording(context);
   }
 
   Widget _postButtonCircle(double diameter) {
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
-        _postButtonSubCircle(0.95 * diameter, Colors.white),
-        _postButtonSubCircle(0.80 * diameter, Colors.white),
+        _postButtonSubCircle(scaler * 0.95 * diameter, Colors.white),
+        _postButtonSubCircle(scaler * 0.80 * diameter, Colors.white),
       ],
     );
   }

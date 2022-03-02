@@ -25,14 +25,11 @@ class PostListProvider extends ChangeNotifier {
 
   PostListProvider({
     @required PostListRepository repository,
-    @required this.height,
   }) {
     stopWatch = Stopwatch();
     _repository = repository;
     _refreshPostListCallback();
   }
-
-  final double height;
 
   PostListRepository _repository;
   Stopwatch stopWatch;
@@ -43,6 +40,7 @@ class PostListProvider extends ChangeNotifier {
   Post get previousPost => _repository.previousPost;
   Post get currentPost => _repository.currentPost;
   Post get nextPost => _repository.nextPost;
+  Post get nextNextPost => _repository.nextNextPost;
 
   String get repositoryName => _repository.function.toString();
 
@@ -81,10 +79,14 @@ class PostList extends StatefulWidget {
   // button. Starts the stop watch when the PostList comes into view, and pauses
   // it when it goes out of view.
 
-  PostList({@required this.height, @required this.repository});
+  PostList(
+      {@required this.height,
+      @required this.repository,
+      this.postHeightFraction = .8});
 
   final double height;
   final PostListRepository repository;
+  final double postHeightFraction;
 
   @override
   _PostListState createState() => _PostListState();
@@ -99,7 +101,6 @@ class _PostListState extends State<PostList>
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
         create: (context) => PostListProvider(
-              height: widget.height,
               repository: widget.repository,
             ),
         child: Consumer<PostListProvider>(builder: (context, provider, child) {
@@ -113,7 +114,10 @@ class _PostListState extends State<PostList>
                       currentPostView:
                           _buildPostWidget(provider.currentPost, true),
                       nextPostView: _buildPostWidget(provider.nextPost, false),
+                      nextNextPostView:
+                          _buildPostWidget(provider.nextNextPost, false),
                       height: widget.height,
+                      postHeightFraction: widget.postHeightFraction,
                       key: UniqueKey()),
                   onVisibilityChanged: (VisibilityInfo info) {
                     if (info.visibleFraction == 1.0) {
@@ -131,14 +135,20 @@ class _PostListState extends State<PostList>
         }));
   }
 
-  FullPostWidget _buildPostWidget(Post post, bool playVideo) {
-    return post != null
-        ? FullPostWidget(
-            post: post,
-            height: widget.height,
-            playVideo: playVideo,
-            showCaption: true)
-        : null;
+  Widget _buildPostWidget(Post post, bool playVideo) {
+    return Container(
+        padding: EdgeInsets.only(bottom: .04 * globals.size.height),
+        child: post != null
+            ? FullPostWidget(
+                post: post,
+                height: widget.postHeightFraction * widget.height,
+                playVideo: playVideo,
+                aspectRatio: 1.25,
+                commentsHeightFraction: .85,
+                verticalOffset:
+                    widget.height - widget.postHeightFraction * widget.height,
+                showCaption: true)
+            : null);
   }
 
   Widget _refreshButton(PostListProvider provider) {
@@ -189,14 +199,19 @@ class PostListPage extends StatefulWidget {
     @required this.previousPostView,
     @required this.currentPostView,
     @required this.nextPostView,
+    @required this.nextNextPostView,
     @required this.height,
+    @required this.postHeightFraction,
     Key key,
   }) : super(key: key);
 
-  final FullPostWidget previousPostView;
-  final FullPostWidget currentPostView;
-  final FullPostWidget nextPostView;
+  final Widget previousPostView;
+  final Widget currentPostView;
+  final Widget nextPostView;
+  final Widget nextNextPostView;
+
   final double height;
+  final double postHeightFraction;
 
   @override
   _PostListPageState createState() => _PostListPageState();
@@ -207,6 +222,7 @@ class _PostListPageState extends State<PostListPage>
   double _offset = 0;
   bool _allowSwiping = true;
   bool _stopSwiping = false;
+  bool _isDisposed = false;
 
   @override
   void initState() {
@@ -216,6 +232,7 @@ class _PostListPageState extends State<PostListPage>
 
   @override
   void dispose() {
+    _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -233,36 +250,43 @@ class _PostListPageState extends State<PostListPage>
     PostListProvider provider =
         Provider.of<PostListProvider>(context, listen: false);
 
+    double postHeight = widget.postHeightFraction * widget.height;
+
     return GestureDetector(
       child: Container(
-        height: widget.height,
-        width: double.infinity,
-        color: Colors.transparent,
-        child: Transform.translate(
-          offset: Offset(0, _offset),
-          child: Stack(
-            alignment: Alignment.center,
+          color: Colors.transparent,
+          height: widget.height,
+          width: double.infinity,
+          child: Column(
             children: [
               Transform.translate(
-                  offset: Offset(0, -widget.height),
-                  child: widget.previousPostView),
-              Transform.translate(
-                  offset: Offset(0, 0), child: widget.currentPostView),
-              Transform.translate(
-                  offset: Offset(0, widget.height), child: widget.nextPostView)
+                offset: Offset(0, _offset),
+                child: Stack(
+                  children: [
+                    Transform.translate(
+                        offset: Offset(0, -postHeight),
+                        child: widget.previousPostView),
+                    Transform.translate(
+                        offset: Offset(0, postHeight),
+                        child: widget.nextPostView),
+                    Transform.translate(
+                        offset: Offset(0, 2 * postHeight),
+                        child: widget.nextNextPostView),
+                    Transform.translate(
+                        offset: Offset(0, 0), child: widget.currentPostView),
+                  ],
+                ),
+              ),
             ],
-          ),
-        ),
-      ),
+          )),
       onVerticalDragUpdate: (value) {
         if (_allowSwiping) {
           _stopSwiping = true;
           setState(() {
-            if ((_offset + value.delta.dy.toInt()).abs() < widget.height) {
+            if ((_offset + value.delta.dy.toInt()).abs() < postHeight) {
               _offset += value.delta.dy.toInt();
             } else {
-              _offset =
-                  (value.delta.dy.toInt() < 0) ? -widget.height : widget.height;
+              _offset = (value.delta.dy.toInt() < 0) ? -postHeight : postHeight;
             }
           });
         }
@@ -271,7 +295,7 @@ class _PostListPageState extends State<PostListPage>
         if (_allowSwiping) {
           _stopSwiping = false;
           double _velocity = value.primaryVelocity;
-          double _cutoff = .08 * widget.height;
+          double _cutoff = .08 * postHeight;
 
           if (_offset < -_cutoff &&
               _velocity <= 0 &&
@@ -306,7 +330,8 @@ class _PostListPageState extends State<PostListPage>
   }
 
   Future<void> _swipeUp(PostListProvider provider, double velocity) async {
-    await _swipeToPosition(widget.height, 1, velocity);
+    double postHeight = widget.postHeightFraction * widget.height;
+    await _swipeToPosition(postHeight, 1, velocity);
     if (_stopSwiping == false) {
       provider.moveDown();
       _allowSwiping = false;
@@ -314,7 +339,8 @@ class _PostListPageState extends State<PostListPage>
   }
 
   Future<void> _swipeDown(PostListProvider provider, double velocity) async {
-    await _swipeToPosition(-widget.height, -1, velocity);
+    double postHeight = widget.postHeightFraction * widget.height;
+    await _swipeToPosition(-postHeight, -1, velocity);
     if (_stopSwiping == false) {
       provider.moveUp();
       _allowSwiping = false;
@@ -330,7 +356,8 @@ class _PostListPageState extends State<PostListPage>
     double maxVelocity = direction.toDouble() * 5000;
     int t = 0;
 
-    while (_stopSwiping == false && (position - _offset) * direction > 0) {
+    while (
+        !_isDisposed && !_stopSwiping && (position - _offset) * direction > 0) {
       setState(() {
         _offset +=
             (maxVelocity - (maxVelocity - startVelocity) * exp(.01 * -t)) /
