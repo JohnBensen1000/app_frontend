@@ -8,6 +8,7 @@ import '../../models/user.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/profile_pic.dart';
 import '../../API/handle_requests.dart';
+import '../../widgets/input_field.dart';
 
 import '../profile_page/profile_page.dart';
 
@@ -50,7 +51,7 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = .142 * globals.size.height;
+    double headerHeight = .16 * globals.size.height;
 
     return ChangeNotifierProvider(
         create: (context) => SearchPageProvider(),
@@ -79,7 +80,7 @@ class SearchPage extends StatelessWidget {
   }
 }
 
-class SearchPageHeader extends StatelessWidget {
+class SearchPageHeader extends StatefulWidget {
   const SearchPageHeader(
       {Key key,
       @required TextEditingController searchController,
@@ -91,18 +92,22 @@ class SearchPageHeader extends StatelessWidget {
   final double height;
 
   @override
-  Widget build(BuildContext context) {
-    SearchPageProvider provider =
-        Provider.of<SearchPageProvider>(context, listen: false);
+  State<SearchPageHeader> createState() => _SearchPageHeaderState();
+}
 
+class _SearchPageHeaderState extends State<SearchPageHeader> {
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      height: height,
+      height: widget.height,
       padding: EdgeInsets.only(
-          top: .059 * globals.size.height,
-          left: .0513 * globals.size.width,
-          right: .0513 * globals.size.width),
-      child: Row(
+        top: .059 * globals.size.height,
+        // left: .0513 * globals.size.width,
+        // right: .0513 * globals.size.width),
+      ),
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           GestureDetector(
             child: BackArrow(),
@@ -110,23 +115,20 @@ class SearchPageHeader extends StatelessWidget {
           ),
           Container(
               height: .059 * globals.size.height,
-              width: .76 * globals.size.width,
-              child: TextField(
-                decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(.0118 * globals.size.height),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(globals.size.height),
-                      ),
-                    ),
-                    hintText: "Who are you looking for?"),
-                onChanged: (text) =>
-                    provider.searchForCreators(context, _searchController.text),
-                controller: _searchController,
-              )),
+              width: .9 * globals.size.width,
+              child: TextInputWidget(
+                  hintText: "Who are you looking for?",
+                  textEditingController: widget._searchController,
+                  widthFraction: .9,
+                  onChange: _onChange))
         ],
       ),
     );
+  }
+
+  Future<void> _onChange(String text) async {
+    Provider.of<SearchPageProvider>(context, listen: false)
+        .searchForCreators(context, widget._searchController.text);
   }
 }
 

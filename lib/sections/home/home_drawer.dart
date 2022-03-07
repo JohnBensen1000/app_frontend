@@ -97,7 +97,8 @@ class HomeDrawer extends StatelessWidget {
                             children: [
                               Consumer<HomeDrawerProvider>(
                                   builder: (context, provider, child) {
-                                if (provider.showActivityCircle)
+                                if (provider.showActivityCircle != null &&
+                                    provider.showActivityCircle)
                                   return Transform.translate(
                                     offset: Offset(.14 * globals.size.width,
                                         0 * globals.size.height),

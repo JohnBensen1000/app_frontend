@@ -70,12 +70,14 @@ class _CommentsState extends State<Comments> {
     return ChangeNotifierProvider(
         create: (context) =>
             CommentsProvider(repository: repository, post: widget.post),
-        child: Column(
-          children: <Widget>[
-            CommentsSection(height: .82 * widget.height),
-            AddComment(height: .18 * widget.height),
-          ],
-        ));
+        child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Column(
+              children: <Widget>[
+                CommentsSection(height: .82 * widget.height),
+                AddComment(height: .18 * widget.height),
+              ],
+            )));
   }
 }
 

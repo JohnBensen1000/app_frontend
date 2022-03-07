@@ -6,7 +6,7 @@ import '../../API/methods/users.dart';
 import '../../API/baseAPI.dart';
 import '../../widgets/generic_alert_dialog.dart';
 
-import 'widgets/input_field.dart';
+import '../../widgets/input_field.dart';
 import 'widgets/account_input_page.dart';
 import 'set_account_info.dart';
 import '../home/home_page.dart';

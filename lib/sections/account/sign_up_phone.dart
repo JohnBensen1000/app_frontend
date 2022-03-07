@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../globals.dart' as globals;
 
-import 'widgets/input_field.dart';
+import '../../widgets/input_field.dart';
 import 'set_account_info.dart';
 import '../home/home_page.dart';
 import 'widgets/account_input_page.dart';

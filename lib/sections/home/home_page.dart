@@ -32,7 +32,7 @@ class HomePageProvider extends ChangeNotifier {
   // the user stops scrolling, decides if the user scrolled far enough to move
   // to a new section of the home page body and acts accordingly.
 
-  PageLabel pageLabel = PageLabel.following;
+  PageLabel pageLabel = PageLabel.discover;
   double _offset = 0;
 
   double get offset {
@@ -45,9 +45,9 @@ class HomePageProvider extends ChangeNotifier {
     if (_offset < -.33)
       this.pageLabel = PageLabel.friends;
     else if (_offset > .33)
-      this.pageLabel = PageLabel.discover;
-    else
       this.pageLabel = PageLabel.following;
+    else
+      this.pageLabel = PageLabel.discover;
 
     notifyListeners();
   }
@@ -56,18 +56,18 @@ class HomePageProvider extends ChangeNotifier {
     if (_offset < -.33) {
       setMainPage(PageLabel.friends);
     } else if (_offset > .33) {
-      setMainPage(PageLabel.discover);
-    } else {
       setMainPage(PageLabel.following);
+    } else {
+      setMainPage(PageLabel.discover);
     }
   }
 
   void setMainPage(PageLabel newPageLabel) {
     if (newPageLabel == PageLabel.following) {
-      _offset = 0.0;
+      _offset = 1.0;
       pageLabel = PageLabel.following;
     } else if (newPageLabel == PageLabel.discover) {
-      _offset = 1.0;
+      _offset = 0.0;
       pageLabel = PageLabel.discover;
     } else {
       _offset = -1.0;
@@ -181,7 +181,7 @@ class HomePageHeaderButtons extends StatelessWidget {
               GestureDetector(
                   child: Container(
                       height: .06 * globals.size.height,
-                      child: Image.asset('assets/images/Entropy.PNG')),
+                      child: Image.asset('assets/images/logo_3.png')),
                   onTap: () async {
                     User user = await globals.userRepository.get(globals.uid);
                     Navigator.push(
@@ -285,51 +285,93 @@ class HomePageHeaderNavigator extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            width: .58 * globals.size.width,
+            width: .7 * globals.size.width,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                _navigationButton(
-                  "Discover",
-                  PageLabel.discover,
+                Container(
+                  alignment: Alignment.center,
+                  width: .2 * globals.size.width,
+                  child: _navigationButton(
+                    "Following",
+                    PageLabel.following,
+                  ),
                 ),
-                _navigationButton(
-                  "Following",
-                  PageLabel.following,
+                Container(
+                  alignment: Alignment.center,
+                  width: .2 * globals.size.width,
+                  child: _navigationButton(
+                    "Discover",
+                    PageLabel.discover,
+                  ),
                 ),
-                _navigationButton(
-                  "Friends",
-                  PageLabel.friends,
-                ),
+                Container(
+                    alignment: Alignment.center,
+                    width: .2 * globals.size.width,
+                    child: _navigationButton(
+                      "Friends",
+                      PageLabel.friends,
+                    )),
               ],
             ),
           ),
           Container(
-            child: Transform.translate(
-              offset: Offset(0, -.0118 * globals.size.height),
-              child: Container(
-                width: .55 * globals.size.width,
-                height: .00829 * globals.size.height,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(globals.size.height),
-                  color: const Color(0xffffffff),
-                  border:
-                      Border.all(width: 1.0, color: const Color(0xff707070)),
-                ),
-                child: Transform.translate(
-                  offset: Offset(
-                      max(-1.0, min(-provider.offset, 1.0)) *
-                          .225 *
-                          (globals.size.width - 12),
-                      0),
-                  child: SvgPicture.string(
-                    _svg_cayeaa,
-                    allowDrawingOutsideViewBox: true,
-                  ),
-                ),
-              ),
-            ),
-          ),
+              child: Transform.translate(
+                  offset: Offset(0, -.015 * globals.size.height),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: .7 * globals.size.width,
+                        height: .00829 * globals.size.height,
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              BorderRadius.circular(globals.size.height),
+                          color: const Color(0xffffffff),
+                          border: Border.all(
+                              width: 1.0, color: const Color(0xff707070)),
+                        ),
+                      ),
+                      Transform.translate(
+                          offset: Offset(
+                              max(-1.0, min(-provider.offset, 1.0)) *
+                                  .283 *
+                                  (globals.size.width - 12),
+                              0),
+                          child: Container(
+                            height: .00829 * globals.size.height,
+                            width: .15 * globals.size.width,
+                            decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20))),
+                          )),
+                    ],
+                  )))
+          // Container(
+          //   child: Transform.translate(
+          //     offset: Offset(0, -.0118 * globals.size.height),
+          //     child: Container(
+          //       width: .7 * globals.size.width,
+          //       height: .00829 * globals.size.height,
+          //       decoration: BoxDecoration(
+          //         borderRadius: BorderRadius.circular(globals.size.height),
+          //         color: const Color(0xffffffff),
+          //         border:
+          //             Border.all(width: 1.0, color: const Color(0xff707070)),
+          //       ),
+
+          // child: Transform.translate(
+          //   offset: Offset(
+          //       max(-1.0, min(-provider.offset, 1.0)) *
+          //           .225 *
+          //           (globals.size.width - 12),
+          //       0),
+          //   child: Container(
+          //     height: .00829 * globals.size.height,
+          //     width: .01 * globals.size.width,
+          //     color: Colors.red,
+          //   ),
         ],
       ),
     );
@@ -401,10 +443,10 @@ class _HomePageBodyState extends State<HomePageBody> {
           child: Stack(children: [
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset - 1), 0),
-                child: _discover),
+                child: _following),
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset), 0),
-                child: _following),
+                child: _discover),
             Transform.translate(
                 offset: Offset(globals.size.width * (provider.offset + 1), 0),
                 child: _chats),

@@ -4,7 +4,7 @@ import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../API/methods/users.dart';
 
-import 'widgets/input_field.dart';
+import '../../widgets/input_field.dart';
 import 'widgets/account_input_page.dart';
 
 import '../personalization/choose_color.dart';
@@ -24,7 +24,7 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
   @override
   void initState() {
     globals.googleAnalyticsAPI.logCreatedFirebaseAccount();
-    _inputField = InputField(hintText: "username");
+    _inputField = InputField(hintText: "name");
     super.initState();
   }
 

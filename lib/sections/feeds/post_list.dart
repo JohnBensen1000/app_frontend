@@ -139,15 +139,17 @@ class _PostListState extends State<PostList>
     return Container(
         padding: EdgeInsets.only(bottom: .04 * globals.size.height),
         child: post != null
-            ? FullPostWidget(
-                post: post,
-                height: widget.postHeightFraction * widget.height,
-                playVideo: playVideo,
-                aspectRatio: 1.25,
-                commentsHeightFraction: .85,
-                verticalOffset:
-                    widget.height - widget.postHeightFraction * widget.height,
-                showCaption: true)
+            ? Center(
+                child: FullPostWidget(
+                    post: post,
+                    height: widget.postHeightFraction * widget.height,
+                    playVideo: playVideo,
+                    aspectRatio: 1.25,
+                    commentsHeightFraction: .6,
+                    verticalOffset: widget.height -
+                        widget.postHeightFraction * widget.height,
+                    showCaption: true),
+              )
             : null);
   }
 

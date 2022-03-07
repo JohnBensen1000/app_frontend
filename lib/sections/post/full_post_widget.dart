@@ -16,45 +16,37 @@ class FullPostProvider extends ChangeNotifier {
   // isOpen is true, then the comments section is initially positioned as open,
   // otherwise it is positioned as closed.
 
-  FullPostProvider({@required bool isOpen}) {
+  FullPostProvider(
+      {@required this.post,
+      @required this.commentsHeightFraction,
+      @required BuildContext context,
+      bool isOpen = false}) {
     _isOpen = isOpen;
-    _yOffset = (_isOpen) ? 0 : 1;
+    if (isOpen) {
+      openComments(context);
+    }
   }
 
-  double deltaY = .009;
+  final Post post;
+  final double commentsHeightFraction;
 
   bool _isOpen;
-  double _yOffset;
 
   bool get isOpen => _isOpen;
 
-  double get yOffset => _yOffset;
-
-  set yOffset(newYOffset) {
-    _yOffset = newYOffset > 0 ? newYOffset : 0;
+  set isOpen(newIsOpen) {
+    _isOpen = newIsOpen;
     notifyListeners();
   }
 
-  Future<void> openComments() async {
-    _isOpen = true;
-    notifyListeners();
-
-    while (_yOffset > 0) {
-      _yOffset -= deltaY;
-      await Future.delayed(Duration(milliseconds: 1));
-      notifyListeners();
-    }
-  }
-
-  Future<void> closeComments() async {
-    while (_yOffset < 1) {
-      _yOffset += deltaY;
-      await Future.delayed(Duration(milliseconds: 1));
-      notifyListeners();
-    }
-
-    _isOpen = false;
-    notifyListeners();
+  Future<void> openComments(BuildContext context) async {
+    isOpen = true;
+    Navigator.of(context)
+        .push(PageRouteBuilder(
+            opaque: false,
+            pageBuilder: (_, __, ___) => CommentsSnackBar(
+                post: post, commentsHeightFraction: commentsHeightFraction)))
+        .then((value) => isOpen = false);
   }
 }
 
@@ -73,7 +65,7 @@ class FullPostWidget extends StatefulWidget {
       this.isFullPage = false,
       this.showComments = false,
       this.verticalOffset = 0,
-      this.commentsHeightFraction = .7,
+      this.commentsHeightFraction = .65,
       this.showCaption = false});
 
   final double aspectRatio;
@@ -96,7 +88,11 @@ class _FullPostWidgetState extends State<FullPostWidget> {
     double postWidgetHeight = .8 * widget.height;
     double width = postWidgetHeight / widget.aspectRatio;
     return ChangeNotifierProvider(
-        create: (context) => FullPostProvider(isOpen: widget.showComments),
+        create: (context) => FullPostProvider(
+            commentsHeightFraction: widget.commentsHeightFraction,
+            post: widget.post,
+            context: context,
+            isOpen: widget.showComments),
         child: Stack(alignment: Alignment.bottomCenter, children: [
           Container(
             height: widget.height,
@@ -104,6 +100,7 @@ class _FullPostWidgetState extends State<FullPostWidget> {
             child: Column(
               children: [
                 GestureDetector(
+                    key: UniqueKey(),
                     child: Container(
                         padding:
                             EdgeInsets.symmetric(vertical: .01 * widget.height),
@@ -116,6 +113,7 @@ class _FullPostWidgetState extends State<FullPostWidget> {
                             builder: (context) =>
                                 ProfilePage(user: widget.post.creator)))),
                 GestureDetector(
+                    key: UniqueKey(),
                     child: PostWidget(
                       post: widget.post,
                       height: postWidgetHeight,
@@ -136,11 +134,6 @@ class _FullPostWidgetState extends State<FullPostWidget> {
               ],
             ),
           ),
-          CommentsSnackBar(
-              height: widget.height,
-              post: widget.post,
-              commentsHeightFraction: widget.commentsHeightFraction,
-              verticalOffset: widget.verticalOffset),
         ]));
   }
 }
@@ -176,7 +169,7 @@ class CommentsButton extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 )),
-            onTap: () => provider.openComments()),
+            onTap: () => provider.openComments(context)),
       );
     else
       return Container();
@@ -187,81 +180,85 @@ class CommentsSnackBar extends StatefulWidget {
   // When the comments section is opened, this widget returns a stack of a
   // transparent button that closes the comments section and the comments
   // section.
-  CommentsSnackBar(
-      {@required this.height,
-      @required this.post,
-      @required this.commentsHeightFraction,
-      @required this.verticalOffset});
+  CommentsSnackBar({
+    @required this.post,
+    @required this.commentsHeightFraction,
+  });
 
-  final double height;
   final Post post;
   final double commentsHeightFraction;
-  final double verticalOffset;
 
   @override
   _CommentsSnackBarState createState() => _CommentsSnackBarState();
 }
 
 class _CommentsSnackBarState extends State<CommentsSnackBar> {
-  double snackbarHeight;
+  Widget _commentsWidget;
+  double _deltaY;
+  double _yOffset;
 
   @override
   void initState() {
-    snackbarHeight = widget.commentsHeightFraction * widget.height;
+    _deltaY = .009;
+    _yOffset = 1;
+
+    _commentsWidget = Comments(
+        height: widget.commentsHeightFraction * globals.size.height,
+        post: widget.post);
     super.initState();
+    _openComments();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FullPostProvider>(builder: (context, provider, child) {
-      if (provider.isOpen)
-        return GestureDetector(
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              GestureDetector(
-                child: Container(
-                  width: globals.size.width,
-                  height: widget.height,
-                  color: Colors.transparent,
-                ),
-                onTap: () => provider.closeComments(),
-              ),
-              Transform.translate(
-                offset: Offset(0,
-                    provider.yOffset * snackbarHeight + widget.verticalOffset),
-                child: GestureDetector(
-                  child: Container(
-                    width: globals.size.width,
-                    height: snackbarHeight + .03 * globals.size.height,
-                    decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: <Color>[
-                            Colors.grey[300].withOpacity(1.0),
-                            Colors.grey[200].withOpacity(.8),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.all(Radius.circular(20))),
-                    child: Comments(height: snackbarHeight, post: widget.post),
+    return Column(
+      children: [
+        GestureDetector(
+          child: Container(
+              width: globals.size.width,
+              height: (1 - widget.commentsHeightFraction) * globals.size.height,
+              color: Colors.transparent),
+          onTap: () => _closeComments(),
+        ),
+        Transform.translate(
+            offset: Offset(
+                0,
+                (_yOffset * widget.commentsHeightFraction) *
+                        globals.size.height +
+                    .01 * globals.size.height),
+            child: Container(
+              width: globals.size.width,
+              height: widget.commentsHeightFraction * globals.size.height,
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: <Color>[
+                      Colors.grey[300].withOpacity(1.0),
+                      Colors.grey[200].withOpacity(.8),
+                    ],
                   ),
-                  onVerticalDragUpdate: (DragUpdateDetails dragUpdates) =>
-                      provider.yOffset += dragUpdates.delta.dy / snackbarHeight,
-                  onVerticalDragEnd: (DragEndDetails dragEndDetails) =>
-                      provider.yOffset > .2
-                          ? provider.closeComments()
-                          : provider.openComments(),
-                ),
-              )
-            ],
-          ),
-          onLongPress: () => null,
-          onVerticalDragUpdate: (_) => null,
-          onVerticalDragDown: (_) => null,
-        );
-      else
-        return Container();
-    });
+                  borderRadius: BorderRadius.all(Radius.circular(20))),
+              child: _commentsWidget,
+            ))
+      ],
+    );
+  }
+
+  Future<void> _openComments() async {
+    while (_yOffset > 0) {
+      _yOffset -= _deltaY;
+      await Future.delayed(Duration(milliseconds: 1));
+      setState(() {});
+    }
+  }
+
+  Future<void> _closeComments() async {
+    while (_yOffset <= 1) {
+      _yOffset += _deltaY;
+      await Future.delayed(Duration(milliseconds: 1));
+      setState(() {});
+    }
+    Navigator.pop(context);
   }
 }
