@@ -4,8 +4,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../globals.dart' as globals;
 
 class GoogleAnalyticsAPI {
-  Future<String> firebaseTokenFuture = FirebaseMessaging.instance.getToken();
-
   Future<void> logEvent(String name, [Map<String, Object> parameters]) async {
     name = "v1_5_3_new_user_" + name;
     print(" [DEBUG] Logging Event: $name");

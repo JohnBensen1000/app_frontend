@@ -1,3 +1,4 @@
+import 'package:Entropy/widgets/entropy_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,8 +6,9 @@ import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
+import '../../widgets/entropy_scaffold.dart';
 
-import '../profile_page/profile_page.dart';
+import 'profile_page.dart';
 
 class BlockedListProvider extends ChangeNotifier {
   // Keeps track of all the creator that the user is blocking. When the user
@@ -48,7 +50,7 @@ class BlockedList extends StatelessWidget {
     double headerHeight = .118 * globals.size.height;
     double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
 
-    return Scaffold(
+    return EntropyScaffold(
         body: Column(
       children: [
         Container(

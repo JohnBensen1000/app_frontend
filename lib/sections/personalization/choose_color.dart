@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../globals.dart' as globals;
 import '../../widgets/bubbles_page.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 import '../account/take_profile_pic.dart';
 

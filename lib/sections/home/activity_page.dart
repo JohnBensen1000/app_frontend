@@ -1,3 +1,4 @@
+import 'package:Entropy/widgets/entropy_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,7 @@ import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_circle.dart';
 import '../../API/methods/followings.dart';
 import '../../widgets/profile_pic.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 import '../profile_page/profile_page.dart';
 import '../post/post_widget.dart';
@@ -69,7 +71,7 @@ class ActivityPage extends StatefulWidget {
 class _ActivityPageState extends State<ActivityPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return EntropyScaffold(
         body: ChangeNotifierProvider(
             create: (context) => ActivityProvider(),
             child: Consumer<ActivityProvider>(

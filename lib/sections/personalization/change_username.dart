@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../globals.dart' as globals;
 import '../../widgets/back_arrow.dart';
 import '../../widgets/profile_pic.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 class ChangeUsernamePage extends StatelessWidget {
   // This page is dedicated to letting the user change their username. It
@@ -16,7 +17,7 @@ class ChangeUsernamePage extends StatelessWidget {
   Widget build(BuildContext context) {
     // _textController.text = globals.user.username;
 
-    return Scaffold(
+    return EntropyScaffold(
         body: FutureBuilder(
             future: globals.userRepository.get(globals.uid),
             builder: (context, snapshot) {

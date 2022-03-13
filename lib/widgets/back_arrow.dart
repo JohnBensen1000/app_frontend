@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:adobe_xd/pinned.dart';
 
+import '../globals.dart' as globals;
+
 class BackArrow extends StatelessWidget {
   BackArrow({this.color = const Color(0xffa2a2a2)});
   final Color color;
@@ -10,6 +12,11 @@ class BackArrow extends StatelessWidget {
     double size = 2.5;
 
     return Container(
+      padding: EdgeInsets.only(
+        top: .01 * globals.size.height,
+        bottom: .01 * globals.size.height,
+        right: .1 * globals.size.width,
+      ),
       color: Colors.transparent,
       child: SizedBox(
         width: size * 14.0,

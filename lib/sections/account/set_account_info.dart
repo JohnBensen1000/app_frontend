@@ -39,7 +39,10 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
             showBackArrow: false,
             key: UniqueKey(),
             headerText: "What's\nYour\nName?",
-            child: InputFieldWidget(inputField: _inputField),
+            child: InputFieldWidget(
+              inputField: _inputField,
+              widthFraction: 1.0,
+            ),
             onTap: _askForName));
   }
 
@@ -86,7 +89,7 @@ class _SignUpUsernameState extends State<SignUpUsername> {
         pageNum: 4,
         key: UniqueKey(),
         headerText: "What's\nYour\nUsername?",
-        child: InputFieldWidget(inputField: _inputField),
+        child: InputFieldWidget(inputField: _inputField, widthFraction: 1.0),
         onTap: _createAccount);
   }
 

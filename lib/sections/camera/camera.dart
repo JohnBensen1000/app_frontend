@@ -13,6 +13,7 @@ import '../../globals.dart' as globals;
 import '../../models/chat.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/reactive_button.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 import 'preview.dart';
 
@@ -162,6 +163,7 @@ class CameraProvider extends ChangeNotifier {
         context,
         MaterialPageRoute(
             builder: (context) => Preview(
+                  cameraAspectRatio: cameraController.value.aspectRatio,
                   controller: cameraController,
                   isImage: isImage,
                   cameraUsage: cameraUsage,
@@ -185,24 +187,23 @@ class Camera extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: FutureBuilder(
-            future: _getPermissions(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData &&
-                  snapshot.hasData) {
-                return ChangeNotifierProvider(
-                    create: (_) =>
-                        CameraProvider(cameraUsage: cameraUsage, chat: chat),
-                    child: CameraPage(
-                      cameraUsage: cameraUsage,
-                      chat: chat,
-                    ));
-              } else {
-                return Container();
-              }
-            }));
+    return FutureBuilder(
+        future: _getPermissions(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData &&
+              snapshot.hasData) {
+            return ChangeNotifierProvider(
+                create: (_) =>
+                    CameraProvider(cameraUsage: cameraUsage, chat: chat),
+                child: EntropyScaffold(
+                  backgroundWidget: CameraView(),
+                  body: CameraOptions(cameraUsage: cameraUsage, chat: chat),
+                ));
+          } else {
+            return Container();
+          }
+        });
   }
 
   Future<void> _getPermissions() async {
@@ -214,7 +215,60 @@ class Camera extends StatelessWidget {
   }
 }
 
-class CameraPage extends StatefulWidget {
+class CameraView extends StatelessWidget {
+  // Displays what the camera sees. Resizes this to take up the entire screen.
+
+  const CameraView({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    CameraProvider provider =
+        Provider.of<CameraProvider>(context, listen: false);
+
+    return Center(
+      child: FutureBuilder(
+        future: provider.cameraControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            CameraController cameraController = snapshot.data;
+
+            double height = MediaQuery.of(context).size.height;
+            double width = MediaQuery.of(context).size.width;
+
+            BoxFit fit = BoxFit.fitHeight;
+            if (cameraController.value.aspectRatio > 1) {
+              if (height / width < cameraController.value.aspectRatio) {
+                fit = BoxFit.fitWidth;
+              }
+            } else {
+              if (width / height > cameraController.value.aspectRatio) {
+                fit = BoxFit.fitWidth;
+              }
+            }
+
+            return Container(
+                height: height,
+                width: width,
+                child: FittedBox(
+                    fit: fit,
+                    child: Container(
+                        height: height,
+                        width: height / cameraController.value.aspectRatio,
+                        child: CameraPreview(
+                          cameraController,
+                        ))));
+          } else {
+            return Container();
+          }
+        },
+      ),
+    );
+  }
+}
+
+class CameraOptions extends StatefulWidget {
   // Returns a stack with the camera view on bottom and a bunch of bottons on
   // top. These buttons include a back arrow, a capture image/video button,
   // a flip camera button, and a timer toggle botton. If the timer is on, then
@@ -222,7 +276,7 @@ class CameraPage extends StatefulWidget {
   // started. When the time ends, an image is captured and the user is sent to
   // the preview page.
 
-  CameraPage({
+  CameraOptions({
     @required this.cameraUsage,
     this.chat,
   });
@@ -231,89 +285,97 @@ class CameraPage extends StatefulWidget {
   final Chat chat;
 
   @override
-  State<CameraPage> createState() => _CameraPageState();
+  State<CameraOptions> createState() => _CameraOptionsState();
 }
 
-class _CameraPageState extends State<CameraPage> {
+class _CameraOptionsState extends State<CameraOptions> {
   @override
   Widget build(BuildContext context) {
     return Consumer<CameraProvider>(
         builder: (context, provider, child) => Stack(
+              alignment: Alignment.center,
               children: [
-                CameraView(),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(
-                        top: .06 * globals.size.height,
-                        left: .04 * globals.size.width,
-                        right: .04 * globals.size.width,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                              child: BackArrow(color: Colors.white),
-                              onTap: () => Navigator.pop(context)),
-                          Column(
-                            children: [
-                              ReactiveButton(child: _flashButton()),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding:
-                          EdgeInsets.only(bottom: .06 * globals.size.height),
-                      child: Column(children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                Container(
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                ),
+                Container(
+                  height: globals.size.height,
+                  width: globals.size.width,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.only(
+                          top: .06 * globals.size.height,
+                          left: .04 * globals.size.width,
+                          right: .04 * globals.size.width,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                                width: .26 * globals.size.width,
-                                child: Center(
-                                  child: ReactiveButton(
-                                      child: SvgPicture.asset(
-                                        "assets/images/flip_camera.svg",
-                                        height: .07 * globals.size.height,
-                                      ),
-                                      onTap: provider.toggleCamera),
-                                )),
-                            Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: .02 * globals.size.width),
-                                child: PostButton(
-                                    diameter: .12 * globals.size.height)),
-                            Container(
-                              width: .26 * globals.size.width,
-                              child: Center(
-                                child: ReactiveButton(
-                                    child: provider.isTimerOn
-                                        ? SvgPicture.asset(
-                                            "assets/images/timer_icon.svg",
-                                            height: .07 * globals.size.height,
-                                          )
-                                        : SvgPicture.asset(
-                                            "assets/images/timer_icon_off.svg",
-                                            height: .07 * globals.size.height,
-                                          ),
-                                    onTap: provider.toggleTimer),
-                              ),
+                            GestureDetector(
+                                child: BackArrow(color: Colors.white),
+                                onTap: () => Navigator.pop(context)),
+                            Column(
+                              children: [
+                                ReactiveButton(child: _flashButton()),
+                              ],
                             )
                           ],
                         ),
-                        Container(
-                            padding:
-                                EdgeInsets.only(top: .02 * globals.size.height),
-                            child: Text("Hold down to record video",
-                                style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontSize: .016 * globals.size.height)))
-                      ]),
-                    ),
-                  ],
+                      ),
+                      Container(
+                        padding:
+                            EdgeInsets.only(bottom: .06 * globals.size.height),
+                        child: Column(children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                  width: .26 * globals.size.width,
+                                  child: Center(
+                                    child: ReactiveButton(
+                                        child: SvgPicture.asset(
+                                          "assets/images/flip_camera.svg",
+                                          height: .07 * globals.size.height,
+                                        ),
+                                        onTap: provider.toggleCamera),
+                                  )),
+                              Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: .02 * globals.size.width),
+                                  child: PostButton(
+                                      diameter: .12 * globals.size.height)),
+                              Container(
+                                width: .26 * globals.size.width,
+                                child: Center(
+                                  child: ReactiveButton(
+                                      child: provider.isTimerOn
+                                          ? SvgPicture.asset(
+                                              "assets/images/timer_icon.svg",
+                                              height: .07 * globals.size.height,
+                                            )
+                                          : SvgPicture.asset(
+                                              "assets/images/timer_icon_off.svg",
+                                              height: .07 * globals.size.height,
+                                            ),
+                                      onTap: provider.toggleTimer),
+                                ),
+                              )
+                            ],
+                          ),
+                          Container(
+                              padding: EdgeInsets.only(
+                                  top: .02 * globals.size.height),
+                              child: Text("Hold down to record video",
+                                  style: TextStyle(
+                                      color: Colors.grey[500],
+                                      fontSize: .016 * globals.size.height)))
+                        ]),
+                      ),
+                    ],
+                  ),
                 ),
                 Container(
                     child: Center(
@@ -367,42 +429,6 @@ class _CameraPageState extends State<CameraPage> {
     }
 
     return ReactiveButton(child: child, onTap: () => provider.toggleFlash());
-  }
-}
-
-class CameraView extends StatelessWidget {
-  // Displays what the camera sees. Resizes this to take up the entire screen.
-
-  const CameraView({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    CameraProvider provider =
-        Provider.of<CameraProvider>(context, listen: false);
-    return Center(
-      child: FutureBuilder(
-        future: provider.cameraControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            CameraController cameraController = snapshot.data;
-
-            return Transform.scale(
-              scale: (globals.size.height / globals.size.width) /
-                  (cameraController.value.aspectRatio),
-              child: Center(
-                child: AspectRatio(
-                    aspectRatio: (1 / cameraController.value.aspectRatio),
-                    child: CameraPreview(cameraController)),
-              ),
-            );
-          } else {
-            return Container();
-          }
-        },
-      ),
-    );
   }
 }
 

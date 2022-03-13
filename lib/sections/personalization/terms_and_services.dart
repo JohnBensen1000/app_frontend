@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import '../../globals.dart' as globals;
 import '../../widgets/bubbles_page.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 firebase_auth.FirebaseAuth auth = firebase_auth.FirebaseAuth.instance;
 

@@ -41,7 +41,7 @@ class _CommentWidgetState extends State<CommentWidget>
     double profilePicSize = .0474 * globals.size.height;
     double profilePicPadding = .0059 * globals.size.height;
     double margin = 2.5;
-    double width = MediaQuery.of(context).size.width;
+    double width = globals.size.width;
 
     if (widget.comment == null) return Container();
 
@@ -49,15 +49,14 @@ class _CommentWidgetState extends State<CommentWidget>
         child: Container(
             color: Colors.transparent,
             alignment: Alignment.centerRight,
-            margin: EdgeInsets.all(margin),
+            margin: EdgeInsets.symmetric(vertical: margin),
             padding: EdgeInsets.only(left: widget.leftPadding),
             child: Container(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 0, horizontal: profilePicPadding),
+                    padding: EdgeInsets.only(right: profilePicPadding),
                     child: Column(
                       children: [
                         if (widget.commenter != null)

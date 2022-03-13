@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../../globals.dart' as globals;
 import '../../../widgets/back_arrow.dart';
@@ -20,7 +21,7 @@ class AccountInputPageWrapper extends StatefulWidget {
     @required this.onTap,
     @required this.headerText,
     @required this.pageNum,
-    this.height = .35,
+    this.height = .36,
     this.showBackArrow = true,
   }) : super(key: key);
 
@@ -54,8 +55,23 @@ class _AccountInputPageWrapperState extends State<AccountInputPageWrapper> {
             showBackArrow: widget.showBackArrow,
             height: widget.height,
             headerText: widget.headerText,
-            child: widget.child,
+            child: _child(),
             onTap: _onTap));
+  }
+
+  Widget _child() {
+    if (kIsWeb == false) {
+      return widget.child;
+    } else {
+      return Column(
+        children: [
+          widget.child,
+          GestureDetector(
+              child: Container(width: 100, height: 50, color: Colors.grey),
+              onTap: _onTap)
+        ],
+      );
+    }
   }
 
   Future<void> _onTap() async {
@@ -91,10 +107,9 @@ class AccountInputPage extends StatelessWidget {
   Widget build(BuildContext context) {
     keyboardController.onChange
         .listen((isActivated) => _onKeyboardChange(isActivated));
-    bool isKeyboardActivated =
-        (MediaQuery.of(context).viewInsets.bottom != 0.0);
 
     return BubblesPage(
+        sidePadding: .05 * globals.size.width,
         child: child,
         headerText: headerText,
         height: height,

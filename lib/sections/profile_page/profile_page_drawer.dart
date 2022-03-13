@@ -15,6 +15,7 @@ import '../personalization/terms_and_services.dart';
 import '../personalization/preferences.dart';
 
 import '../../main.dart';
+import 'blocked_list.dart';
 
 // import 'blocked_list.dart';
 
@@ -56,12 +57,12 @@ class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => ColorsPage()))),
-                    GenericTextButton(
-                        buttonName: "Set preferences",
-                        onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => PreferencesPage()))),
+                    // GenericTextButton(
+                    //     buttonName: "Set preferences",
+                    //     onPressed: () => Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //             builder: (context) => PreferencesPage()))),
                     GenericTextButton(
                         buttonName: "Change username",
                         onPressed: () => Navigator.push(
@@ -74,6 +75,12 @@ class _ProfilePageDrawerState extends State<ProfilePageDrawer> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => TermsAndServicesPage()))),
+                    GenericTextButton(
+                        buttonName: "Unblock Creators",
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => BlockedList()))),
                   ],
                 ),
                 Column(
@@ -192,7 +199,7 @@ class _ProfileDrawerHeaderState extends State<ProfileDrawerHeader> {
                             )))),
           ),
           Text(
-            "Edit Profile",
+            "Settings",
             style: TextStyle(
                 fontSize: .04 * globals.size.height,
                 fontWeight: FontWeight.bold),

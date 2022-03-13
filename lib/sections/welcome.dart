@@ -1,8 +1,10 @@
+import 'package:Entropy/widgets/entropy_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../globals.dart' as globals;
+import '../../widgets/entropy_scaffold.dart';
 
 import 'home/home_page.dart';
 
@@ -34,44 +36,44 @@ class _WelcomeState extends State<Welcome> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xffffffff),
-      body: FutureBuilder(
-          future: _registerNotificationsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return FutureBuilder(
-                  future: _accountUserFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      globals.size = globals.SizeConfig(context: context);
+    globals.size = globals.SizeConfig(context: context);
 
-                      if (snapshot.hasData) {
-                        globals.uid = snapshot.data.uid;
-                        return HomePage();
-                      } else {
-                        return SignUpMethodsPage();
-                      }
-                    } else {
-                      return Center(
-                        child: Container(
-                          height: .4 * MediaQuery.of(context).size.height,
-                          width: .4 * MediaQuery.of(context).size.height,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: const AssetImage(
-                                    'assets/images/Entropy.PNG'),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+    return FutureBuilder(
+      future: _registerNotificationsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return FutureBuilder(
+              future: _accountUserFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasData) {
+                    globals.uid = snapshot.data.uid;
+                    return HomePage();
+                  } else {
+                    return SignUpMethodsPage();
+                  }
+                } else {
+                  return EntropyScaffold(
+                      body: Center(
+                    child: Container(
+                      height: .4 * MediaQuery.of(context).size.height,
+                      width: .4 * MediaQuery.of(context).size.height,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image:
+                                const AssetImage('assets/images/Entropy.PNG'),
+                            fit: BoxFit.cover,
                           ),
                         ),
-                      );
-                    }
-                  });
-            } else {
-              return Center(
+                      ),
+                    ),
+                  ));
+                }
+              });
+        } else {
+          return EntropyScaffold(
+              body: Center(
                   child: Container(
                       height: .4 * MediaQuery.of(context).size.height,
                       width: .4 * MediaQuery.of(context).size.height,
@@ -83,9 +85,9 @@ class _WelcomeState extends State<Welcome> {
                             fit: BoxFit.cover,
                           ),
                         ),
-                      )));
-            }
-          }),
+                      ))));
+        }
+      },
     );
   }
 

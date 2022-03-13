@@ -12,13 +12,14 @@ import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../widgets/alert_circle.dart';
 
-import 'home_drawer.dart';
 import 'search_page.dart';
 import '../friends/chats_list.dart';
 
 import '../profile_page/profile_page.dart';
 import '../camera/camera.dart';
 import '../feeds/discover.dart';
+import 'activity_page.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 enum PageLabel {
   discover,
@@ -103,8 +104,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = .16 * globals.size.height;
-    double bodyHeight = MediaQuery.of(context).size.height - headerHeight;
+    double headerHeight = .18 * globals.size.height;
+    double bodyHeight = globals.size.height - headerHeight;
 
     return WillPopScope(
         onWillPop: () async {
@@ -112,10 +113,11 @@ class _HomePageState extends State<HomePage> {
         },
         child: ChangeNotifierProvider(
             create: (context) => HomePageProvider(),
-            child: Scaffold(
+            child: EntropyScaffold(
               body: Stack(
                 children: [
                   Container(
+                      // offset to put post list under nav bar
                       padding: EdgeInsets.only(top: headerHeight),
                       child: HomePageBody(height: bodyHeight)),
                   HomePageHeader(
@@ -123,9 +125,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              drawer: Container(
-                  width: .7 * globals.size.width,
-                  child: Drawer(child: HomeDrawer())),
             )));
   }
 }
@@ -141,17 +140,33 @@ class HomePageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.only(top: .05 * globals.size.height),
-      height: height,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          HomePageHeaderButtons(),
-          HomePageHeaderNavigator(),
-        ],
-      ),
+    return Stack(
+      children: [
+        // makes the entire top navigation bar white, and makes sure that it
+        // overlaps the padded areas.
+        Transform(
+          transform: Matrix4.diagonal3Values(4.0, 1.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(-.5 * globals.size.width, 0),
+            child: Container(
+              color: Colors.white,
+              height: height,
+              width: MediaQuery.of(context).size.width,
+            ),
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.only(top: .05 * globals.size.height),
+          height: height,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              HomePageHeaderButtons(),
+              HomePageHeaderNavigator(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -162,108 +177,111 @@ class HomePageHeaderButtons extends StatelessWidget {
   // button.
   @override
   Widget build(BuildContext context) {
-    double buttonsWidth = .12 * globals.size.width;
+    double buttonsHeight = .05 * globals.size.height;
 
     return Container(
-        padding: EdgeInsets.only(
-          left: .0512 * globals.size.width,
-          right: .0512 * globals.size.width,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+                width: .001 * globals.size.height, color: Colors.black),
+          ),
         ),
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _openDrawerButton(context),
-                ],
-              ),
               GestureDetector(
-                  child: Container(
-                      height: .06 * globals.size.height,
-                      child: Image.asset('assets/images/logo_3.png')),
-                  onTap: () async {
-                    User user = await globals.userRepository.get(globals.uid);
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ProfilePage(user: user)));
-                  }),
+                child: Container(
+                    height: .8 * buttonsHeight,
+                    child: Image.asset('assets/images/entropy_v1.png')),
+              ),
               Container(
-                height: .06 * globals.size.height,
-                width: buttonsWidth,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    GestureDetector(
-                      child: _iconContainer(
-                        Image.asset('assets/images/search_icon.png'),
-                      ),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SearchPage()),
-                      ),
-                    ),
-                    GestureDetector(
-                      child: _iconContainer(
-                          Image.asset('assets/images/camera_icon.png')),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => Camera(
-                                  cameraUsage: CameraUsage.post,
-                                )),
-                      ),
-                    )
+                    _cameraButton(context, buttonsHeight),
+                    _activityButton(context, buttonsHeight),
+                    _searchButton(context, buttonsHeight),
+                    _profileButton(context, buttonsHeight),
                   ],
                 ),
               )
             ]));
   }
 
-  Widget _openDrawerButton(BuildContext context) {
+  Widget _cameraButton(BuildContext context, double buttonsHeight) {
     return GestureDetector(
-        child: Container(
-            child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              color: Colors.transparent,
-              padding: EdgeInsets.all(.01 * globals.size.height),
-              height: .045 * globals.size.height,
-              width: .045 * globals.size.height,
-              child: SvgPicture.string(
-                _svg_eqwtyu,
-                allowDrawingOutsideViewBox: true,
-              ),
-            ),
-            StreamBuilder(
-                stream: globals.newActivityRepository.stream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data) {
-                    return Transform.translate(
-                      offset: Offset(.012 * globals.size.height,
-                          -.012 * globals.size.height),
-                      child: AlertCircle(diameter: .018 * globals.size.height),
-                    );
-                  } else {
-                    return Container();
-                  }
-                })
-          ],
-        )),
-        onTap: () => Scaffold.of(context).openDrawer());
+      child: _iconContainer(
+          SvgPicture.asset(
+            'assets/images/camera_2.svg',
+          ),
+          .9 * buttonsHeight),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => Camera(
+                  cameraUsage: CameraUsage.post,
+                )),
+      ),
+    );
   }
 
-  Widget _iconContainer(Image image) {
-    return Container(
-      width: .12 * globals.size.width,
-      height: .0273 * globals.size.height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(globals.size.height),
-        color: const Color(0xffffffff),
-        border: Border.all(width: 1.0, color: const Color(0xff000000)),
+  Widget _activityButton(BuildContext context, double buttonsHeight) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        GestureDetector(
+          child: _iconContainer(
+              SvgPicture.asset('assets/images/fire.svg'), buttonsHeight),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ActivityPage()),
+          ),
+        ),
+        StreamBuilder(
+            stream: globals.newActivityRepository.stream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data) {
+                return Transform.translate(
+                  // offset for activity circle
+                  offset: Offset(
+                      .008 * globals.size.height, -.012 * globals.size.height),
+                  child: AlertCircle(diameter: .016 * globals.size.height),
+                );
+              } else {
+                return Container();
+              }
+            })
+      ],
+    );
+  }
+
+  Widget _searchButton(BuildContext context, double buttonsHeight) {
+    return GestureDetector(
+      child: _iconContainer(
+          Image.asset('assets/images/search_icon.png'), buttonsHeight),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SearchPage()),
       ),
+    );
+  }
+
+  Widget _profileButton(BuildContext context, double buttonsHeight) {
+    return GestureDetector(
+        child: _iconContainer(
+            SvgPicture.asset('assets/images/profile.svg'), buttonsHeight),
+        onTap: () async {
+          User user = await globals.userRepository.get(globals.uid);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => ProfilePage(user: user)));
+        });
+  }
+
+  Widget _iconContainer(Widget image, double buttonsHeight) {
+    return Container(
+      width: buttonsHeight,
+      height: buttonsHeight,
+      padding: EdgeInsets.symmetric(vertical: .0075 * globals.size.height),
       child: image,
     );
   }
@@ -282,10 +300,11 @@ class HomePageHeaderNavigator extends StatelessWidget {
 
     return Container(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            width: .7 * globals.size.width,
+            width: .65 * globals.size.width,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
@@ -322,8 +341,8 @@ class HomePageHeaderNavigator extends StatelessWidget {
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        width: .7 * globals.size.width,
-                        height: .00829 * globals.size.height,
+                        width: .65 * globals.size.width,
+                        height: .01 * globals.size.height,
                         decoration: BoxDecoration(
                           borderRadius:
                               BorderRadius.circular(globals.size.height),
@@ -335,12 +354,12 @@ class HomePageHeaderNavigator extends StatelessWidget {
                       Transform.translate(
                           offset: Offset(
                               max(-1.0, min(-provider.offset, 1.0)) *
-                                  .283 *
+                                  .23 *
                                   (globals.size.width - 12),
                               0),
                           child: Container(
                             height: .00829 * globals.size.height,
-                            width: .15 * globals.size.width,
+                            width: .2 * globals.size.width,
                             decoration: BoxDecoration(
                                 color: Colors.black,
                                 borderRadius:
@@ -348,30 +367,6 @@ class HomePageHeaderNavigator extends StatelessWidget {
                           )),
                     ],
                   )))
-          // Container(
-          //   child: Transform.translate(
-          //     offset: Offset(0, -.0118 * globals.size.height),
-          //     child: Container(
-          //       width: .7 * globals.size.width,
-          //       height: .00829 * globals.size.height,
-          //       decoration: BoxDecoration(
-          //         borderRadius: BorderRadius.circular(globals.size.height),
-          //         color: const Color(0xffffffff),
-          //         border:
-          //             Border.all(width: 1.0, color: const Color(0xff707070)),
-          //       ),
-
-          // child: Transform.translate(
-          //   offset: Offset(
-          //       max(-1.0, min(-provider.offset, 1.0)) *
-          //           .225 *
-          //           (globals.size.width - 12),
-          //       0),
-          //   child: Container(
-          //     height: .00829 * globals.size.height,
-          //     width: .01 * globals.size.width,
-          //     color: Colors.red,
-          //   ),
         ],
       ),
     );
@@ -434,26 +429,26 @@ class _HomePageBodyState extends State<HomePageBody> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
     return Consumer<HomePageProvider>(builder: (context, provider, child) {
       return GestureDetector(
         child: Container(
           height: widget.height,
-          width: globals.size.width,
+          width: width,
           color: Colors.white,
           child: Stack(children: [
             Transform.translate(
-                offset: Offset(globals.size.width * (provider.offset - 1), 0),
+                offset: Offset(width * (provider.offset - 1), 0),
                 child: _following),
             Transform.translate(
-                offset: Offset(globals.size.width * (provider.offset), 0),
-                child: _discover),
+                offset: Offset(width * (provider.offset), 0), child: _discover),
             Transform.translate(
-                offset: Offset(globals.size.width * (provider.offset + 1), 0),
+                offset: Offset(width * (provider.offset + 1), 0),
                 child: _chats),
           ]),
         ),
         onHorizontalDragUpdate: (value) =>
-            provider.offset += 2.0 * (value.delta.dx / globals.size.width),
+            provider.offset += 2.0 * (value.delta.dx / width),
         onHorizontalDragEnd: (_) => provider.handleHorizontalDragEnd(),
       );
     });

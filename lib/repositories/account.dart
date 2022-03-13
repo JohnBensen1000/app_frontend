@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'repository.dart';
 import '../API/methods/users.dart';
 import '../models/user.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../globals.dart' as globals;
 import '../../API/methods/users.dart';
@@ -39,7 +40,8 @@ class AccountRepository extends Repository<String> {
     globals.uid = uid;
     await globals.accountRepository.setUid(uid: uid);
 
-    await updateDeviceToken(await FirebaseMessaging.instance.getToken());
+    if (kIsWeb == false)
+      await updateDeviceToken(await FirebaseMessaging.instance.getToken());
 
     return true;
   }

@@ -10,6 +10,7 @@ import '../../API/methods/preferences.dart';
 import '../../widgets/back_arrow.dart';
 import '../../API/handle_requests.dart';
 import '../../widgets/forward_arrow.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 class PreferencesProvider extends ChangeNotifier {
   // From a list of preferences field names, creates a Map to keep track of
@@ -44,7 +45,7 @@ class PreferencesPage extends StatelessWidget {
     double bodyHeight =
         MediaQuery.of(context).size.height - headerHeight - footerHeight;
 
-    return Scaffold(
+    return EntropyScaffold(
         body: FutureBuilder(
             future: handleRequest(context, getPreferenceFields()),
             builder: (context, snapshot) {

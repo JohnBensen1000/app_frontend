@@ -9,6 +9,7 @@ import '../../widgets/back_arrow.dart';
 import '../../widgets/profile_pic.dart';
 import '../../API/handle_requests.dart';
 import '../../widgets/input_field.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 import '../profile_page/profile_page.dart';
 
@@ -51,12 +52,12 @@ class SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double headerHeight = .16 * globals.size.height;
+    double headerHeight = .18 * globals.size.height;
 
     return ChangeNotifierProvider(
         create: (context) => SearchPageProvider(),
         child: Consumer<SearchPageProvider>(
-            builder: (context, provider, child) => Scaffold(
+            builder: (context, provider, child) => EntropyScaffold(
                     body: Container(
                         child: Column(
                   children: <Widget>[
@@ -150,16 +151,16 @@ class SearchResultWidget extends StatelessWidget {
     return GestureDetector(
       child: Container(
           padding: EdgeInsets.only(left: .05 * globals.size.width),
-          margin: EdgeInsets.only(bottom: .0237 * globals.size.height),
+          margin: EdgeInsets.only(bottom: .02 * globals.size.height),
           width: double.infinity,
-          height: .142 * globals.size.height,
+          height: .1 * globals.size.height,
           decoration: new BoxDecoration(
             border: Border(
                 top: BorderSide(color: Colors.grey[400]),
                 bottom: BorderSide(color: Colors.grey[400])),
           ),
           child: Profile(
-            diameter: .0947 * globals.size.height,
+            diameter: .06 * globals.size.height,
             user: creator,
           )),
       onTap: () {

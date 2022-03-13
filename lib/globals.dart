@@ -40,8 +40,23 @@ GoogleAnalyticsAPI googleAnalyticsAPI = new GoogleAnalyticsAPI();
 class SizeConfig {
   SizeConfig({@required BuildContext context}) {
     MediaQueryData _mediaQueryData = MediaQuery.of(context);
-    this.width = _mediaQueryData.size.width;
-    this.height = _mediaQueryData.size.height;
+
+    double _width = _mediaQueryData.size.width;
+    double _height = _mediaQueryData.size.height;
+    double _high = 19.5 / 9;
+    double _low = 16 / 9;
+
+    if (_height / _width < _low) {
+      this.width = _height / _low;
+      this.height = _height;
+    } else if (_height / _width > _high) {
+      this.width = _width;
+      this.height = _width * _high;
+    } else {
+      this.width = _width;
+      this.height = _height;
+    }
+    print(this.width);
   }
 
   double width;

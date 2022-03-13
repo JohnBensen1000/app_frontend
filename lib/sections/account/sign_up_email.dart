@@ -43,7 +43,10 @@ class _SignUpEmailState extends State<SignUpEmail> {
         pageNum: 1,
         key: UniqueKey(),
         headerText: "Enter Email",
-        child: InputFieldWidget(inputField: _inputField),
+        child: InputFieldWidget(
+          inputField: _inputField,
+          widthFraction: 1.0,
+        ),
         onTap: _submitEmail);
   }
 
@@ -126,6 +129,7 @@ class _SignUpPasswordState extends State<SignUpPassword> {
         child: Column(children: [
           InputFieldWidget(
             inputField: _inputField,
+            widthFraction: 1.0,
           ),
           if (widget.isNewAccount == false)
             GestureDetector(

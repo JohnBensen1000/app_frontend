@@ -82,7 +82,7 @@ class PostList extends StatefulWidget {
   PostList(
       {@required this.height,
       @required this.repository,
-      this.postHeightFraction = .8});
+      this.postHeightFraction = .85});
 
   final double height;
   final PostListRepository repository;
@@ -117,7 +117,7 @@ class _PostListState extends State<PostList>
                       nextNextPostView:
                           _buildPostWidget(provider.nextNextPost, false),
                       height: widget.height,
-                      postHeightFraction: widget.postHeightFraction,
+                      postHeight: widget.postHeightFraction * widget.height,
                       key: UniqueKey()),
                   onVisibilityChanged: (VisibilityInfo info) {
                     if (info.visibleFraction == 1.0) {
@@ -137,14 +137,13 @@ class _PostListState extends State<PostList>
 
   Widget _buildPostWidget(Post post, bool playVideo) {
     return Container(
-        padding: EdgeInsets.only(bottom: .04 * globals.size.height),
         child: post != null
             ? Center(
                 child: FullPostWidget(
                     post: post,
-                    height: widget.postHeightFraction * widget.height,
                     playVideo: playVideo,
-                    aspectRatio: 1.25,
+                    width: .96 * globals.size.width,
+                    height: .74 * widget.height,
                     commentsHeightFraction: .6,
                     verticalOffset: widget.height -
                         widget.postHeightFraction * widget.height,
@@ -203,7 +202,7 @@ class PostListPage extends StatefulWidget {
     @required this.nextPostView,
     @required this.nextNextPostView,
     @required this.height,
-    @required this.postHeightFraction,
+    @required this.postHeight,
     Key key,
   }) : super(key: key);
 
@@ -213,7 +212,7 @@ class PostListPage extends StatefulWidget {
   final Widget nextNextPostView;
 
   final double height;
-  final double postHeightFraction;
+  final double postHeight;
 
   @override
   _PostListPageState createState() => _PostListPageState();
@@ -252,27 +251,26 @@ class _PostListPageState extends State<PostListPage>
     PostListProvider provider =
         Provider.of<PostListProvider>(context, listen: false);
 
-    double postHeight = widget.postHeightFraction * widget.height;
-
     return GestureDetector(
       child: Container(
+          padding: EdgeInsets.symmetric(horizontal: .01 * globals.size.width),
           color: Colors.transparent,
           height: widget.height,
           width: double.infinity,
           child: Column(
             children: [
               Transform.translate(
-                offset: Offset(0, _offset),
+                offset: Offset(0, _offset - .01 * globals.size.height),
                 child: Stack(
                   children: [
                     Transform.translate(
-                        offset: Offset(0, -postHeight),
+                        offset: Offset(0, -widget.postHeight),
                         child: widget.previousPostView),
                     Transform.translate(
-                        offset: Offset(0, postHeight),
+                        offset: Offset(0, widget.postHeight),
                         child: widget.nextPostView),
                     Transform.translate(
-                        offset: Offset(0, 2 * postHeight),
+                        offset: Offset(0, 2 * widget.postHeight),
                         child: widget.nextNextPostView),
                     Transform.translate(
                         offset: Offset(0, 0), child: widget.currentPostView),
@@ -285,10 +283,12 @@ class _PostListPageState extends State<PostListPage>
         if (_allowSwiping) {
           _stopSwiping = true;
           setState(() {
-            if ((_offset + value.delta.dy.toInt()).abs() < postHeight) {
+            if ((_offset + value.delta.dy.toInt()).abs() < widget.postHeight) {
               _offset += value.delta.dy.toInt();
             } else {
-              _offset = (value.delta.dy.toInt() < 0) ? -postHeight : postHeight;
+              _offset = (value.delta.dy.toInt() < 0)
+                  ? -widget.postHeight
+                  : widget.postHeight;
             }
           });
         }
@@ -297,7 +297,7 @@ class _PostListPageState extends State<PostListPage>
         if (_allowSwiping) {
           _stopSwiping = false;
           double _velocity = value.primaryVelocity;
-          double _cutoff = .08 * postHeight;
+          double _cutoff = .08 * widget.postHeight;
 
           if (_offset < -_cutoff &&
               _velocity <= 0 &&
@@ -332,8 +332,7 @@ class _PostListPageState extends State<PostListPage>
   }
 
   Future<void> _swipeUp(PostListProvider provider, double velocity) async {
-    double postHeight = widget.postHeightFraction * widget.height;
-    await _swipeToPosition(postHeight, 1, velocity);
+    await _swipeToPosition(widget.postHeight, 1, velocity);
     if (_stopSwiping == false) {
       provider.moveDown();
       _allowSwiping = false;
@@ -341,8 +340,7 @@ class _PostListPageState extends State<PostListPage>
   }
 
   Future<void> _swipeDown(PostListProvider provider, double velocity) async {
-    double postHeight = widget.postHeightFraction * widget.height;
-    await _swipeToPosition(-postHeight, -1, velocity);
+    await _swipeToPosition(-widget.postHeight, -1, velocity);
     if (_stopSwiping == false) {
       provider.moveUp();
       _allowSwiping = false;

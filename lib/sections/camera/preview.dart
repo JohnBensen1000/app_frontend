@@ -17,10 +17,10 @@ import '../../widgets/generic_alert_dialog.dart';
 import '../../widgets/loading_icon.dart';
 import '../../widgets/post_caption.dart';
 import '../../widgets/reactive_button.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 import 'camera.dart';
 import 'chat_list.dart';
-import 'widgets/button.dart';
 
 class PreviewProvider extends ChangeNotifier {
   // Contains all data for the preview page. Has two booleans: isAddingCaption
@@ -70,6 +70,7 @@ class Preview extends StatefulWidget {
       @required this.isImage,
       @required this.cameraUsage,
       @required this.file,
+      @required this.cameraAspectRatio,
       this.chat});
 
   final CameraController controller;
@@ -77,6 +78,7 @@ class Preview extends StatefulWidget {
   final CameraUsage cameraUsage;
   final File file;
   final Chat chat;
+  final double cameraAspectRatio;
 
   @override
   _PreviewState createState() => _PreviewState();
@@ -85,8 +87,6 @@ class Preview extends StatefulWidget {
 class _PreviewState extends State<Preview> {
   @override
   Widget build(BuildContext context) {
-    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-
     return ChangeNotifierProvider(
         create: (context) => PreviewProvider(
             controller: widget.controller,
@@ -95,16 +95,16 @@ class _PreviewState extends State<Preview> {
             file: widget.file,
             chat: widget.chat),
         child: Consumer<PreviewProvider>(builder: (context, provider, child) {
-          return Scaffold(
-            body: Stack(alignment: Alignment.bottomCenter, children: [
-              GestureDetector(
-                  child: PreviewView(),
-                  onTap: () => provider.isAddingCaption = false),
-              if (provider.isAddingCaption == false)
-                PreviewOptions()
-              else
-                AddCaption(),
-            ]),
+          return EntropyScaffold(
+            backgroundWidget: GestureDetector(
+                child: PreviewView(cameraAspectRatio: widget.cameraAspectRatio),
+                onTap: () => provider.isAddingCaption = false),
+            body: Container(
+              alignment: Alignment.bottomCenter,
+              child: provider.isAddingCaption == false
+                  ? PreviewOptions()
+                  : AddCaption(),
+            ),
           );
         }));
   }
@@ -114,37 +114,61 @@ class PreviewView extends StatelessWidget {
   // Displays the post preview in a rectangular container with rounded corners.
 
   const PreviewView({
+    @required this.cameraAspectRatio,
     Key key,
   }) : super(key: key);
+
+  final double cameraAspectRatio;
 
   @override
   Widget build(BuildContext context) {
     PreviewProvider provider =
         Provider.of<PreviewProvider>(context, listen: false);
-    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
-    return Center(
-      child: Stack(alignment: Alignment.center, children: <Widget>[
-        Container(
-            height: globals.size.height,
-            width: globals.size.width,
-            child: (provider.isImage)
-                ? provider.isAddingCaption == false
-                    ? Container(
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                                fit: BoxFit.fitHeight,
-                                image: Image.file(
-                                  provider.file,
-                                ).image)))
-                    : FittedBox(
-                        fit: BoxFit.cover,
-                        child: Image.file(
-                          provider.file,
-                        ))
-                : VideoPreview()),
-      ]),
-    );
+    if (provider.isImage == false) {
+      return VideoPreview();
+    }
+
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+
+    BoxFit fit = BoxFit.fitHeight;
+    if (cameraAspectRatio > 1) {
+      if (height / width < cameraAspectRatio) {
+        fit = BoxFit.fitWidth;
+      }
+    } else {
+      if (width / height > cameraAspectRatio) {
+        fit = BoxFit.fitWidth;
+      }
+    }
+
+    return Container(
+        height: height,
+        width: width,
+        child: FittedBox(
+            fit: fit,
+            child: Container(
+                height: height,
+                width: height / cameraAspectRatio,
+                child: Container(
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                            fit: BoxFit.fitWidth,
+                            image: Image.file(
+                              provider.file,
+                            ).image))))));
+
+    // return Container(
+    //     child: (provider.isImage)
+    //         ? Container(
+    //             decoration: BoxDecoration(
+    //                 image: DecorationImage(
+    //                     fit: BoxFit.fitWidth,
+    //                     image: Image.file(
+    //                       provider.file,
+    //                     ).image)))
+    //         : VideoPreview());
   }
 }
 
@@ -208,6 +232,7 @@ class _PreviewOptionsState extends State<PreviewOptions> {
         top: .08 * globals.size.height,
         left: .06 * globals.size.width,
         right: .06 * globals.size.width,
+        bottom: .08 * globals.size.height,
       ),
       child:
           Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -230,7 +255,7 @@ class _PreviewOptionsState extends State<PreviewOptions> {
                       : Container()),
               onTap: () => provider.isAddingCaption = true,
             ),
-            PreviewButtons(height: .15 * globals.size.height),
+            PreviewButtons(height: .1 * globals.size.height),
           ],
         )
       ]),
@@ -319,9 +344,8 @@ class PreviewButtons extends StatelessWidget {
         return Container(
           alignment: Alignment.topCenter,
           height: height,
-          padding: EdgeInsets.only(bottom: .08 * globals.size.height),
           child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 if ((cameraUsage == CameraUsage.post ||
                     cameraUsage == CameraUsage.profile))
@@ -495,8 +519,6 @@ class PreviewButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(
-            right: .01 * globals.size.width, left: .01 * globals.size.height),
         height: .07 * globals.size.height,
         width: .25 * globals.size.width,
         decoration: BoxDecoration(

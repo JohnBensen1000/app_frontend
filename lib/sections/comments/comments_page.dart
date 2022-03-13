@@ -7,8 +7,9 @@ import '../../widgets/generic_alert_dialog.dart';
 import '../../models/post.dart';
 import '../../models/comment.dart';
 import '../../repositories/comments.dart';
-
 import '../post/post_widget.dart';
+
+import '../../widgets/entropy_scaffold.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'widgets/comment_widget.dart';
@@ -62,51 +63,51 @@ class _CommentsPageState extends State<CommentsPage> {
   Widget build(BuildContext context) {
     double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     double height = MediaQuery.of(context).size.height - keyboardHeight;
-    double width = MediaQuery.of(context).size.height;
 
     double headerHeight = .16 * height;
     double footerHeight = .14 * height;
 
-    return Scaffold(
+    return EntropyScaffold(
+        backgroundWidget: PostWidget(
+          post: widget.post,
+          height: MediaQuery.of(context).size.height,
+          aspectRatio: MediaQuery.of(context).size.height /
+              MediaQuery.of(context).size.width,
+          cornerRadiusFraction: 0,
+        ),
+        hidePostWithOpacity: true,
         body: ChangeNotifierProvider(
-            create: (context) => CommentsPageProvider(
-                post: widget.post,
-                commentsList: widget.commentsList,
-                repository: widget.repository,
-                parentComment: widget.parentComment),
-            child: Stack(children: <Widget>[
-              PostWidget(
-                post: widget.post,
-                height: height,
-                aspectRatio: height / width,
-                cornerRadiusFraction: 0,
-              ),
-              Container(
-                width: width,
-                height: height,
-                color: Colors.white.withOpacity(.7),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: double.infinity,
-                  ),
-                  CommentsPageHeader(
-                    height: headerHeight,
-                  ),
-                  CommentsPageBody(
-                    height: height - headerHeight - footerHeight,
-                    parentCommentOffset: (widget.parentComment != null)
-                        ? widget.parentComment.level + 1
-                        : 0,
-                  ),
-                  CommentsPageFooter(
-                    height: footerHeight,
-                  )
-                ],
-              ),
-            ])));
+          create: (context) => CommentsPageProvider(
+              post: widget.post,
+              commentsList: widget.commentsList,
+              repository: widget.repository,
+              parentComment: widget.parentComment),
+          child: Container(
+            padding: EdgeInsets.only(
+                left: .01 * globals.size.width,
+                right: .01 * globals.size.width),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: double.infinity,
+                ),
+                CommentsPageHeader(
+                  height: headerHeight,
+                ),
+                CommentsPageBody(
+                  height: height - headerHeight - footerHeight,
+                  parentCommentOffset: (widget.parentComment != null)
+                      ? widget.parentComment.level + 1
+                      : 0,
+                ),
+                CommentsPageFooter(
+                  height: footerHeight,
+                )
+              ],
+            ),
+          ),
+        ));
   }
 }
 
@@ -125,15 +126,12 @@ class CommentsPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: height,
-      padding: EdgeInsets.only(bottom: .01 * globals.size.height),
       child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             GestureDetector(
-              child: Container(
-                  margin: EdgeInsets.only(left: .0513 * globals.size.width),
-                  child: BackArrow()),
+              child: BackArrow(),
               onTap: () => Navigator.pop(context),
             ),
           ],
@@ -254,7 +252,7 @@ class _CommentsPageFooterState extends State<CommentsPageFooter> {
           child: TextFormField(
             style: TextStyle(
               fontFamily: 'SF Pro Text',
-              fontSize: .025 * globals.size.height,
+              fontSize: .03 * globals.size.height,
               color: const Color(0x69000000),
             ),
             decoration: InputDecoration(

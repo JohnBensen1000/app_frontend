@@ -64,6 +64,7 @@ class _LifeCycleState extends State<LifeCycle> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // return MaterialApp();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Welcome(),

@@ -6,6 +6,7 @@ import '../../globals.dart' as globals;
 import '../../models/post.dart';
 import '../../models/comment.dart';
 import '../../repositories/comments.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'widgets/comment_widget.dart';
@@ -70,14 +71,12 @@ class _CommentsState extends State<Comments> {
     return ChangeNotifierProvider(
         create: (context) =>
             CommentsProvider(repository: repository, post: widget.post),
-        child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Column(
-              children: <Widget>[
-                CommentsSection(height: .82 * widget.height),
-                AddComment(height: .18 * widget.height),
-              ],
-            )));
+        child: Column(
+          children: <Widget>[
+            CommentsSection(height: .82 * widget.height),
+            AddComment(height: .18 * widget.height),
+          ],
+        ));
   }
 }
 
@@ -99,7 +98,10 @@ class CommentsSection extends StatelessWidget {
 
     return Container(
       height: height,
-      padding: EdgeInsets.only(top: .025 * globals.size.height),
+      padding: EdgeInsets.only(
+          top: .025 * globals.size.height,
+          left: .01 * globals.size.width,
+          right: .01 * globals.size.width),
       child: MediaQuery.removePadding(
         context: context,
         removeTop: true,

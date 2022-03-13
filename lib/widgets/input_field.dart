@@ -47,10 +47,12 @@ class InputField {
 }
 
 class InputFieldWidget extends StatefulWidget {
-  InputFieldWidget({@required this.inputField, this.child});
+  InputFieldWidget(
+      {@required this.inputField, this.child, @required this.widthFraction});
 
   final InputField inputField;
   final Widget child;
+  final double widthFraction;
 
   @override
   State<InputFieldWidget> createState() => _InputFieldWidgetState();
@@ -73,6 +75,7 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
         TextInputWidget(
             textEditingController: widget.inputField.textEditingController,
             obscureText: widget.inputField.obscureText,
+            widthFraction: widget.widthFraction,
             hintText: widget.inputField.hintText)
       else
         TextFormField(

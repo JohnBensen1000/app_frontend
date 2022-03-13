@@ -6,6 +6,7 @@ import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
 import '../../models/user.dart';
 import '../../models/post.dart';
+import '../../widgets/entropy_scaffold.dart';
 
 import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
@@ -116,7 +117,7 @@ class ProfilePage extends StatelessWidget {
         create: (context) => ProfilePageProvider(
               user: user,
             ),
-        child: Scaffold(
+        child: EntropyScaffold(
             body: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
@@ -126,8 +127,7 @@ class ProfilePage extends StatelessWidget {
                 ProfilePostBody(
                     user: user,
                     height: bodyHeight,
-                    sidePadding: .05 * globals.size.width,
-                    betweenPadding: .01 * globals.size.width),
+                    betweenPadding: .015 * globals.size.width),
               ],
             ),
             drawer: Container(
@@ -150,17 +150,13 @@ class ProfilePageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         padding: EdgeInsets.only(
-            bottom: .02 * globals.size.height, top: .045 * globals.size.height),
+            bottom: .02 * globals.size.height, top: .055 * globals.size.height),
         height: height,
         child: Consumer<ProfilePageProvider>(
             builder: (context, provider, child) => Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: EdgeInsets.only(
-                        top: .01 * globals.size.height,
-                        left: .06 * globals.size.width,
-                      ),
                       child: Row(
                         children: <Widget>[
                           GestureDetector(
@@ -228,7 +224,7 @@ class ProfilePageHeader extends StatelessWidget {
     return GestureDetector(
         child: ProfilePageHeaderButton(
           width: .32 * globals.size.width,
-          name: "Edit Profile",
+          name: "Settings",
           color: Colors.transparent,
           borderColor: Provider.of<ProfilePageProvider>(context, listen: false)
               .user
@@ -271,14 +267,12 @@ class ProfilePostBody extends StatelessWidget {
   ProfilePostBody({
     @required this.user,
     @required this.height,
-    @required this.sidePadding,
     @required this.betweenPadding,
     this.rowSize = 3,
   });
 
   final User user;
   final double height;
-  final double sidePadding;
   final double betweenPadding;
   final int rowSize;
 
@@ -291,17 +285,14 @@ class ProfilePostBody extends StatelessWidget {
         List<Widget> profilePostsList =
             _getProfilePostsList(context, provider.postsList);
 
-        return Padding(
-          padding: EdgeInsets.only(left: sidePadding, right: sidePadding),
-          child: SizedBox(
-            height: height,
-            child: new ListView.builder(
-              padding: EdgeInsets.only(top: .01 * globals.size.height),
-              itemCount: profilePostsList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return profilePostsList[index];
-              },
-            ),
+        return SizedBox(
+          height: height,
+          child: new ListView.builder(
+            padding: EdgeInsets.only(top: .01 * globals.size.height),
+            itemCount: profilePostsList.length,
+            itemBuilder: (BuildContext context, int index) {
+              return profilePostsList[index];
+            },
           ),
         );
       }
@@ -313,11 +304,10 @@ class ProfilePostBody extends StatelessWidget {
     // widget in the return list is a large ProfilePostWidget(). The remaining
     // posts are broken up into rows of rowSize (int) ProfilePostWidget().
 
-    double width = MediaQuery.of(context).size.width;
-    double mainPostHeight = (width - 2 * sidePadding) / globals.goldenRatio;
+    double width = .98 * globals.size.width;
+    double mainPostHeight = width / globals.goldenRatio;
     double bodyPostHeight =
-        (((width - 2 * sidePadding) / rowSize) - betweenPadding) *
-            globals.goldenRatio;
+        ((width / rowSize) - betweenPadding) * globals.goldenRatio;
 
     List<Widget> profilePosts = [
       Padding(
@@ -351,18 +341,21 @@ class ProfilePostBody extends StatelessWidget {
     int i = 1;
 
     while ((i < postList.length) || ((i - 1) % rowSize != 0)) {
+      double height = postHeight;
+      // width of post is 1/3 of total width minus white space (padding)
+      double width = (.98 * globals.size.width - 2 * betweenPadding) / 3;
+
       if (i < postList.length) {
-        Post post = postList[i];
         subPostsList.add(ProfilePostWidget(
             post: postList[i],
             height: postHeight,
-            aspectRatio: globals.goldenRatio,
+            aspectRatio: height / width,
             key: UniqueKey()));
       } else {
         subPostsList.add(
           Container(
-            height: postHeight,
-            width: postHeight / globals.goldenRatio,
+            height: height,
+            width: width,
           ),
         );
       }
@@ -402,7 +395,7 @@ class _ProfilePostWidgetState extends State<ProfilePostWidget>
         child: PostWidget(
           post: widget.post,
           height: widget.height,
-          aspectRatio: widget.aspectRatio,
+          aspectRatio: 1.02 * widget.aspectRatio,
           playVideo: false,
         ),
         onTap: () => Navigator.push(

@@ -45,7 +45,7 @@ class _SignUpPhonePageState extends State<SignUpPhonePage> {
         pageNum: 1,
         key: UniqueKey(),
         headerText: "Enter Your\nPhone\nNumber",
-        child: InputFieldWidget(inputField: _inputField),
+        child: InputFieldWidget(inputField: _inputField, widthFraction: 1.0),
         onTap: _verifyPhone);
   }
 
@@ -176,7 +176,11 @@ class _SignUpPhoneVerifyPageState extends State<SignUpPhoneVerifyPage> {
         key: UniqueKey(),
         headerText: "Enter\nSix Digit\nVerification\nCode",
         child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-          InputFieldWidget(inputField: _inputField, child: Container()),
+          InputFieldWidget(
+            inputField: _inputField,
+            child: Container(),
+            widthFraction: 1.0,
+          ),
           GestureDetector(
               child: Text(
                 "resend code",
