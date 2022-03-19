@@ -311,11 +311,11 @@ class ActivityNewFollowerWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               GestureDetector(
-                  child: _acceptDeclineButton(.06 * globals.size.height,
+                  child: _acceptDeclineButton(.05 * globals.size.height,
                       "Follow Back", const Color(0xff22a2ff)),
                   onTap: () => provider.followBack(snapshot)),
               GestureDetector(
-                  child: _acceptDeclineButton(.06 * globals.size.height,
+                  child: _acceptDeclineButton(.05 * globals.size.height,
                       "Don't Follow Back", const Color(0xffff0000)),
                   onTap: () => provider.saveDontFollowBack(snapshot)),
             ],
@@ -329,6 +329,7 @@ class ActivityNewFollowerWidget extends StatelessWidget {
     return Container(
       width: height,
       height: height,
+      margin: EdgeInsets.only(left: .01 * globals.size.width),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(.0154 * globals.size.height),
         color: color,
@@ -338,8 +339,7 @@ class ActivityNewFollowerWidget extends StatelessWidget {
           child: Text(name,
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: Colors.white,
-                  fontSize: .0142 * globals.size.height)))),
+                  color: Colors.white, fontSize: .012 * globals.size.height)))),
     );
   }
 }

@@ -64,9 +64,10 @@ class CameraProvider extends ChangeNotifier {
   void toggleCamera() {
     // Changes the camera index and sets cameraControllerFuture to the correct
     // camera future.
+    print(" [DEBUG] toggling...");
     _cameraIndex = (_cameraIndex + 1) % 2;
     cameraControllerFuture = _getCameraControllerFuture(_cameraIndex);
-
+    print(" [DEBUG] Notifying listeners");
     notifyListeners();
   }
 
@@ -191,15 +192,16 @@ class Camera extends StatelessWidget {
         future: _getPermissions(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData &&
               snapshot.hasData) {
             return ChangeNotifierProvider(
                 create: (_) =>
                     CameraProvider(cameraUsage: cameraUsage, chat: chat),
-                child: EntropyScaffold(
-                  backgroundWidget: CameraView(),
-                  body: CameraOptions(cameraUsage: cameraUsage, chat: chat),
-                ));
+                child: Consumer<CameraProvider>(
+                    builder: (context, provider, child) => EntropyScaffold(
+                          backgroundWidget: CameraView(),
+                          body: CameraOptions(
+                              cameraUsage: cameraUsage, chat: chat),
+                        )));
           } else {
             return Container();
           }
@@ -291,100 +293,103 @@ class CameraOptions extends StatefulWidget {
 class _CameraOptionsState extends State<CameraOptions> {
   @override
   Widget build(BuildContext context) {
-    return Consumer<CameraProvider>(
-        builder: (context, provider, child) => Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.width,
+    CameraProvider provider =
+        Provider.of<CameraProvider>(context, listen: false);
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+        ),
+        Container(
+          height: globals.size.height,
+          width: globals.size.width,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: EdgeInsets.only(
+                  top: .06 * globals.size.height,
+                  left: .04 * globals.size.width,
+                  right: .04 * globals.size.width,
                 ),
-                Container(
-                  height: globals.size.height,
-                  width: globals.size.width,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                        child: BackArrow(color: Colors.white),
+                        onTap: () => Navigator.pop(context)),
+                    Column(
+                      children: [
+                        ReactiveButton(child: _flashButton()),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.only(bottom: .06 * globals.size.height),
+                child: Column(children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: EdgeInsets.only(
-                          top: .06 * globals.size.height,
-                          left: .04 * globals.size.width,
-                          right: .04 * globals.size.width,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GestureDetector(
-                                child: BackArrow(color: Colors.white),
-                                onTap: () => Navigator.pop(context)),
-                            Column(
-                              children: [
-                                ReactiveButton(child: _flashButton()),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding:
-                            EdgeInsets.only(bottom: .06 * globals.size.height),
-                        child: Column(children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                  width: .26 * globals.size.width,
-                                  child: Center(
-                                    child: ReactiveButton(
-                                        child: SvgPicture.asset(
-                                          "assets/images/flip_camera.svg",
-                                          height: .07 * globals.size.height,
-                                        ),
-                                        onTap: provider.toggleCamera),
-                                  )),
-                              Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: .02 * globals.size.width),
-                                  child: PostButton(
-                                      diameter: .12 * globals.size.height)),
-                              Container(
-                                width: .26 * globals.size.width,
-                                child: Center(
-                                  child: ReactiveButton(
-                                      child: provider.isTimerOn
-                                          ? SvgPicture.asset(
-                                              "assets/images/timer_icon.svg",
-                                              height: .07 * globals.size.height,
-                                            )
-                                          : SvgPicture.asset(
-                                              "assets/images/timer_icon_off.svg",
-                                              height: .07 * globals.size.height,
-                                            ),
-                                      onTap: provider.toggleTimer),
+                          width: .26 * globals.size.width,
+                          child: Center(
+                            child: ReactiveButton(
+                                child: SvgPicture.asset(
+                                  "assets/images/flip_camera.svg",
+                                  height: .07 * globals.size.height,
                                 ),
-                              )
-                            ],
-                          ),
-                          Container(
-                              padding: EdgeInsets.only(
-                                  top: .02 * globals.size.height),
-                              child: Text("Hold down to record video",
-                                  style: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontSize: .016 * globals.size.height)))
-                        ]),
-                      ),
+                                onTap: () {
+                                  print(" [DEBUG] tapped");
+                                  provider.toggleCamera();
+                                }),
+                          )),
+                      Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: .02 * globals.size.width),
+                          child:
+                              PostButton(diameter: .12 * globals.size.height)),
+                      Container(
+                        width: .26 * globals.size.width,
+                        child: Center(
+                          child: ReactiveButton(
+                              child: provider.isTimerOn
+                                  ? SvgPicture.asset(
+                                      "assets/images/timer_icon.svg",
+                                      height: .07 * globals.size.height,
+                                    )
+                                  : SvgPicture.asset(
+                                      "assets/images/timer_icon_off.svg",
+                                      height: .07 * globals.size.height,
+                                    ),
+                              onTap: provider.toggleTimer),
+                        ),
+                      )
                     ],
                   ),
-                ),
-                Container(
-                    child: Center(
-                        child: Text(provider.timerString,
-                            style: TextStyle(
-                                fontSize: .35 * globals.size.height,
-                                color: Colors.white))))
-              ],
-            ));
+                  Container(
+                      padding: EdgeInsets.only(top: .02 * globals.size.height),
+                      child: Text("Hold down to record video",
+                          style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: .016 * globals.size.height)))
+                ]),
+              ),
+            ],
+          ),
+        ),
+        Container(
+            child: Center(
+                child: Text(provider.timerString,
+                    style: TextStyle(
+                        fontSize: .35 * globals.size.height,
+                        color: Colors.white))))
+      ],
+    );
   }
 
   Widget _flashButton() {

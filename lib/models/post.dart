@@ -11,6 +11,7 @@ class Post {
   bool isImage;
   String downloadURL;
   String caption;
+  String dateFormatted;
 
   Post(
       {this.creator,
@@ -25,6 +26,7 @@ class Post {
     this.isImage = postJson["isImage"];
     this.downloadURL = postJson["downloadURL"];
     this.caption = postJson["caption"];
+    this.dateFormatted = postJson["date"];
   }
 
   Post.fromChatItem(ChatItem chatItem) {

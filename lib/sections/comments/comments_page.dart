@@ -68,13 +68,18 @@ class _CommentsPageState extends State<CommentsPage> {
     double footerHeight = .14 * height;
 
     return EntropyScaffold(
-        backgroundWidget: PostWidget(
-          post: widget.post,
-          height: MediaQuery.of(context).size.height,
-          aspectRatio: MediaQuery.of(context).size.height /
-              MediaQuery.of(context).size.width,
-          cornerRadiusFraction: 0,
-        ),
+        backgroundWidget: Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            child: FittedBox(
+                fit: BoxFit.fitWidth,
+                child: PostWidget(
+                  post: widget.post,
+                  height: MediaQuery.of(context).size.height,
+                  aspectRatio: MediaQuery.of(context).size.height /
+                      MediaQuery.of(context).size.width,
+                  cornerRadiusFraction: 0,
+                ))),
         hidePostWithOpacity: true,
         body: ChangeNotifierProvider(
           create: (context) => CommentsPageProvider(

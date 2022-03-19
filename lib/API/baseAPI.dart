@@ -44,7 +44,7 @@ class BaseAPI {
   }
 
   Future<dynamic> delete(String url, [Map postBody]) async {
-    return handleResponse(http.delete(Uri.http(baseURL, url),
+    return handleResponse(http.delete(Uri.https(baseURL, url),
         body: json.encode(postBody), headers: {'uid': globals.uid}));
   }
 

@@ -304,13 +304,13 @@ class HomePageHeaderNavigator extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            width: .65 * globals.size.width,
+            width: .7 * globals.size.width,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Container(
                   alignment: Alignment.center,
-                  width: .2 * globals.size.width,
+                  width: .225 * globals.size.width,
                   child: _navigationButton(
                     "Following",
                     PageLabel.following,
@@ -318,7 +318,7 @@ class HomePageHeaderNavigator extends StatelessWidget {
                 ),
                 Container(
                   alignment: Alignment.center,
-                  width: .2 * globals.size.width,
+                  width: .225 * globals.size.width,
                   child: _navigationButton(
                     "Discover",
                     PageLabel.discover,
@@ -326,7 +326,7 @@ class HomePageHeaderNavigator extends StatelessWidget {
                 ),
                 Container(
                     alignment: Alignment.center,
-                    width: .2 * globals.size.width,
+                    width: .225 * globals.size.width,
                     child: _navigationButton(
                       "Friends",
                       PageLabel.friends,
@@ -341,7 +341,7 @@ class HomePageHeaderNavigator extends StatelessWidget {
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        width: .65 * globals.size.width,
+                        width: .68 * globals.size.width,
                         height: .01 * globals.size.height,
                         decoration: BoxDecoration(
                           borderRadius:
@@ -354,12 +354,12 @@ class HomePageHeaderNavigator extends StatelessWidget {
                       Transform.translate(
                           offset: Offset(
                               max(-1.0, min(-provider.offset, 1.0)) *
-                                  .23 *
+                                  .24 *
                                   (globals.size.width - 12),
                               0),
                           child: Container(
                             height: .00829 * globals.size.height,
-                            width: .2 * globals.size.width,
+                            width: .21 * globals.size.width,
                             decoration: BoxDecoration(
                                 color: Colors.black,
                                 borderRadius:
@@ -386,7 +386,7 @@ class HomePageHeaderNavigator extends StatelessWidget {
               pageName,
               style: TextStyle(
                 fontFamily: '.AppleSystemUIFont',
-                fontSize: .0178 * globals.size.height,
+                fontSize: .0172 * globals.size.height,
                 color: textColor,
               ),
               textAlign: TextAlign.left,

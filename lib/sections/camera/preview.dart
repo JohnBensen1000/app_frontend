@@ -87,6 +87,8 @@ class Preview extends StatefulWidget {
 class _PreviewState extends State<Preview> {
   @override
   Widget build(BuildContext context) {
+    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
     return ChangeNotifierProvider(
         create: (context) => PreviewProvider(
             controller: widget.controller,
@@ -97,7 +99,9 @@ class _PreviewState extends State<Preview> {
         child: Consumer<PreviewProvider>(builder: (context, provider, child) {
           return EntropyScaffold(
             backgroundWidget: GestureDetector(
-                child: PreviewView(cameraAspectRatio: widget.cameraAspectRatio),
+                child: PreviewView(
+                    cameraAspectRatio: widget.cameraAspectRatio,
+                    keyboardHeight: keyboardHeight),
                 onTap: () => provider.isAddingCaption = false),
             body: Container(
               alignment: Alignment.bottomCenter,
@@ -115,21 +119,22 @@ class PreviewView extends StatelessWidget {
 
   const PreviewView({
     @required this.cameraAspectRatio,
+    @required this.keyboardHeight,
     Key key,
   }) : super(key: key);
 
   final double cameraAspectRatio;
+  final double keyboardHeight;
 
   @override
   Widget build(BuildContext context) {
     PreviewProvider provider =
         Provider.of<PreviewProvider>(context, listen: false);
-
     if (provider.isImage == false) {
       return VideoPreview();
     }
 
-    double height = MediaQuery.of(context).size.height;
+    double height = MediaQuery.of(context).size.height - keyboardHeight;
     double width = MediaQuery.of(context).size.width;
 
     BoxFit fit = BoxFit.fitHeight;

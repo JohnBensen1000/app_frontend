@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'dart:math';
 
 import '../../globals.dart' as globals;
 import '../../models/post.dart';
@@ -21,6 +22,7 @@ class PostWidget extends StatelessWidget {
       {@required this.post,
       @required this.height,
       @required this.aspectRatio,
+      this.showComments = false,
       this.commentsHeightFraction = .65,
       this.playWithVolume = true,
       this.playVideo = true,
@@ -33,6 +35,7 @@ class PostWidget extends StatelessWidget {
   final bool playWithVolume;
   final bool playVideo;
   final bool showCaption;
+  final bool showComments;
   final double cornerRadiusFraction;
   final double commentsHeightFraction;
 
@@ -100,12 +103,13 @@ class PostWidget extends StatelessWidget {
               ],
             ),
             if (showCaption)
-              PostWidgetCaption(
+              PostWidgetFooter(
                 text: post.caption,
                 width: width,
                 height: height,
                 post: post,
                 commentsHeightFraction: commentsHeightFraction,
+                showComments: showComments,
               ),
           ],
         ),
@@ -318,106 +322,203 @@ class _ThumbnailContainerState extends State<ThumbnailContainer> {
   }
 }
 
-class PostWidgetCaption extends StatefulWidget {
-  const PostWidgetCaption(
+class PostWidgetFooter extends StatefulWidget {
+  const PostWidgetFooter(
       {@required this.text,
       @required this.width,
       @required this.height,
       @required this.commentsHeightFraction,
-      @required this.post});
+      @required this.post,
+      this.showComments = false});
 
   final String text;
   final double width;
   final double height;
   final Post post;
+  final bool showComments;
   final double commentsHeightFraction;
 
   @override
-  State<PostWidgetCaption> createState() => _PostWidgetCaptionState();
+  State<PostWidgetFooter> createState() => _PostWidgetFooterState();
 }
 
-class _PostWidgetCaptionState extends State<PostWidgetCaption> {
-  bool showCaption;
+class _PostWidgetFooterState extends State<PostWidgetFooter> {
+  bool _showCaption;
+  String _text;
 
   @override
   void initState() {
     super.initState();
-    showCaption = true;
+    _showCaption = true;
+    if (widget.showComments) {
+      // opens comments after build is finished
+      WidgetsBinding.instance.addPostFrameCallback((_) => _openComments());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (showCaption == false) {
+    if (_showCaption == false) {
       return Container();
     }
 
+    int _numLines = _createAndCountNewlines();
+
+    double _height = max((.038 * _numLines), .12) * widget.height;
+    double _padding = .02 * widget.width;
+    double _captionsButtonWidth = .14 * globals.size.width;
+    double _captionsTextWidth =
+        widget.width - 3 * _padding - _captionsButtonWidth;
+    double _captionsTextVerticalPadding = .01 * widget.height;
+    double _captionsTextHorizontalPadding = .005 * widget.height;
+
+    double _fontSize = .025 * widget.height;
+
     return Container(
-      padding: EdgeInsets.all(.025 * widget.width),
+      padding: EdgeInsets.all(_padding),
       child: Stack(
         children: [
-          if (widget.post.caption != null && widget.post.caption != "")
-            Container(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                width: .775 * widget.width,
-                height: .12 * widget.height,
-                padding: EdgeInsets.symmetric(
-                    horizontal: .04 * globals.size.width,
-                    vertical: .01 * globals.size.height),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(.4),
-                  borderRadius: BorderRadius.all(Radius.circular(15)),
-                ),
+          Container(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: EdgeInsets.only(
+                top: _captionsTextVerticalPadding,
+                bottom: _captionsTextVerticalPadding,
+              ),
+              width: (widget.post.caption != null && widget.post.caption != "")
+                  ? _captionsTextWidth
+                  : _captionsButtonWidth,
+              height: _height,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(.4),
+                borderRadius: BorderRadius.all(Radius.circular(15)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                      width: _captionsButtonWidth,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: .05 * _height,
+                              ),
+                              width: .5 * _captionsButtonWidth,
+                              child: Image.asset("assets/images/calender.png")),
+                          if (widget.post.dateFormatted != null)
+                            Text(widget.post.dateFormatted,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'SF Pro Text',
+                                  fontSize: .65 * _fontSize,
+                                  color: Colors.white,
+                                ))
+                        ],
+                      )),
+                  if (widget.post.caption != null && widget.post.caption != "")
+                    Container(
+                      width: _captionsTextWidth -
+                          _captionsButtonWidth -
+                          2 * _captionsTextHorizontalPadding,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: _captionsTextHorizontalPadding),
+                      child: Center(
+                        child: Text(_text,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'SF Pro Text',
+                              fontSize: _fontSize,
+                              color: Colors.white,
+                            )),
+                      ),
+                    )
+                ],
               ),
             ),
-          if (widget.post.caption != null && widget.post.caption != "")
-            Container(
-                alignment: Alignment.center,
-                child: Container(
-                  padding: EdgeInsets.all(.025 * widget.width),
-                  child: Text(widget.text,
-                      style: TextStyle(
-                        fontFamily: 'SF Pro Text',
-                        fontSize: .018 * globals.size.height,
-                        color: Colors.white,
-                      )),
-                )),
-          Container(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-                child: Container(
-                    width: .15 * widget.width,
-                    height: .12 * widget.height,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(.4),
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
-                    ),
-                    child: Center(
-                        child: Transform.scale(
-                            scale: 1.5,
-                            child: SvgPicture.asset(
-                                "assets/images/comments.svg")))),
-                onTap: () {
-                  setState(() {
-                    showCaption = false;
-                  });
-                  Navigator.of(context)
-                      .push(PageRouteBuilder(
-                          opaque: false,
-                          pageBuilder: (_, __, ___) => CommentsSnackBar(
-                              post: widget.post,
-                              commentsHeightFraction:
-                                  widget.commentsHeightFraction)))
-                      .then((_) {
-                    setState(() {
-                      showCaption = true;
-                    });
-                  });
-                }),
           ),
+          Container(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                  child: Container(
+                      width: _captionsButtonWidth,
+                      height: _height,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(.4),
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                      ),
+                      child: Center(
+                          child: Transform.scale(
+                              scale: 1.5,
+                              child: SvgPicture.asset(
+                                  "assets/images/comments.svg")))),
+                  onTap: () => _openComments())),
         ],
       ),
     );
+  }
+
+  void _openComments() {
+    setState(() {
+      _showCaption = false;
+    });
+    Navigator.of(context)
+        .push(PageRouteBuilder(
+            opaque: false,
+            pageBuilder: (_, __, ___) => CommentsSnackBar(
+                post: widget.post,
+                commentsHeightFraction: widget.commentsHeightFraction)))
+        .then((_) {
+      setState(() {
+        _showCaption = true;
+      });
+    });
+  }
+
+  int _createAndCountNewlines() {
+    if (widget.text == "" || widget.text == null) {
+      return 0;
+    }
+
+    const _maxCharsPerLine = 22;
+
+    int _lineSize = 0;
+    String _tempText = "";
+    List<String> _lines = widget.text.split("\n");
+    int _numLines = _lines.length;
+
+    for (int i = 0; i < _lines.length; i++) {
+      List<String> _words = _lines[i].split(" ");
+      _lineSize = 0;
+
+      for (int j = 0; j < _words.length; j++) {
+        // if new word makes the current line exceed limit, create new line.
+        if (_lineSize + _words[j].length + 1 >= _maxCharsPerLine) {
+          if (_tempText != "") {
+            _tempText += "\n";
+            _numLines += 1;
+          }
+          _lineSize = 0;
+        }
+
+        // splits up one word into multiple lines to make it fit.
+        while (_words[j].length >= _maxCharsPerLine) {
+          _tempText += _words[j].substring(0, _maxCharsPerLine) + "\n";
+          _words[i] = _words[j].substring(_maxCharsPerLine, _words[j].length);
+          _numLines += 1;
+        }
+
+        // adds word to current line
+        _tempText += _words[j] + " ";
+        _lineSize += _words[j].length;
+      }
+      _tempText += "\n";
+    }
+
+    _text = _tempText;
+
+    return _numLines;
   }
 }
 

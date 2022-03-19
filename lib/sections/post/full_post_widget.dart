@@ -72,6 +72,7 @@ class _FullPostWidgetState extends State<FullPostWidget> {
                   height: widget.height,
                   aspectRatio: widget.height / widget.width,
                   showCaption: widget.showCaption,
+                  showComments: widget.showComments,
                   playVideo: widget.playVideo,
                   commentsHeightFraction: widget.commentsHeightFraction,
                 ),

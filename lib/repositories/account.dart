@@ -39,7 +39,6 @@ class AccountRepository extends Repository<String> {
 
     globals.uid = uid;
     await globals.accountRepository.setUid(uid: uid);
-
     if (kIsWeb == false)
       await updateDeviceToken(await FirebaseMessaging.instance.getToken());
 
