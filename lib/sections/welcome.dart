@@ -31,6 +31,7 @@ class _WelcomeState extends State<Welcome> {
   void initState() {
     _registerNotificationsFuture = _registerNotifications();
     _signOutCallback();
+
     super.initState();
   }
 

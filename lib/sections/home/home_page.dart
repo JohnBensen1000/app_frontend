@@ -1,13 +1,19 @@
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../../API/methods/feeds.dart';
 import '../../repositories/post_list.dart';
 import '../feeds/following.dart';
-
+import '../../API/methods/posts.dart';
+import '../../models/post.dart';
+import '../../models/user.dart';
+import '../post/post_page.dart';
 import '../../globals.dart' as globals;
 import '../../models/user.dart';
 import '../../widgets/alert_circle.dart';
@@ -98,7 +104,7 @@ class _HomePageState extends State<HomePage> {
         new PostListRepository(function: getRecommendations);
     globals.followingPostsRepository =
         new PostListRepository(function: getFollowingPosts);
-
+    _listenForFirebaseMessages();
     super.initState();
   }
 
@@ -126,6 +132,46 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             )));
+  }
+
+  Future<void> _listenForFirebaseMessages() async {
+    await Firebase.initializeApp();
+
+    RemoteMessage initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
+    _handleFirebaseMessage(initialMessage);
+    FirebaseMessaging.onMessageOpenedApp
+        .listen((message) => _handleFirebaseMessage(message));
+  }
+
+  Future<void> _handleFirebaseMessage(RemoteMessage message) async {
+    if (message == null) {
+      return;
+    }
+    Map data = message.data;
+    globals.newActivityRepository.update();
+
+    switch (data["type"]) {
+      case "comment":
+        Post post = Post.fromJson(json.decode(data["data"])["post"]);
+
+        await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => PostPage(
+                      post: post,
+                      isFullPost: true,
+                      showComments: true,
+                    )));
+        break;
+      case "new_follower":
+      case "follower":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ActivityPage()),
+        );
+        break;
+    }
   }
 }
 
@@ -304,7 +350,7 @@ class HomePageHeaderNavigator extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            width: .7 * globals.size.width,
+            width: .68 * globals.size.width,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[

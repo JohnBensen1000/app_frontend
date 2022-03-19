@@ -28,6 +28,8 @@ Future<Map> postComment(
     "uid": globals.uid
   };
 
+  print(postBody);
+
   return await BaseAPI().post('v2/comments/$postID', postBody);
 }
 

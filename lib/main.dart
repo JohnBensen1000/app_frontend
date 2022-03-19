@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'sections/welcome.dart';
 
@@ -46,6 +49,7 @@ class _LifeCycleState extends State<LifeCycle> with WidgetsBindingObserver {
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+
     super.initState();
   }
 
