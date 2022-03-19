@@ -75,76 +75,79 @@ class _ActivityPageState extends State<ActivityPage> {
         body: ChangeNotifierProvider(
             create: (context) => ActivityProvider(),
             child: Consumer<ActivityProvider>(
-                builder: (context, provider, snapshot) => Column(
+                builder: (context, provider, snapshot) {
+              provider.setIsUpdated();
+
+              return Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.only(
+                        left: .03 * globals.size.height,
+                        right: .03 * globals.size.height),
+                    height: .15 * globals.size.height,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Container(
-                          padding: EdgeInsets.only(
-                              left: .03 * globals.size.height,
-                              right: .03 * globals.size.height),
-                          height: .15 * globals.size.height,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Row(
-                                children: [
-                                  GestureDetector(
-                                      child: BackArrow(),
-                                      onTap: () => Navigator.pop(context)),
-                                ],
-                              ),
-                              Center(
-                                child: Text("Activity",
-                                    style: TextStyle(
-                                        fontSize: .05 * globals.size.height)),
-                              )
-                            ],
-                          ),
+                        Row(
+                          children: [
+                            GestureDetector(
+                                child: BackArrow(),
+                                onTap: () => Navigator.pop(context)),
+                          ],
                         ),
-                        GestureDetector(
-                            child: Container(
-                                width: .35 * globals.size.width,
-                                height: .03 * globals.size.height,
-                                margin: EdgeInsets.symmetric(
-                                    vertical: .01 * globals.size.height),
-                                decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.grey[400], width: 2),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(20))),
-                                child: Center(
-                                    child: Text(
-                                        provider.onlyShowNewFollowers
-                                            ? "All Activity"
-                                            : "New Followers",
-                                        style: TextStyle(
-                                            fontSize:
-                                                .02 * globals.size.height)))),
-                            onTap: () => provider.toggleOnyShowNewFollowers()),
-                        StreamBuilder(
-                            stream: provider.activitiesStream.map((snapshot) {
-                          return snapshot.docs.map((snapshot) {
-                            return _getActivityItem(
-                                snapshot, provider.onlyShowNewFollowers);
-                          }).toList();
-                        }), builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            provider.setIsUpdated();
-                            return Expanded(
-                                child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: .02 * globals.size.width),
-                              child: ListView.builder(
-                                  padding: EdgeInsets.only(top: 0),
-                                  itemCount: snapshot.data.length,
-                                  itemBuilder: (context, index) =>
-                                      snapshot.data[index]),
-                            ));
-                          } else {
-                            return Container();
-                          }
-                        }),
+                        Center(
+                          child: Text("Activity",
+                              style: TextStyle(
+                                  fontSize: .05 * globals.size.height)),
+                        )
                       ],
-                    ))));
+                    ),
+                  ),
+                  GestureDetector(
+                      child: Container(
+                          width: .35 * globals.size.width,
+                          height: .03 * globals.size.height,
+                          margin: EdgeInsets.symmetric(
+                              vertical: .01 * globals.size.height),
+                          decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: Colors.grey[400], width: 2),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(20))),
+                          child: Center(
+                              child: Text(
+                                  provider.onlyShowNewFollowers
+                                      ? "All Activity"
+                                      : "New Followers",
+                                  style: TextStyle(
+                                      fontSize: .02 * globals.size.height)))),
+                      onTap: () => provider.toggleOnyShowNewFollowers()),
+                  StreamBuilder(
+                      stream: provider.activitiesStream.map((snapshot) {
+                    return snapshot.docs.map((snapshot) {
+                      return _getActivityItem(
+                          snapshot, provider.onlyShowNewFollowers);
+                    }).toList();
+                  }), builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      provider.setIsUpdated();
+                      return Expanded(
+                          child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: .02 * globals.size.width),
+                        child: ListView.builder(
+                            padding: EdgeInsets.only(top: 0),
+                            itemCount: snapshot.data.length,
+                            itemBuilder: (context, index) =>
+                                snapshot.data[index]),
+                      ));
+                    } else {
+                      return Container();
+                    }
+                  }),
+                ],
+              );
+            })));
   }
 
   Widget _getActivityItem(var snapshot, bool onlyShowNewFollowers) {
