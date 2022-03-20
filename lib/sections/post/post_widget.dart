@@ -323,6 +323,11 @@ class _ThumbnailContainerState extends State<ThumbnailContainer> {
 }
 
 class PostWidgetFooter extends StatefulWidget {
+  // Displays the comments button, caption, and date time for a post. The
+  // comments button is in it's own widget, and the caption and date time are
+  // in the same width. When the comments button is pressed, this entire widget
+  // disappears.
+
   const PostWidgetFooter(
       {@required this.text,
       @required this.width,
@@ -344,7 +349,6 @@ class PostWidgetFooter extends StatefulWidget {
 
 class _PostWidgetFooterState extends State<PostWidgetFooter> {
   bool _showCaption;
-  String _text;
 
   @override
   void initState() {
@@ -358,104 +362,181 @@ class _PostWidgetFooterState extends State<PostWidgetFooter> {
 
   @override
   Widget build(BuildContext context) {
+    // First deines all the sizing (margin, widths, etc). Then, determines the
+    // height of the caption. This is needed to know the height of everything.
+    // Then returns a row of two widgets: a comments widget and a captions
+    // widget.
+
     if (_showCaption == false) {
       return Container();
     }
 
-    int _numLines = _createAndCountNewlines();
+    TextStyle textStyle = TextStyle(
+      fontFamily: 'SF Pro Text',
+      fontSize: .026 * widget.height,
+      color: Colors.white,
+    );
 
-    double _height = max((.038 * _numLines), .12) * widget.height;
-    double _padding = .02 * widget.width;
-    double _captionsButtonWidth = .14 * globals.size.width;
-    double _captionsTextWidth =
-        widget.width - 3 * _padding - _captionsButtonWidth;
-    double _captionsTextVerticalPadding = .01 * widget.height;
-    double _captionsTextHorizontalPadding = .005 * widget.height;
+    double margin = .04 * widget.width;
+    double captionsButtonWidth = .14 * globals.size.width;
+    double captionsTextWidth =
+        .95 * (widget.width - 4 * margin - 2 * captionsButtonWidth);
 
-    double _fontSize = .025 * widget.height;
+    String captionText =
+        _resizeText(widget.post.caption, textStyle, captionsTextWidth);
+
+    final Size size = (TextPainter(
+            text: TextSpan(text: captionText, style: textStyle),
+            textScaleFactor: MediaQuery.of(context).textScaleFactor,
+            textDirection: TextDirection.ltr)
+          ..layout())
+        .size;
+    double captionsWidth = widget.width - 3 * margin - captionsButtonWidth;
+    // added scaler for vertical padding
+    double height = 1.1 * max(size.height, .1 * widget.height);
 
     return Container(
-      padding: EdgeInsets.all(_padding),
-      child: Stack(
-        children: [
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: EdgeInsets.only(
-                top: _captionsTextVerticalPadding,
-                bottom: _captionsTextVerticalPadding,
-              ),
-              width: (widget.post.caption != null && widget.post.caption != "")
-                  ? _captionsTextWidth
-                  : _captionsButtonWidth,
-              height: _height,
+        margin: EdgeInsets.all(margin),
+        height: height,
+        width: widget.width,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+                width: captionsButtonWidth,
+                height: height,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(.4),
+                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                ),
+                child: _commentsButton()),
+            Container(
+              width: widget.post.caption != null && widget.post.caption != ""
+                  ? captionsWidth
+                  : captionsButtonWidth,
+              height: height,
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(.4),
                 borderRadius: BorderRadius.all(Radius.circular(15)),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                      width: _captionsButtonWidth,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                              padding: EdgeInsets.symmetric(
-                                vertical: .05 * _height,
-                              ),
-                              width: .5 * _captionsButtonWidth,
-                              child: Image.asset("assets/images/calender.png")),
-                          if (widget.post.dateFormatted != null)
-                            Text(widget.post.dateFormatted,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'SF Pro Text',
-                                  fontSize: .65 * _fontSize,
-                                  color: Colors.white,
-                                ))
-                        ],
-                      )),
-                  if (widget.post.caption != null && widget.post.caption != "")
-                    Container(
-                      width: _captionsTextWidth -
-                          _captionsButtonWidth -
-                          2 * _captionsTextHorizontalPadding,
-                      padding: EdgeInsets.symmetric(
-                          horizontal: _captionsTextHorizontalPadding),
-                      child: Center(
-                        child: Text(_text,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'SF Pro Text',
-                              fontSize: _fontSize,
-                              color: Colors.white,
-                            )),
-                      ),
-                    )
-                ],
-              ),
+              child: _captionsWidget(captionsTextWidth, captionsButtonWidth,
+                  margin, textStyle, captionText),
+            )
+          ],
+        ));
+  }
+
+  String _resizeText(String text, TextStyle textStyle, double maxWidth) {
+    // Adds newline characters in specific spots in the text so that the text
+    // remains within the maximum width. Returns the new text.
+
+    if (widget.text == "" || widget.text == null) {
+      return "";
+    }
+
+    List<String> lines = widget.text.split("\n");
+    String newText = "";
+
+    // goes through each line in the original text
+    for (int i = 0; i < lines.length; i++) {
+      List<String> words = lines[i].split(" ");
+      String newLine = "";
+
+      // iterates through each word in a given line
+      for (int j = 0; j < words.length; j++) {
+        String tempNewLine = newLine + " " + words[j];
+        double tempNewLineWidth = _getSize(tempNewLine, textStyle).width;
+
+        // if the new word can be added to the line without exceeding max width,
+        // add it to the line
+        if (tempNewLineWidth < maxWidth) {
+          newLine = tempNewLine;
+        } else {
+          // if the current new line isn't blank, add the new line to the new
+          // text and reset the new line
+          if (newLine != "") {
+            newText += newLine + "\n";
+            newLine = words[j];
+
+            // if the current line is blank, divide the word up into multiple
+            // lines so it can fit within the required width
+          } else {
+            String temp = "";
+            for (int k = 0; k < words[j].length; k++) {
+              String char = words[j][k];
+              double tempWidth = _getSize(temp + char, textStyle).width;
+
+              if (tempWidth < maxWidth) {
+                temp += char;
+              } else {
+                newText += temp + "\n";
+                temp = char;
+              }
+            }
+            newText += temp + "\n";
+          }
+        }
+      }
+      newText += newLine + "\n";
+    }
+
+    // remove the last character because it's a new line character
+    return newText.substring(0, newText.length - 1);
+  }
+
+  Size _getSize(String text, TextStyle textStyle) {
+    return (TextPainter(
+            text: TextSpan(text: text, style: textStyle),
+            textScaleFactor: MediaQuery.of(context).textScaleFactor,
+            textDirection: TextDirection.ltr)
+          ..layout())
+        .size;
+  }
+
+  Widget _commentsButton() {
+    return GestureDetector(
+        child: Center(
+            child: Transform.scale(
+                scale: 1.5,
+                child: SvgPicture.asset("assets/images/comments.svg"))),
+        onTap: () => _openComments());
+  }
+
+  Widget _captionsWidget(double captionsWidth, double dateWidth, double margin,
+      TextStyle textStyle, String text) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (widget.post.caption != null && widget.post.caption != "")
+          Expanded(
+            child: Container(
+              width: captionsWidth,
+              child: Text(text, textAlign: TextAlign.center, style: textStyle),
             ),
           ),
-          Container(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                  child: Container(
-                      width: _captionsButtonWidth,
-                      height: _height,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(.4),
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                      ),
-                      child: Center(
-                          child: Transform.scale(
-                              scale: 1.5,
-                              child: SvgPicture.asset(
-                                  "assets/images/comments.svg")))),
-                  onTap: () => _openComments())),
-        ],
-      ),
+        if (widget.post.caption != null && widget.post.caption != "")
+          Container(width: margin),
+        Container(
+            width: dateWidth,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: .2 * dateWidth,
+                    ),
+                    child: Image.asset("assets/images/calender.png")),
+                if (widget.post.dateFormatted != null)
+                  Text(widget.post.dateFormatted,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'SF Pro Text',
+                        fontSize: .016 * widget.height,
+                        color: Colors.white,
+                      ))
+              ],
+            )),
+      ],
     );
   }
 
@@ -474,51 +555,6 @@ class _PostWidgetFooterState extends State<PostWidgetFooter> {
         _showCaption = true;
       });
     });
-  }
-
-  int _createAndCountNewlines() {
-    if (widget.text == "" || widget.text == null) {
-      return 0;
-    }
-
-    const _maxCharsPerLine = 22;
-
-    int _lineSize = 0;
-    String _tempText = "";
-    List<String> _lines = widget.text.split("\n");
-    int _numLines = _lines.length;
-
-    for (int i = 0; i < _lines.length; i++) {
-      List<String> _words = _lines[i].split(" ");
-      _lineSize = 0;
-
-      for (int j = 0; j < _words.length; j++) {
-        // if new word makes the current line exceed limit, create new line.
-        if (_lineSize + _words[j].length + 1 >= _maxCharsPerLine) {
-          if (_tempText != "") {
-            _tempText += "\n";
-            _numLines += 1;
-          }
-          _lineSize = 0;
-        }
-
-        // splits up one word into multiple lines to make it fit.
-        while (_words[j].length >= _maxCharsPerLine) {
-          _tempText += _words[j].substring(0, _maxCharsPerLine) + "\n";
-          _words[i] = _words[j].substring(_maxCharsPerLine, _words[j].length);
-          _numLines += 1;
-        }
-
-        // adds word to current line
-        _tempText += _words[j] + " ";
-        _lineSize += _words[j].length;
-      }
-      _tempText += "\n";
-    }
-
-    _text = _tempText;
-
-    return _numLines;
   }
 }
 

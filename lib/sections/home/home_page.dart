@@ -90,7 +90,8 @@ class HomePage extends StatefulWidget {
   // body contains 3 sections: discover, friends and following. Only one of
   // these sections are shown at a time, the other two are hidden. The user
   // can navigate between these sections by swiping left or right or by pressing
-  // on the corresponding button found in the header.
+  // on the corresponding button found in the header. Also listens to firebase
+  // messages.
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -135,6 +136,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _listenForFirebaseMessages() async {
+    // checks for an initial firebase message (when user opens the app) and
+    // listens for new firebase messages.
+
     await Firebase.initializeApp();
 
     RemoteMessage initialMessage =
@@ -145,6 +149,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _handleFirebaseMessage(RemoteMessage message) async {
+    // Checks the firebase message and sends the user to the correct page.
+
     if (message == null) {
       return;
     }

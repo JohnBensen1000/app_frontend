@@ -25,7 +25,7 @@ class BaseAPI {
   // String baseURL = 'entropy-317014.uc.r.appspot.com';
   // String baseURL = "192.168.1.201:8000";
   // String baseURL = "10.186.43.255:8000";
-  String baseURL = "192.168.1.201:8000";
+  String baseURL = "10.186.37.82:8000";
 
   Future<dynamic> get(String url,
       {Map<String, dynamic> queryParameters}) async {
@@ -44,7 +44,7 @@ class BaseAPI {
   }
 
   Future<dynamic> delete(String url, [Map postBody]) async {
-    return handleResponse(http.delete(Uri.https(baseURL, url),
+    return handleResponse(http.delete(Uri.http(baseURL, url),
         body: json.encode(postBody), headers: {'uid': globals.uid}));
   }
 
