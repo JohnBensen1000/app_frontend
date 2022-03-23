@@ -13,6 +13,7 @@ import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_dialog_container.dart';
 import '../../widgets/generic_alert_dialog.dart';
 import '../../widgets/wide_button.dart';
+import '../../widgets/loading_icon.dart';
 
 import '../post/post_widget.dart';
 import '../post/post_page.dart';
@@ -279,9 +280,14 @@ class ProfilePostBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ProfilePageProvider>(builder: (context, provider, child) {
-      if (provider.postsList == null || provider.postsList.length == 0)
+      if (provider.postsList == null) {
+        return Container(
+            width: double.infinity,
+            height: height,
+            child: Center(child: ProgressCircle()));
+      } else if (provider.postsList.length == 0) {
         return Center(child: Text("Nothing to display"));
-      else {
+      } else {
         List<Widget> profilePostsList =
             _getProfilePostsList(context, provider.postsList);
 
@@ -304,10 +310,9 @@ class ProfilePostBody extends StatelessWidget {
     // widget in the return list is a large ProfilePostWidget(). The remaining
     // posts are broken up into rows of rowSize (int) ProfilePostWidget().
 
-    double width = .98 * globals.size.width;
+    double width = .96 * globals.size.width;
     double mainPostHeight = width / globals.goldenRatio;
-    double bodyPostHeight =
-        ((width / rowSize) - betweenPadding) * globals.goldenRatio;
+    double bodyPostHeight = .8 * mainPostHeight;
 
     List<Widget> profilePosts = [
       Padding(
@@ -315,11 +320,12 @@ class ProfilePostBody extends StatelessWidget {
           child: ProfilePostWidget(
               post: postList[0],
               height: mainPostHeight,
-              aspectRatio: 1 / globals.goldenRatio,
+              aspectRatio: mainPostHeight / width,
               key: UniqueKey()))
     ];
 
-    List<Widget> subPostsList = _getSubPostsList(postList, bodyPostHeight);
+    List<Widget> subPostsList =
+        _getSubPostsList(postList, bodyPostHeight, width);
 
     for (int i = 0; i < subPostsList.length; i += rowSize) {
       profilePosts.add(Padding(
@@ -333,7 +339,8 @@ class ProfilePostBody extends StatelessWidget {
     return profilePosts;
   }
 
-  List<Widget> _getSubPostsList(List<dynamic> postList, double postHeight) {
+  List<Widget> _getSubPostsList(
+      List<dynamic> postList, double postHeight, double width) {
     // Creates a list of the remaining posts (not the main post). Adds empty
     // containers so that the return list is evenly divisible by rowSize (int).
 
@@ -341,21 +348,20 @@ class ProfilePostBody extends StatelessWidget {
     int i = 1;
 
     while ((i < postList.length) || ((i - 1) % rowSize != 0)) {
-      double height = postHeight;
       // width of post is 1/3 of total width minus white space (padding)
-      double width = (.98 * globals.size.width - 2 * betweenPadding) / 3;
+      double postWidth = (width - 2 * betweenPadding) / 3;
 
       if (i < postList.length) {
         subPostsList.add(ProfilePostWidget(
             post: postList[i],
             height: postHeight,
-            aspectRatio: height / width,
+            aspectRatio: postHeight / postWidth,
             key: UniqueKey()));
       } else {
         subPostsList.add(
           Container(
-            height: height,
-            width: width,
+            height: postHeight,
+            width: postWidth,
           ),
         );
       }
@@ -395,7 +401,7 @@ class _ProfilePostWidgetState extends State<ProfilePostWidget>
         child: PostWidget(
           post: widget.post,
           height: widget.height,
-          aspectRatio: 1.02 * widget.aspectRatio,
+          aspectRatio: widget.aspectRatio,
           playVideo: false,
         ),
         onTap: () => Navigator.push(

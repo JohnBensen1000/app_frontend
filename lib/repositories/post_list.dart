@@ -8,10 +8,7 @@ import 'repository.dart';
 
 class PostListRepository extends Repository<List<Post>> {
   PostListRepository({@required this.function}) {
-    _index = 0;
-    _postsList = [];
-    _hasRecievedList = false;
-    _getPostList();
+    refreshPostList();
     _blockedCreatorCallback();
   }
 
@@ -21,7 +18,7 @@ class PostListRepository extends Repository<List<Post>> {
   List<Post> _postsList;
   bool _hasRecievedList;
 
-  bool get isListNotEmpty => _postsList.isNotEmpty;
+  bool get isListNotEmpty => _postsList != null ? _postsList.isNotEmpty : false;
   bool get hasRecievedList => _hasRecievedList;
 
   Post get previousPost => _index - 1 >= 0 ? _postsList[_index - 1] : null;
@@ -33,7 +30,7 @@ class PostListRepository extends Repository<List<Post>> {
 
   void moveUp() {
     if (_index < _postsList.length - 1) _index++;
-    if (_index >= _postsList.length - 2) _getPostList();
+    if (_index >= _postsList.length - 2) _getNextPostList();
     super.controller.sink.add(_postsList);
   }
 
@@ -45,14 +42,31 @@ class PostListRepository extends Repository<List<Post>> {
   void removeCurrentPost() {
     _postsList.remove(currentPost);
     if (_index == _postsList.length) _index--;
-    if (_index >= _postsList.length - 2) _getPostList();
+    if (_index >= _postsList.length - 2) _getNextPostList();
 
     super.controller.sink.add(_postsList);
   }
 
-  void refreshPostList() => _getPostList();
+  void getNextPostList() => _getNextPostList();
 
-  void _getPostList() async {
+  // resets the post list
+  void refreshPostList() async {
+    _index = 0;
+    _postsList = null;
+    _hasRecievedList = false;
+    super.controller.sink.add(_postsList);
+    var response = await function();
+
+    if (response == null) return null;
+
+    List<Post> newPosts = response;
+    _postsList = newPosts;
+    _hasRecievedList = true;
+    super.controller.sink.add(_postsList);
+  }
+
+  // gets a new post list to append to the current post list
+  void _getNextPostList() async {
     var response = await function();
 
     if (response == null) return null;
@@ -83,7 +97,7 @@ class PostListRepository extends Repository<List<Post>> {
         else
           _index = _index + 1;
       }
-      if (_index >= _postsList.length - 2) _getPostList();
+      if (_index >= _postsList.length - 2) _getNextPostList();
       super.controller.sink.add(_postsList);
     });
   }

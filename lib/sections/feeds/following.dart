@@ -25,6 +25,7 @@ class FollowingPage extends StatelessWidget {
       child: PostList(
         repository: globals.followingPostsRepository,
         height: height,
+        emptyListText: "you don't currently follow anyone",
       ),
     );
   }

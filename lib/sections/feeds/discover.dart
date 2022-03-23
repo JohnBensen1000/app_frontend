@@ -23,9 +23,9 @@ class DiscoverPage extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(top: .0118 * globals.size.height),
       child: PostList(
-        repository: globals.recommendationPostsRepository,
-        height: height,
-      ),
+          repository: globals.recommendationPostsRepository,
+          height: height,
+          emptyListText: "We ran out of posts to recommend you!"),
     );
   }
 }

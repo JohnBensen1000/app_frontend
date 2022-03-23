@@ -7,6 +7,7 @@ import '../../models/post.dart';
 import '../../models/comment.dart';
 import '../../repositories/comments.dart';
 import '../../widgets/entropy_scaffold.dart';
+import '../../widgets/loading_icon.dart';
 
 import 'widgets/add_comment_button.dart';
 import 'widgets/comment_widget.dart';
@@ -20,11 +21,14 @@ class CommentsProvider extends ChangeNotifier {
   // comment's replies.
 
   CommentsProvider({@required this.repository, @required this.post}) {
+    commentsLoaded = false;
     _commentsSectionCallback();
   }
 
   final CommentsSectionRepository repository;
   final Post post;
+
+  bool commentsLoaded;
 
   List<Comment> get commentsList => repository.commentsList;
 
@@ -36,6 +40,7 @@ class CommentsProvider extends ChangeNotifier {
 
   void _commentsSectionCallback() async {
     repository.stream.listen((_) {
+      commentsLoaded = true;
       notifyListeners();
     });
   }
@@ -106,74 +111,82 @@ class CommentsSection extends StatelessWidget {
         context: context,
         removeTop: true,
         child: Consumer<CommentsProvider>(
-            builder: (context, provider, child) => ListView.builder(
-                itemCount: provider.commentsList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  Comment comment = provider.commentsList[index];
-                  double leftPadding = paddingPerLevel * comment.level;
-                  Future getUserFuture =
-                      globals.userRepository.get(comment.uid);
+            builder: (context, provider, child) => provider.commentsLoaded
+                ? ListView.builder(
+                    itemCount: provider.commentsList.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      Comment comment = provider.commentsList[index];
+                      double leftPadding = paddingPerLevel * comment.level;
+                      Future getUserFuture =
+                          globals.userRepository.get(comment.uid);
 
-                  if (comment.uid == null) {
-                    return Container();
-                  }
+                      if (comment.uid == null) {
+                        return Container();
+                      }
 
-                  return FutureBuilder(
-                      future: getUserFuture,
-                      builder: (context, snapshot) {
-                        return Container(
-                          margin: EdgeInsets.only(
-                              bottom: .0059 * globals.size.height),
-                          child: Column(
-                            children: <Widget>[
-                              CommentWidget(
-                                  post: provider.post,
-                                  comment: comment,
-                                  commenter: snapshot.data,
-                                  leftPadding: leftPadding),
-                              Container(
-                                padding: EdgeInsets.only(
-                                    left: .0513 * globals.size.width +
-                                        leftPadding),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    if (comment.uid != null)
-                                      Container(
-                                        padding: EdgeInsets.only(
-                                            right: .0513 * globals.size.width),
-                                        child: GestureDetector(
-                                          child: Center(
-                                            child: Text("Reply",
-                                                style: TextStyle(
-                                                    fontSize: .015 *
-                                                        globals.size.height)),
-                                          ),
-                                          onTap: () => Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (_) => CommentsPage(
-                                                        post: provider.post,
-                                                        repository:
-                                                            provider.repository,
-                                                        commentsList: provider
-                                                            .getSubComments(
-                                                                comment),
-                                                        parentComment: comment,
-                                                      ))),
-                                        ),
-                                      )
-                                    else
-                                      Container(
-                                          height: .015 * globals.size.height),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        );
-                      });
-                })),
+                      return FutureBuilder(
+                          future: getUserFuture,
+                          builder: (context, snapshot) {
+                            return Container(
+                              margin: EdgeInsets.only(
+                                  bottom: .0059 * globals.size.height),
+                              child: Column(
+                                children: <Widget>[
+                                  CommentWidget(
+                                      post: provider.post,
+                                      comment: comment,
+                                      commenter: snapshot.data,
+                                      leftPadding: leftPadding),
+                                  Container(
+                                    padding: EdgeInsets.only(
+                                        left: .0513 * globals.size.width +
+                                            leftPadding),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        if (comment.uid != null)
+                                          Container(
+                                            padding: EdgeInsets.only(
+                                                right:
+                                                    .0513 * globals.size.width),
+                                            child: GestureDetector(
+                                              child: Center(
+                                                child: Text("Reply",
+                                                    style: TextStyle(
+                                                        fontSize: .015 *
+                                                            globals
+                                                                .size.height)),
+                                              ),
+                                              onTap: () => Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          CommentsPage(
+                                                            post: provider.post,
+                                                            repository: provider
+                                                                .repository,
+                                                            commentsList: provider
+                                                                .getSubComments(
+                                                                    comment),
+                                                            parentComment:
+                                                                comment,
+                                                          ))),
+                                            ),
+                                          )
+                                        else
+                                          Container(
+                                              height:
+                                                  .015 * globals.size.height),
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            );
+                          });
+                    })
+                : ProgressCircle(color: Colors.grey[400])),
       ),
     );
   }

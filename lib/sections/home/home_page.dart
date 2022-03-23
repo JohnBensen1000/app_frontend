@@ -10,12 +10,10 @@ import 'package:firebase_core/firebase_core.dart';
 import '../../API/methods/feeds.dart';
 import '../../repositories/post_list.dart';
 import '../feeds/following.dart';
-import '../../API/methods/posts.dart';
 import '../../models/post.dart';
 import '../../models/user.dart';
 import '../post/post_page.dart';
 import '../../globals.dart' as globals;
-import '../../models/user.dart';
 import '../../widgets/alert_circle.dart';
 
 import 'search_page.dart';
@@ -39,19 +37,26 @@ class HomePageProvider extends ChangeNotifier {
   // the user stops scrolling, decides if the user scrolled far enough to move
   // to a new section of the home page body and acts accordingly.
 
+  HomePageProvider({@required this.width});
+  final double width;
+
   PageLabel pageLabel = PageLabel.discover;
+
   double _offset = 0;
+  bool _cancelSwiping = false;
 
   double get offset {
     return _offset;
   }
 
-  set offset(double offsetVelocity) {
-    _offset = offsetVelocity;
+  void updateOffset(double velocity) {
+    _cancelSwiping = true;
 
-    if (_offset < -.33)
+    _offset += 2 * (velocity / width);
+
+    if (_offset < -.5)
       this.pageLabel = PageLabel.friends;
-    else if (_offset > .33)
+    else if (_offset > .5)
       this.pageLabel = PageLabel.following;
     else
       this.pageLabel = PageLabel.discover;
@@ -59,28 +64,54 @@ class HomePageProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void handleHorizontalDragEnd() {
-    if (_offset < -.33) {
-      setMainPage(PageLabel.friends);
-    } else if (_offset > .33) {
-      setMainPage(PageLabel.following);
+  Future<void> handleHorizontalDragEnd(double velocity) async {
+    if (_offset < -.5) {
+      await setMainPage(PageLabel.friends, velocity);
+    } else if (_offset > .5) {
+      await setMainPage(PageLabel.following, velocity);
     } else {
-      setMainPage(PageLabel.discover);
+      await setMainPage(PageLabel.discover, velocity);
     }
   }
 
-  void setMainPage(PageLabel newPageLabel) {
+  Future<void> setMainPage(PageLabel newPageLabel, double velocity) async {
     if (newPageLabel == PageLabel.following) {
-      _offset = 1.0;
+      await _moveToPosition(1.0, velocity);
       pageLabel = PageLabel.following;
     } else if (newPageLabel == PageLabel.discover) {
-      _offset = 0.0;
+      await _moveToPosition(0.0, velocity);
       pageLabel = PageLabel.discover;
     } else {
-      _offset = -1.0;
+      await _moveToPosition(-1.0, velocity);
       pageLabel = PageLabel.friends;
     }
     notifyListeners();
+  }
+
+  Future<void> _moveToPosition(double desiredOffset, double velocity) async {
+    _cancelSwiping = false;
+
+    double maxVelocity = -8000;
+    double flipThreshold = 1;
+    double t = 0;
+    if (_offset < desiredOffset) {
+      flipThreshold *= -1;
+      maxVelocity *= -1;
+    }
+
+    while (_cancelSwiping == false &&
+        flipThreshold * (_offset - desiredOffset) > 0) {
+      _offset += (maxVelocity - (maxVelocity - velocity) * exp(.01 * -t)) /
+          (width * 1000);
+      t += 1;
+
+      notifyListeners();
+      await Future.delayed(Duration(milliseconds: 1));
+    }
+
+    if (_cancelSwiping == false) {
+      _offset = desiredOffset;
+    }
   }
 }
 
@@ -97,9 +128,13 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+  DateTime lastClosed;
+
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
+
     globals.setUpRepositorys();
     globals.recommendationPostsRepository =
         new PostListRepository(function: getRecommendations);
@@ -107,6 +142,33 @@ class _HomePageState extends State<HomePage> {
         new PostListRepository(function: getFollowingPosts);
     _listenForFirebaseMessages();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Checks to see if the app has been opened (resumed) or closed (paused.) If
+    // it has been opened, check how long it's been since the last time it was
+    // closed. If that time difference exceeds a threshold, then refresh the
+    // feeds. If the app has been closed, save the time at which it was closed.
+    if (state == AppLifecycleState.resumed) {
+      DateTime _currentOpened = DateTime.now();
+
+      print(
+          " [DEBUG] $_currentOpened $lastClosed ${_currentOpened.difference(lastClosed).inMinutes}");
+      if (lastClosed == null ||
+          _currentOpened.difference(lastClosed).inMinutes >= 1) {
+        globals.followingPostsRepository.refreshPostList();
+        globals.recommendationPostsRepository.refreshPostList();
+      }
+    } else if (state == AppLifecycleState.paused) {
+      lastClosed = DateTime.now();
+    }
   }
 
   @override
@@ -119,7 +181,7 @@ class _HomePageState extends State<HomePage> {
           return true;
         },
         child: ChangeNotifierProvider(
-            create: (context) => HomePageProvider(),
+            create: (context) => HomePageProvider(width: globals.size.width),
             child: EntropyScaffold(
               body: Stack(
                 children: [
@@ -445,7 +507,7 @@ class HomePageHeaderNavigator extends StatelessWidget {
             ),
           ),
           onTap: () {
-            provider.setMainPage(pageLabel);
+            provider.setMainPage(pageLabel, 0);
           },
         ),
       );
@@ -500,8 +562,9 @@ class _HomePageBodyState extends State<HomePageBody> {
           ]),
         ),
         onHorizontalDragUpdate: (value) =>
-            provider.offset += 2.0 * (value.delta.dx / width),
-        onHorizontalDragEnd: (_) => provider.handleHorizontalDragEnd(),
+            provider.updateOffset(value.delta.dx),
+        onHorizontalDragEnd: (value) =>
+            provider.handleHorizontalDragEnd(value.primaryVelocity),
       );
     });
   }

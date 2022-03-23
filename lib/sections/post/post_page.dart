@@ -37,7 +37,7 @@ class PostPage extends StatelessWidget {
             ),
             (isFullPost)
                 ? FullPostWidget(
-                    width: .98 * globals.size.width,
+                    width: .96 * globals.size.width,
                     height: .75 * globals.size.height,
                     post: post,
                     showComments: showComments,

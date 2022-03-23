@@ -1,10 +1,10 @@
+import 'package:Entropy/widgets/loading_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../../globals.dart' as globals;
-import '../../../widgets/back_arrow.dart';
 import '../../../widgets/bubbles_page.dart';
 
 class AccountInputPageWrapper extends StatefulWidget {
@@ -32,11 +32,13 @@ class AccountInputPageWrapper extends StatefulWidget {
 
 class _AccountInputPageWrapperState extends State<AccountInputPageWrapper> {
   bool _allowTap;
+  PageRouteBuilder pageRouteBuilder;
 
   @override
   void initState() {
     _allowTap = true;
     super.initState();
+    pageRouteBuilder = _loadingScreen();
   }
 
   @override
@@ -76,9 +78,20 @@ class _AccountInputPageWrapperState extends State<AccountInputPageWrapper> {
 
   Future<void> _onTap() async {
     if (_allowTap) {
-      widget.onTap();
+      Navigator.of(context).push(pageRouteBuilder);
       _allowTap = false;
+      await widget.onTap();
+      Navigator.removeRoute(context, pageRouteBuilder);
     }
+  }
+
+  PageRouteBuilder _loadingScreen() {
+    return PageRouteBuilder(
+        settings: RouteSettings(name: "loading_screen"),
+        opaque: false,
+        pageBuilder: (_, __, ___) => Scaffold(
+            backgroundColor: Colors.grey[100].withOpacity(.5),
+            body: Center(child: ProgressCircle(color: Colors.grey[300]))));
   }
 }
 

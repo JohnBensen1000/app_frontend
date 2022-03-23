@@ -42,7 +42,7 @@ class PostWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double borderWidth = .0025 * globals.size.width;
-    double width = .98 * (height / aspectRatio);
+    double width = height / aspectRatio;
     double cornerRadius = cornerRadiusFraction * height;
 
     return Stack(alignment: Alignment.center, children: [

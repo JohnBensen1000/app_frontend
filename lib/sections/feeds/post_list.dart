@@ -2,6 +2,7 @@ import 'dart:core';
 import 'dart:async';
 import 'dart:math';
 
+import 'package:Entropy/widgets/loading_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -65,10 +66,12 @@ class PostListProvider extends ChangeNotifier {
     globals.blockedRepository.block(currentPost.creator);
   }
 
-  void refreshPostList() => _repository.refreshPostList();
+  void refreshPostList() => _repository.getNextPostList();
 
   void _refreshPostListCallback() {
-    _repository.stream.listen((_) => notifyListeners());
+    _repository.stream.listen((_) {
+      notifyListeners();
+    });
   }
 }
 
@@ -82,11 +85,13 @@ class PostList extends StatefulWidget {
   PostList(
       {@required this.height,
       @required this.repository,
+      @required this.emptyListText,
       this.postHeightFraction = .85});
 
   final double height;
   final PostListRepository repository;
   final double postHeightFraction;
+  final String emptyListText;
 
   @override
   _PostListState createState() => _PostListState();
@@ -130,7 +135,7 @@ class _PostListState extends State<PostList>
               return _refreshButton(provider);
             }
           } else {
-            return _progressCircle();
+            return ProgressCircle();
           }
         }));
   }
@@ -142,7 +147,7 @@ class _PostListState extends State<PostList>
                 child: FullPostWidget(
                     post: post,
                     playVideo: playVideo,
-                    width: .96 * globals.size.width,
+                    width: .94 * globals.size.width,
                     height: .74 * widget.height,
                     commentsHeightFraction: .6,
                     verticalOffset: widget.height -
@@ -154,33 +159,14 @@ class _PostListState extends State<PostList>
 
   Widget _refreshButton(PostListProvider provider) {
     return Center(
-      child: GestureDetector(
-          child: Container(
-              width: .205 * globals.size.width,
-              height: .0355 * globals.size.height,
-              decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius:
-                      BorderRadius.all(Radius.circular(globals.size.height))),
-              child: Center(child: Text("Refresh"))),
-          onTap: () {
-            provider.refreshPostList();
-          }),
+      child: Container(
+        width: .7 * globals.size.width,
+        padding: EdgeInsets.only(bottom: .1 * globals.size.height),
+        child: Text(widget.emptyListText,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: .025 * globals.size.height)),
+      ),
     );
-  }
-
-  Widget _progressCircle() {
-    return FutureBuilder(
-        future: globals.userRepository.get(globals.uid),
-        builder: (context, snapshot) => CircularProgressIndicator(
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation(
-                snapshot.hasData
-                    ? snapshot.data.profileColor
-                    : Colors.grey[300],
-              ),
-              strokeWidth: 3,
-            ));
   }
 }
 
@@ -353,7 +339,7 @@ class _PostListPageState extends State<PostListPage>
 
   Future<void> _swipeToPosition(
       double position, int direction, double startVelocity) async {
-    double maxVelocity = direction.toDouble() * 5000;
+    double maxVelocity = direction.toDouble() * 7000;
     int t = 0;
 
     while (

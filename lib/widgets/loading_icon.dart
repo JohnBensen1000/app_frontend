@@ -1,6 +1,29 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import '../globals.dart' as globals;
+
+class ProgressCircle extends StatelessWidget {
+  ProgressCircle({this.color = Colors.black12});
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+          height: .1 * globals.size.width,
+          width: .1 * globals.size.width,
+          child: CircularProgressIndicator(
+            backgroundColor: Colors.transparent,
+            valueColor: AlwaysStoppedAnimation(
+              color,
+            ),
+            strokeWidth: 3,
+          )),
+    );
+  }
+}
+
 class LoadingIcon extends StatelessWidget {
   const LoadingIcon({
     Key key,

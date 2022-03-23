@@ -8,7 +8,7 @@ Future<List<Post>> getFollowingPosts() async {
 
   if (response == null) return null;
 
-  if (response["posts"].length == 0) return null;
+  if (response["posts"].length == 0) return [];
 
   return [for (var postJson in response["posts"]) Post.fromJson(postJson)];
 }
@@ -17,7 +17,7 @@ Future<List<Post>> getRecommendations() async {
   var response = await globals.baseAPI
       .get('v2/feeds/recommendations', queryParameters: {'uid': globals.uid});
 
-  if (response == null || response["posts"].length == 0) return null;
+  if (response == null || response["posts"].length == 0) return [];
 
   return [for (var postJson in response["posts"]) Post.fromJson(postJson)];
 }
