@@ -16,6 +16,7 @@ import 'repositories/profile.dart';
 import 'repositories/user.dart';
 import 'repositories/account.dart';
 import 'repositories/post_list.dart';
+import 'repositories/users_posts.dart';
 
 // User user;
 String uid;
@@ -75,6 +76,7 @@ ProfileRepository profileRepository;
 UserRepository userRepository;
 PostListRepository recommendationPostsRepository;
 PostListRepository followingPostsRepository;
+UsersPostsRepository usersPostsRepository;
 // CommentsRepository commentsRepository;
 
 // // Set to true if someone is in the process of creating an account,
@@ -88,4 +90,5 @@ void setUpRepositorys() {
   followingRepository = new FollowingRepository();
   newActivityRepository = new NewActivityRepository();
   chatsRepository = new ChatsRepository();
+  usersPostsRepository = new UsersPostsRepository();
 }

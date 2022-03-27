@@ -27,7 +27,7 @@ class BaseAPI {
   // String baseURL = "10.186.43.255:8000";
   // String baseURL = "10.186.37.82:8000";
   // String baseURL = "10.186.37.82:8000";
-  String baseURL = "192.168.1.201:8000";
+  String baseURL = "10.186.118.110:8000";
 
   Future<dynamic> get(String url,
       {Map<String, dynamic> queryParameters}) async {

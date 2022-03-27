@@ -11,6 +11,7 @@ import '../../globals.dart' as globals;
 import '../../API/methods/posts.dart';
 import '../../API/methods/chats.dart';
 import '../../models/chat.dart';
+import '../../models/post.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/generic_alert_dialog.dart';
 
@@ -383,7 +384,7 @@ class PreviewButtons extends StatelessWidget {
 
   Future<Map> _uploadPost(
       PreviewProvider provider, BuildContext context) async {
-    return await postNewPost(
+    return await globals.usersPostsRepository.uploadNewPost(
         provider.isImage, false, provider.file, provider.caption);
   }
 
@@ -423,7 +424,7 @@ class PreviewButton extends StatefulWidget {
       this.color = Colors.white});
 
   final String name;
-  final Future<Map> Function(PreviewProvider, BuildContext) function;
+  final Future Function(PreviewProvider, BuildContext) function;
   final Color color;
 
   @override

@@ -24,6 +24,8 @@ dependencies:
   flutter:
     sdk: flutter
   ntp: ^2.0.0
+  image_gallery_saver: ^1.7.1
+  gallery_saver: ^2.3.2
   video_thumbnail: ^0.3.3
   video_player: ^2.1.6
   firebase_core: ^1.2.0

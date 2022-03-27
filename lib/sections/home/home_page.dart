@@ -159,8 +159,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       DateTime _currentOpened = DateTime.now();
 
-      print(
-          " [DEBUG] $_currentOpened $lastClosed ${_currentOpened.difference(lastClosed).inMinutes}");
       if (lastClosed == null ||
           _currentOpened.difference(lastClosed).inMinutes >= 1) {
         globals.followingPostsRepository.refreshPostList();

@@ -21,8 +21,8 @@ Future<Map> postNewPost(
   return await globals.baseAPI.post("v2/posts/${globals.uid}", postBody);
 }
 
-Future<List<Post>> getUsersPosts(User user) async {
-  var response = await globals.baseAPI.get('v2/posts/${user.uid}');
+Future<List<Post>> getUsersPosts(String uid) async {
+  var response = await globals.baseAPI.get('v2/posts/${uid}');
   List<Post> postList = [
     for (var postJson in response["posts"]) Post.fromJson(postJson)
   ];

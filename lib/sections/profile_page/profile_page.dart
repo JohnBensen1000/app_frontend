@@ -12,7 +12,6 @@ import '../../widgets/profile_pic.dart';
 import '../../widgets/back_arrow.dart';
 import '../../widgets/alert_dialog_container.dart';
 import '../../widgets/generic_alert_dialog.dart';
-import '../../widgets/wide_button.dart';
 import '../../widgets/loading_icon.dart';
 
 import '../post/post_widget.dart';
@@ -77,17 +76,17 @@ class ProfilePageProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> delete(Post post) async {
-    bool response = await deletePost(post);
-
-    if (response != null && response) {
-      _postsList.remove(post);
-      notifyListeners();
-    }
-  }
-
   void _getUsersPosts() async {
-    _postsList = await getUsersPosts(user);
+    if (user.uid != globals.uid) {
+      _postsList = await getUsersPosts(user.uid);
+    } else {
+      _postsList = globals.usersPostsRepository.usersPosts;
+      // set up stream to update user's posts if repository changes
+      globals.usersPostsRepository.stream.listen((postsList) {
+        _postsList = postsList;
+        notifyListeners();
+      });
+    }
     notifyListeners();
   }
 
@@ -398,72 +397,18 @@ class _ProfilePostWidgetState extends State<ProfilePostWidget>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        child: PostWidget(
-          post: widget.post,
-          height: widget.height,
-          aspectRatio: widget.aspectRatio,
-          playVideo: false,
-        ),
-        onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    PostPage(isFullPost: true, post: widget.post))),
-        onLongPress: () {
-          if (widget.post.creator.uid == globals.uid) {
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return ProfilePostAlertDialog(post: widget.post);
-                }).then((willDelete) async {
-              if (willDelete != null && willDelete) {
-                await Provider.of<ProfilePageProvider>(context, listen: false)
-                    .delete(widget.post);
-              }
-            });
-          }
-        });
-  }
-}
-
-class ProfilePostAlertDialog extends StatelessWidget {
-  const ProfilePostAlertDialog({@required this.post});
-
-  final Post post;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        content: Container(
-            height: .32 * globals.size.height,
-            width: .4 * globals.size.width,
-            padding: EdgeInsets.all(.02 * globals.size.height),
-            decoration: BoxDecoration(
-                color: Colors.white.withOpacity(.9),
-                border: Border.all(
-                  color: Colors.grey[800].withOpacity(.9),
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(20))),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                PostWidget(
-                    post: post,
-                    height: .2 * globals.size.height,
-                    aspectRatio: globals.goldenRatio),
-                GestureDetector(
-                    child: WideButton(buttonName: "Delete"),
-                    onTap: () => showDialog(
-                            context: context,
-                            builder: (BuildContext _) => AlertDialogContainer(
-                                dialogText:
-                                    "Are you sure you want to delete this post? It will be permanently removed from the app."))
-                        .then(
-                            (willDelete) => Navigator.pop(context, willDelete)))
-              ],
-            )));
+      child: PostWidget(
+        post: widget.post,
+        height: widget.height,
+        aspectRatio: widget.aspectRatio,
+        playVideo: false,
+      ),
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  PostPage(isFullPost: true, post: widget.post))),
+    );
   }
 }
 
